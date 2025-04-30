@@ -15,7 +15,11 @@ import {
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import {
   Sidebar,
@@ -61,25 +65,6 @@ export function ClickUpSidebar() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        <div className="flex gap-1">
-          {["Space", "Unread", "DMs"].map((filter) => (
-            <Button
-              key={filter}
-              variant={activeFilter === filter ? "secondary" : "ghost"}
-              size="sm"
-              className="flex-1 text-xs"
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter === "Space" && (
-                <Avatar className="mr-1 h-4 w-4 bg-blue-500 text-white">
-                  <AvatarFallback className="text-[10px]">T</AvatarFallback>
-                </Avatar>
-              )}
-              {filter}
-            </Button>
-          ))}
-        </div>
       </SidebarHeader>
 
       <SidebarContent className="gap-0">
@@ -88,95 +73,95 @@ export function ClickUpSidebar() {
             <SidebarMenuButton asChild>
               <a href="#">
                 <Inbox className="h-4 w-4" />
-                <span>Inbox</span>
+                <span>My Tasks</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <a href="#">
-                <Reply className="h-4 w-4" />
-                <span>Replies</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="#">
                 <Megaphone className="h-4 w-4" />
-                <span>Posts</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <a href="#">
-                <MessageSquareMore className="h-4 w-4" />
-                <span>FollowUps</span>
+                <span>Notifications</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {/* Favorites Section */}
-        <Collapsible className="w-full">
-          <SidebarGroup>
-            <SidebarGroupLabel asChild className="group/label">
-              <CollapsibleTrigger className="flex w-full items-center justify-between">
-                <span className="text-xs font-medium">Favorites</span>
-                <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]/label:rotate-180" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>{/* Favorites content would go here */}</SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
+        {/* Team Space Section */}
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <a href="#" className="flex items-center">
+              <Avatar className="mr-2 h-5 w-5 bg-blue-500 text-white">
+                <AvatarFallback className="text-[10px]">T</AvatarFallback>
+              </Avatar>
+              <span>Team Space</span>
+              <div className="ml-auto flex items-center gap-1">
+                {/* Replace Button with a div to avoid nested <button> */}
+                <div className="h-5 w-5 flex items-center justify-center rounded hover:bg-gray-200">
+                  <Plus className="h-3 w-3" />
+                </div>
+              </div>
+            </a>
+          </SidebarMenuButton>
 
-        {/* Recents Section */}
-        <Collapsible className="w-full" defaultOpen>
-          <SidebarGroup>
-            <SidebarGroupLabel asChild className="group/label">
-              <CollapsibleTrigger className="flex w-full items-center justify-between">
-                <span className="text-xs font-medium">Recents</span>
-                <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]/label:rotate-180" />
+          {/* Expandable Projects Folder */}
+          <div className="ml-4 mt-1 border-l pl-3">
+            <Collapsible className="w-full" defaultOpen>
+              <CollapsibleTrigger asChild>
+                <div className="flex items-center py-1 cursor-pointer">
+                  <ChevronDown className="mr-1 h-3 w-3" />
+                  <span className="text-sm">Projects</span>
+                  <div className="ml-auto flex items-center gap-1">
+                    {/* Replace Button with a div to avoid nested <button> */}
+                    <div className="h-5 w-5 flex items-center justify-center rounded hover:bg-gray-200">
+                      <Plus className="h-3 w-3" />
+                    </div>
+                  </div>
+                </div>
               </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <a href="#" className="flex items-center">
-                        <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
-                        <span>TESSS</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <a href="#" className="flex items-center">
-                        <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
-                        <span>Task 2</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <a href="#" className="flex items-center">
-                        <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
-                        <span>Project 1</span>
-                        <span className="ml-auto text-xs text-muted-foreground">3</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
+              <CollapsibleContent>
+                {/* Project 1 */}
+                <div className="ml-4 py-1">
+                  <a href="#" className="flex items-center text-sm">
+                    <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
+                    <span>Project 1</span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      3
+                    </span>
+                  </a>
+                </div>
+
+                {/* Project 2 */}
+                <div className="ml-4 py-1">
+                  <a href="#" className="flex items-center text-sm">
+                    <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
+                    <span>Project 2</span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      3
+                    </span>
+                  </a>
+                </div>
+
+                {/* Project Notes */}
+                <div className="ml-4 py-1">
+                  <a href="#" className="flex items-center text-sm">
+                    <div className="mr-2 h-3 w-3 rounded-sm border border-muted-foreground"></div>
+                    <span>Project Notes</span>
+                  </a>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <a href="#" className="flex items-center text-muted-foreground">
+              <Plus className="mr-2 h-4 w-4" />
+              <span>New Space</span>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
