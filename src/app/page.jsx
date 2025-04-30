@@ -4,6 +4,9 @@ import { ClickUpSidebar } from '@/components/clickup-sidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { templateService } from '@/service/index.mjs'
 import { useQuery } from '@tanstack/react-query'
+import { ClickUpSidebar } from '@/components/clickup-sidebar'
+import { Dashboard } from '@/components/dashboard'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
 export default function Home() {
   const dataQuery = useQuery({
@@ -37,6 +40,7 @@ export default function Home() {
             <p>No data retrieved</p>
           )}
         </div>
+        <Dashboard />
       </SidebarInset>
     </SidebarProvider>
   )
