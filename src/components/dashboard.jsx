@@ -249,10 +249,6 @@ export function Dashboard() {
               </svg>
               Table
             </TabsTrigger>
-            <Button variant="ghost" size="sm" className="ml-auto gap-1">
-              <Plus className="h-3 w-3" />
-              View
-            </Button>
           </TabsList>
         </Tabs>
       </div>
@@ -272,88 +268,6 @@ export function Dashboard() {
 
       <div className="flex-1 overflow-auto p-6">
         <div className="grid grid-cols-12 gap-6">
-          {/* Recent Card */}
-          <Card className="col-span-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Recent</h3>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Expand className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-md p-2 hover:bg-muted">
-                  <div className="flex items-center gap-2">
-                    <Folder className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="text-sm font-medium">Projects</span>
-                      <span className="text-xs text-muted-foreground">
-                        {" "}
-                        • in Team Space
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Link className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between rounded-md p-2 hover:bg-muted">
-                  <div className="flex items-center gap-2">
-                    <ListFilter className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="text-sm font-medium">Project 1</span>
-                      <span className="text-xs text-muted-foreground">
-                        {" "}
-                        • in Projects
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Link className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between rounded-md p-2 hover:bg-muted">
-                  <div className="flex items-center gap-2">
-                    <ListFilter className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <span className="text-sm font-medium">Project 2</span>
-                      <span className="text-xs text-muted-foreground">
-                        {" "}
-                        • in Projects
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Link className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Docs Card */}
           <Card className="col-span-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -382,38 +296,6 @@ export function Dashboard() {
               <p className="text-sm text-muted-foreground">
                 You haven't added any Docs to this location.
               </p>
-            </CardContent>
-          </Card>
-
-          {/* Bookmarks Card */}
-          <Card className="col-span-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Bookmarks</h3>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Expand className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center">
-              <img
-                src="/placeholder.svg?height=100&width=100"
-                alt="No bookmarks"
-                className="mb-4 h-24 w-24 opacity-50"
-              />
-              <p className="text-sm text-muted-foreground">
-                Bookmarks are the easiest way to save ClickUp items or URLs from
-                anywhere on the web
-              </p>
-              <Button variant="primary" size="sm" className="mt-4">
-                Add Bookmark
-              </Button>
             </CardContent>
           </Card>
 
