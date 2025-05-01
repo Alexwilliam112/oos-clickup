@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { X, ChevronUp, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Calendar } from "@/components/ui/calendar";
+import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input"; // Updated import
 
 export function Modal({
   isOpen,
@@ -19,20 +25,31 @@ export function Modal({
   const [isVisible, setIsVisible] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
+  // Task fields state
+  const [taskName, setTaskName] = useState("");
+  const [taskType, setTaskType] = useState("");
+  const [assignees, setAssignees] = useState([]);
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState("");
+  const [lists, setLists] = useState([]);
+  const [product, setProduct] = useState("");
+  const [team, setTeam] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [description, setDescription] = useState("");
+  const [attachments, setAttachments] = useState([]);
+
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      // Prevent body scrolling when modal is open
       document.body.style.overflow = "hidden";
     } else {
-      // Add exit animation
       setTimeout(() => {
         setIsVisible(false);
         document.body.style.overflow = "";
       }, 300);
     }
 
-    // Cleanup function
     return () => {
       document.body.style.overflow = "";
     };
@@ -50,6 +67,10 @@ export function Modal({
   }, [isOpen, onClose]);
 
   if (!isVisible) return null;
+
+  const handleFileUpload = (e) => {
+    setAttachments([...attachments, ...e.target.files]);
+  };
 
   return (
     <div
@@ -107,7 +128,141 @@ export function Modal({
         {!isMinimized && (
           <div className="flex flex-1 overflow-hidden">
             {/* Main Content */}
-            <div className="flex-1 overflow-auto p-4">{children}</div>
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+              {/* Task Name */}
+              <div>
+                <label className="block text-sm font-medium">Task Name</label>
+                <Input
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                  placeholder="Enter task name"
+                />
+              </div>
+
+              {/* Task Type */}
+              <div>
+                <label className="block text-sm font-medium">Task Type</label>
+                <SingleSelectTag
+                  value={taskType}
+                  onChange={(value) => setTaskType(value)}
+                  options={["Bug", "Feature", "Improvement"]}
+                  placeholder="Select task type"
+                />
+              </div>
+
+              {/* Assignees */}
+              <div>
+                <label className="block text-sm font-medium">Assignees</label>
+                <MultipleSelectTags
+                  value={assignees}
+                  onChange={(value) => setAssignees(value)}
+                  options={["Alice", "Bob", "Charlie"]}
+                  placeholder="Add assignees"
+                />
+              </div>
+
+              {/* Start Date & Due Date */}
+              <div>
+                <label className="block text-sm font-medium">Date Range</label>
+                <Calendar
+                  value={dateRange}
+                  onChange={(range) => setDateRange(range)}
+                  range
+                />
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-sm font-medium">Priority</label>
+                <SingleSelectTag
+                  value={priority}
+                  onChange={(value) => setPriority(value)}
+                  options={["Low", "Medium", "High"]}
+                  placeholder="Select priority"
+                />
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium">Status</label>
+                <SingleSelectTag
+                  value={status}
+                  onChange={(value) => setStatus(value)}
+                  options={["Todo", "In Progress", "Done"]}
+                  placeholder="Select status"
+                />
+              </div>
+
+              {/* Lists */}
+              <div>
+                <label className="block text-sm font-medium">Lists</label>
+                <MultipleSelectTags
+                  value={lists}
+                  onChange={(value) => setLists(value)}
+                  options={["Backlog", "Sprint 1", "Sprint 2"]}
+                  placeholder="Add lists"
+                />
+              </div>
+
+              {/* Product */}
+              <div>
+                <label className="block text-sm font-medium">Product</label>
+                <SingleSelectTag
+                  value={product}
+                  onChange={(value) => setProduct(value)}
+                  options={["Website", "Mobile App", "API"]}
+                  placeholder="Select product"
+                />
+              </div>
+
+              {/* Team */}
+              <div>
+                <label className="block text-sm font-medium">Team</label>
+                <SingleSelectTag
+                  value={team}
+                  onChange={(value) => setTeam(value)}
+                  options={["Frontend", "Backend", "Design"]}
+                  placeholder="Select team"
+                />
+              </div>
+
+              {/* Progress */}
+              <div>
+                <label className="block text-sm font-medium">Progress</label>
+                <Slider
+                  value={progress}
+                  onChange={(value) => setProgress(value)}
+                  max={100}
+                />
+                <span className="text-sm">{progress}%</span>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium">Description</label>
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter description"
+                />
+              </div>
+
+              {/* Attachments */}
+              <div>
+                <label className="block text-sm font-medium">Attachments</label>
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <ul className="mt-2 text-sm text-gray-500">
+                  {attachments.map((file, index) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
             {/* Sidebar */}
             {showSidebar && (
