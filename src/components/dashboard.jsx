@@ -1,41 +1,37 @@
 "use client";
+
 import {
   ArrowUpRight,
   ChevronDown,
   Clock,
   Cog,
   Expand,
-  ExternalLink,
   Filter,
-  Folder,
   GripVertical,
-  Link,
   ListFilter,
   MoreHorizontal,
   Plus,
   RefreshCw,
-  Shield,
-  Users,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function Dashboard() {
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-20 items-center border-b px-6">
+      {/* Header */}
+      <header className="flex h-20 items-center border-b px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-8 w-8 bg-blue-500 text-white">
             <AvatarFallback>T</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-medium">Team Space</h1>
+              <h1 className="text-base sm:text-lg font-medium">Team Space</h1>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Marketing Division</span>
@@ -44,9 +40,10 @@ export function Dashboard() {
         </div>
       </header>
 
-      <div className="flex items-center border-b px-6 py-2">
+      {/* Tabs */}
+      <div className="flex items-center border-b px-4 py-2 sm:px-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList>
+          <TabsList className="overflow-auto">
             <TabsTrigger value="overview" className="gap-2">
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <rect
@@ -176,132 +173,42 @@ export function Dashboard() {
               </svg>
               Calendar
             </TabsTrigger>
-            <TabsTrigger value="gantt" className="gap-2">
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <rect
-                  width="20"
-                  height="16"
-                  x="2"
-                  y="4"
-                  rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="6"
-                  y1="8"
-                  x2="14"
-                  y2="8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="10"
-                  y1="12"
-                  x2="18"
-                  y2="12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="8"
-                  y1="16"
-                  x2="16"
-                  y2="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-              Gantt
-            </TabsTrigger>
-            <TabsTrigger value="table" className="gap-2">
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <rect
-                  width="20"
-                  height="16"
-                  x="2"
-                  y="4"
-                  rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="2"
-                  y1="10"
-                  x2="22"
-                  y2="10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="8"
-                  y1="4"
-                  x2="8"
-                  y2="20"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-              Table
-            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="flex items-center justify-between border-b px-6 py-2">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
-        </div>
-        <Button variant="primary" size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add card
-        </Button>
-      </div>
-
-      <div className="flex-1 overflow-auto p-6">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Docs Card */}
-          <Card className="col-span-12">
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Card 1 */}
+          <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Docs</h3>
+                <h3 className="font-medium">Card 1</h3>
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="icon" className="h-7 w-7">
                   <Expand className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Plus className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center">
-              <img
-                src="/placeholder.svg?height=100&width=100"
-                alt="No docs"
-                className="mb-4 h-24 w-24 opacity-50"
-              />
+            <CardContent>
               <p className="text-sm text-muted-foreground">
-                You haven't added any Docs to this location.
+                This is the first card.
               </p>
             </CardContent>
           </Card>
 
-          {/* Folders Card */}
-          <Card className="col-span-12">
+          {/* Card 2 */}
+          <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Folders</h3>
+                <h3 className="font-medium">Card 2</h3>
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -313,23 +220,18 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex h-24 items-center justify-center rounded-md border border-dashed">
-                  <Button variant="ghost" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Folder
-                  </Button>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                This is the second card.
+              </p>
             </CardContent>
           </Card>
 
-          {/* Lists Card */}
-          <Card className="col-span-12">
+          {/* Card 3 */}
+          <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Lists</h3>
+                <h3 className="font-medium">Card 3</h3>
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -341,124 +243,13 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex h-24 items-center justify-center rounded-md border border-dashed">
-                  <Button variant="ghost" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add List
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Resources Card */}
-          <Card className="col-span-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Resources</h3>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Expand className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex h-40 items-center justify-center rounded-md border border-dashed">
-                <Button variant="ghost" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Resource
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Workload by Status Card */}
-          <Card className="col-span-6">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">Workload by Status</h3>
-              </div>
-              <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Clock className="h-3 w-3" />
-                  Refreshed May 1, 2025 at 12:27 am
-                </Badge>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Expand className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Filter className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Cog className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex h-40 items-center justify-center">
-                <div className="h-32 w-32 rounded-full border-8 border-gray-200">
-                  <div className="relative h-full w-full">
-                    <div
-                      className="absolute inset-0 rounded-full border-8 border-blue-500"
-                      style={{
-                        clipPath: "polygon(0 0, 100% 0, 100% 50%, 0 50%)",
-                      }}
-                    ></div>
-                    <div
-                      className="absolute inset-0 rounded-full border-8 border-green-500"
-                      style={{
-                        clipPath: "polygon(100% 0, 100% 100%, 50% 100%, 50% 0)",
-                      }}
-                    ></div>
-                    <div
-                      className="absolute inset-0 rounded-full border-8 border-yellow-500"
-                      style={{
-                        clipPath:
-                          "polygon(50% 100%, 100% 100%, 0 100%, 0 50%, 50% 50%)",
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                This is the second card.
+              </p>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  );
-}
-
-function SidebarTrigger({ className }) {
-  return (
-    <Button variant="ghost" size="icon" className={className}>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-5 w-5"
-      >
-        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-        <line x1="9" x2="9" y1="3" y2="21" />
-      </svg>
-    </Button>
   );
 }
