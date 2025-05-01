@@ -123,10 +123,15 @@ export function Dashboard() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview">{/* <Overview /> */}</TabsContent>
+      <TabsContent value="overview">
+        <Overview />
+      </TabsContent>
 
       <TabsContent value="board" className="overflow-x-auto h-full">
-        {/* <Board /> */}
+        <Board />
+      </TabsContent>
+
+      <TabsContent value="list">
         <ListView />
       </TabsContent>
     </Tabs>
