@@ -86,7 +86,7 @@ export function ListView() {
   const renderHeaders = () => (
     <div className="flex items-center px-2 py-2 text-xs font-medium text-muted-foreground bg-muted/40 border-b border-muted/20">
       <div className="w-5" />
-      <div className="min-w-[200px] flex-1 p-2">Task Name</div>
+      <div className="min-w-[300px] flex-1 p-2">Task Name</div>
       <div className="w-32 p-2">Created</div>
       <div className="w-32 p-2">Assignee</div>
       <div className="w-32 p-2">Start Date</div>
@@ -119,7 +119,7 @@ export function ListView() {
   
           {/* Task Columns */}
           <div
-            className="min-w-[200px] flex-1 p-2"
+            className="min-w-[300px] flex-1 p-2"
             style={{ paddingLeft: `${level * 20}px` }}
           >
             {task.title}
