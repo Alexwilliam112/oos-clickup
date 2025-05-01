@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   ArrowUpRight,
@@ -12,18 +12,18 @@ import {
   MoreHorizontal,
   Plus,
   RefreshCw,
-} from "lucide-react";
+} from 'lucide-react'
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function Overview() {
   return (
-    <div className="flex-1 overflow-auto p-4 sm:p-6">
-      <div className="grid grid-cols-1 gap-6">
+    <div className="flex-1 overflow-auto">
+      <div className="grid grid-cols-1 gap-4">
         {/* Card 1 */}
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -41,9 +41,7 @@ export function Overview() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              This is the first card.
-            </p>
+            <p className="text-sm text-muted-foreground">This is the first card.</p>
           </CardContent>
         </Card>
 
@@ -64,9 +62,7 @@ export function Overview() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              This is the second card.
-            </p>
+            <p className="text-sm text-muted-foreground">This is the second card.</p>
           </CardContent>
         </Card>
 
@@ -87,12 +83,10 @@ export function Overview() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              This is the second card.ss
-            </p>
+            <p className="text-sm text-muted-foreground">This is the second card.ss</p>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
+  )
 }
