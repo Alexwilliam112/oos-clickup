@@ -30,7 +30,6 @@ export function Dashboard() {
     <div className="flex h-full flex-col">
       <header className="flex h-20 items-center border-b px-6">
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="mr-2" />
           <Avatar className="h-8 w-8 bg-blue-500 text-white">
             <AvatarFallback>T</AvatarFallback>
           </Avatar>
@@ -39,9 +38,7 @@ export function Dashboard() {
               <h1 className="text-lg font-medium">Team Space</h1>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Public</span>
-              <span>•</span>
-              <span>Space</span>
+              <span>Marketing Division</span>
             </div>
           </div>
         </div>
@@ -269,7 +266,7 @@ export function Dashboard() {
       <div className="flex-1 overflow-auto p-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Docs Card */}
-          <Card className="col-span-4">
+          <Card className="col-span-12">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 text-muted-foreground" />
