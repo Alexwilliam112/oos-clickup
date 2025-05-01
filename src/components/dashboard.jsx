@@ -27,7 +27,7 @@ export function Dashboard() {
   return (
     <Tabs defaultValue="overview" className="h-full w-full p-4">
       <TabsList>
-        <TabsTrigger value="overview" className="gap-2">
+      <TabsTrigger value="overview" className="gap-2">
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <rect
               width="20"
@@ -81,6 +81,61 @@ export function Dashboard() {
             />
           </svg>
           Overview
+        </TabsTrigger>
+        <TabsTrigger value="info" className="gap-2">
+          <svg className="h-4 w-4" viewBox="0 0 24 24">
+            <rect
+              width="20"
+              height="20"
+              x="2"
+              y="2"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <rect
+              width="8"
+              height="8"
+              x="4"
+              y="4"
+              rx="1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <rect
+              width="8"
+              height="8"
+              x="4"
+              y="12"
+              rx="1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <rect
+              width="8"
+              height="8"
+              x="12"
+              y="4"
+              rx="1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <rect
+              width="8"
+              height="8"
+              x="12"
+              y="12"
+              rx="1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
+          Project Info
         </TabsTrigger>
         <TabsTrigger value="board" className="gap-2">
           <svg className="h-4 w-4" viewBox="0 0 24 24">
