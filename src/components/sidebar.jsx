@@ -31,7 +31,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-export function ClickUpSidebar() {
+export function SidebarNav() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [activeFilter, setActiveFilter] = React.useState("Space");
 
