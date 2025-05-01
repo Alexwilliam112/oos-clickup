@@ -113,6 +113,7 @@ export function ListView() {
   const renderHeaders = () => (
     <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
       <div className="table-row text-xs font-medium text-muted-foreground">
+        <div className="table-cell min-w-[50px] p-3 bg-muted"></div> {/* New column for Add Task button */}
         <div className="table-cell min-w-[255px] p-3 bg-muted">Task Name</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Created</div>
         <div className="table-cell min-w-[150px] p-3 bg-muted">Assignee</div>
@@ -130,6 +131,7 @@ export function ListView() {
       </div>
     </div>
   );
+  
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
@@ -138,6 +140,18 @@ export function ListView() {
         className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
       >
         <div className="flex items-center px-2 py-2 text-sm w-full">
+          {/* New column for Add Task button */}
+          <div className="min-w-[50px] p-2 flex justify-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => addSubtask(task.id)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+  
           {/* Task Name with indentation and expand icon */}
           <div
             className="min-w-[255px] p-2 flex items-center"
@@ -163,7 +177,7 @@ export function ListView() {
           <div className="min-w-[120px] p-2">{formatDate(task.dueDate)}</div>
           <div className="min-w-[100px] p-2">{task.priority}</div>
           <div className="min-w-[100px] p-2">{task.status}</div>
-
+  
           {/* Lists (multi-tag) */}
           <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
             {task.lists?.map((list, idx) => (
@@ -175,21 +189,21 @@ export function ListView() {
               </span>
             ))}
           </div>
-
+  
           {/* Product tag */}
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
               {task.product || "-"}
             </span>
           </div>
-
+  
           {/* Team tag */}
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
               {task.team || "-"}
             </span>
           </div>
-
+  
           {/* Progress */}
           <div className="min-w-[160px] p-2">
             <div className="h-2 w-full bg-muted rounded-sm">
@@ -199,23 +213,15 @@ export function ListView() {
               ></div>
             </div>
           </div>
-
+  
           {/* Actions */}
           <div className="min-w-[100px] p-2 flex justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => addSubtask(task.id)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
         </div>
-
+  
         {/* Render children if expanded */}
         {task.expanded && task.children?.length > 0 && (
           <div className="w-full">{renderTasks(task.children, level + 1)}</div>
