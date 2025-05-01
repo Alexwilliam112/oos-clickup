@@ -327,16 +327,6 @@ export function SidebarNav() {
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold">Dashboard</span>
           </div>
-
-          {/* <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search sidebar..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div> */}
         </SidebarHeader>
 
         <SidebarContent className="gap-0 p-4">

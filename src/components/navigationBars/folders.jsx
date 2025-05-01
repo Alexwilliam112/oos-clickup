@@ -18,6 +18,18 @@ export function Folders({
   openFolderModal,
   openModal,
 }) {
+  const navigateTo = (page, paramId) => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    if (workspaceId) {
+      const url = `/dashboard?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`;
+      window.location.href = url; // Navigate to the constructed URL
+    } else {
+      console.error("workspace_id is missing in the query parameters.");
+    }
+  };
+
   return (
     <div className="ml-3 mt-3 border-l pl-2">
       {loading ? (
@@ -36,6 +48,7 @@ export function Folders({
                   href="#"
                   className="flex items-center gap-2 text-sm font-medium truncate line-clamp-1"
                   title={team.name}
+                  onClick={() => navigateTo("team", team.id_team)} // Navigate to team
                 >
                   <Avatar className="h-6 w-6 bg-blue-500 text-white">
                     <AvatarFallback className="text-xs">
@@ -80,6 +93,9 @@ export function Folders({
                                 href="#"
                                 className="text-sm truncate line-clamp-1 font-medium"
                                 title={folder.name}
+                                onClick={() =>
+                                  navigateTo("folder", folder.id_folder)
+                                } // Navigate to folder
                               >
                                 {folder.name || "Unnamed Folder"}
                               </a>
@@ -113,6 +129,9 @@ export function Folders({
                                         href="#"
                                         className="text-sm truncate line-clamp-1"
                                         title={list.name}
+                                        onClick={() =>
+                                          navigateTo("list", list.id_list)
+                                        } // Navigate to list
                                       >
                                         {list.name || "Unnamed List"}
                                       </a>
