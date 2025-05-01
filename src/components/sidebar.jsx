@@ -323,15 +323,12 @@ export function SidebarNav() {
   return (
     <>
       <Sidebar>
-        <SidebarHeader className="gap-4 p-4 border-b border-muted-foreground">
+        <SidebarHeader className="gap-4 p-4  border-muted-foreground">
           <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold">Home</span>
-            <Button variant="primary" onClick={openTeamModal}>
-              Add Team
-            </Button>
+            <span className="text-lg font-semibold">Dashboard</span>
           </div>
 
-          <div className="relative mt-4">
+          {/* <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search sidebar..."
@@ -339,7 +336,7 @@ export function SidebarNav() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+          </div> */}
         </SidebarHeader>
 
         <SidebarContent className="gap-0 p-4">
