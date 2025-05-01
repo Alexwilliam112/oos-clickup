@@ -11,8 +11,10 @@ export default function Home() {
   });
 
   return (
-    <div>
-      <Dashboard />
+    <div className="flex h-screen w-[80%] flex-col overflow-hidden">
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <Dashboard />
+      </div>
     </div>
   );
 }

@@ -3,7 +3,6 @@ import "./globals.css";
 import QueryClient from "./query-client";
 import { SidebarNav } from "@/components/sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { metadata } from "@/metadata"; // Import metadata
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +18,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <title>{metadata.title}</title> {/* Use metadata */}
-        <meta name="description" content={metadata.description} />
+        <title>Mekari Task Management</title>
+        <meta name="description" content={"Mekari Task Management"} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
