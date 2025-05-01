@@ -161,8 +161,7 @@ export function ListView() {
             className="min-w-[255px] p-2 flex items-center"
             style={{ paddingLeft: `${level * 20}px` }}
           >
-            {task.children?.length > 0 && (
-              <button
+            <button
                 className="text-muted-foreground hover:text-foreground transition mr-2"
                 onClick={() => toggleExpand(task)}
               >
@@ -172,7 +171,6 @@ export function ListView() {
                   <ChevronRight className="h-4 w-4" />
                 )}
               </button>
-            )}
             <span>{task.title}</span>
           </div>
           <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
