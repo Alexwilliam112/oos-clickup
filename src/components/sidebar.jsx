@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { ChevronDown, Inbox, Megaphone, Plus, Search } from "lucide-react";
+import { Folders } from "@/components/navigationBars/folders";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ export function SidebarNav() {
   const [isFolderModalOpen, setIsFolderModalOpen] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState("");
   const [currentTeamId, setCurrentTeamId] = React.useState(null);
+  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
+  const [newTeamName, setNewTeamName] = React.useState("");
 
   const fetchTeams = React.useCallback(() => {
     const params = new URLSearchParams(window.location.search);
@@ -75,6 +78,52 @@ export function SidebarNav() {
       setLoading(false);
     }
   }, []);
+
+  const handleAddTeam = () => {
+    if (!newTeamName) {
+      setError("Team name cannot be empty.");
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    if (!workspaceId) {
+      setError("Workspace ID is missing.");
+      return;
+    }
+
+    fetch(
+      `https://api-oos.jojonomic.com/27414/clickup/v2/team/create?workspace_id=${workspaceId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newTeamName,
+        }),
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to create team.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || "Failed to create team.");
+        }
+        setNewTeamName(""); // Clear the input field
+        setIsTeamModalOpen(false); // Close the modal
+        fetchTeams(); // Refetch the teams to update the UI
+      })
+      .catch((error) => {
+        console.error("Error creating team:", error);
+        setError("Failed to create team. Please try again.");
+      });
+  };
 
   const fetchFolders = React.useCallback(() => {
     const params = new URLSearchParams(window.location.search);
@@ -241,9 +290,18 @@ export function SidebarNav() {
     setIsModalOpen(true);
   };
 
+  const openTeamModal = () => {
+    setIsTeamModalOpen(true);
+  };
+
   const openFolderModal = (teamId) => {
     setCurrentTeamId(teamId);
     setIsFolderModalOpen(true);
+  };
+
+  const closeTeamModal = () => {
+    setIsTeamModalOpen(false);
+    setNewTeamName("");
   };
 
   const closeFolderModal = () => {
@@ -268,6 +326,9 @@ export function SidebarNav() {
         <SidebarHeader className="gap-4 p-4 border-b border-muted-foreground">
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold">Home</span>
+            <Button variant="primary" onClick={openTeamModal}>
+              Add Team
+            </Button>
           </div>
 
           <div className="relative mt-4">
@@ -305,152 +366,29 @@ export function SidebarNav() {
           {/* Teams Section */}
           <SidebarMenuItem className="mt-4 mb-10">
             <Collapsible className="w-full" defaultOpen>
-              <div className="flex items-center py-1">
+              <div className="flex items-center justify-between py-1">
                 <span className="text-xm font-medium">Teams</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 flex items-center justify-center"
+                  onClick={openTeamModal}
+                  title="Add Team"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
               <CollapsibleContent>
-                <div className="ml-3 mt-3 border-l pl-2">
-                  {loading ? (
-                    <div className="text-sm text-muted-foreground">
-                      Loading...
-                    </div>
-                  ) : teams.length > 0 ? (
-                    teams.map((team) => (
-                      <div key={team.id_team} className="py-1">
-                        <Collapsible className="w-full" defaultOpen>
-                          <div className="flex items-center py-1">
-                            <CollapsibleTrigger asChild>
-                              <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer">
-                                <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" />
-                              </div>
-                            </CollapsibleTrigger>
-                            <a
-                              href="#"
-                              className="flex items-center gap-2 text-sm font-medium truncate line-clamp-1"
-                              title={team.name}
-                            >
-                              <Avatar className="h-6 w-6 bg-blue-500 text-white">
-                                <AvatarFallback className="text-xs">
-                                  {team.name
-                                    ? team.name.charAt(0).toUpperCase()
-                                    : "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{team.name || "Unnamed Team"}</span>
-                            </a>
-                          </div>
-                          <CollapsibleContent>
-                            <div className="ml-3 mt-2 border-l pl-2">
-                              <div className="flex items-center py-1">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  Folders
-                                </span>
-                                <button
-                                  className="ml-auto h-6 w-6 flex items-center justify-center rounded hover:bg-gray-200"
-                                  onClick={() => openFolderModal(team.id_team)}
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </button>
-                              </div>
-                              {loadingFolders ? (
-                                <div className="text-xs text-muted-foreground">
-                                  Loading...
-                                </div>
-                              ) : folders.filter(
-                                  (folder) => folder.team_id === team.id_team
-                                ).length > 0 ? (
-                                folders
-                                  .filter(
-                                    (folder) => folder.team_id === team.id_team
-                                  )
-                                  .map((folder) => (
-                                    <div
-                                      key={folder.id_folder}
-                                      className="py-1"
-                                    >
-                                      <Collapsible
-                                        className="w-full"
-                                        defaultOpen
-                                      >
-                                        <div className="flex items-center py-1">
-                                          <CollapsibleTrigger asChild>
-                                            <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer">
-                                              <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" />
-                                            </div>
-                                          </CollapsibleTrigger>
-                                          <a
-                                            href="#"
-                                            className="text-sm truncate line-clamp-1"
-                                            title={folder.name}
-                                          >
-                                            {folder.name || "Unnamed Folder"}
-                                          </a>
-                                          <button
-                                            className="ml-auto h-6 w-6 flex items-center justify-center rounded hover:bg-gray-200"
-                                            onClick={() =>
-                                              openModal(folder.id_folder)
-                                            }
-                                          >
-                                            <Plus className="h-4 w-4" />
-                                          </button>
-                                        </div>
-                                        <CollapsibleContent>
-                                          {loadingLists ? (
-                                            <div className="text-xs text-muted-foreground">
-                                              Loading...
-                                            </div>
-                                          ) : lists.filter(
-                                              (list) =>
-                                                list.folder_id ===
-                                                folder.id_folder
-                                            ).length > 0 ? (
-                                            lists
-                                              .filter(
-                                                (list) =>
-                                                  list.folder_id ===
-                                                  folder.id_folder
-                                              )
-                                              .map((list) => (
-                                                <div
-                                                  key={list.id_list}
-                                                  className="py-1.5 flex items-center gap-2 ml-4"
-                                                >
-                                                  <Inbox className="h-4 w-4 text-muted-foreground" />
-                                                  <a
-                                                    href="#"
-                                                    className="text-sm truncate line-clamp-1"
-                                                    title={list.name}
-                                                  >
-                                                    {list.name ||
-                                                      "Unnamed List"}
-                                                  </a>
-                                                </div>
-                                              ))
-                                          ) : (
-                                            <div className="text-xs text-muted-foreground">
-                                              No lists available.
-                                            </div>
-                                          )}
-                                        </CollapsibleContent>
-                                      </Collapsible>
-                                    </div>
-                                  ))
-                              ) : (
-                                <div className="text-xs text-muted-foreground">
-                                  No folders available.
-                                </div>
-                              )}
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      No teams available.
-                    </div>
-                  )}
-                </div>
+                <Folders
+                  teams={teams}
+                  folders={folders}
+                  lists={lists}
+                  loading={loading}
+                  loadingFolders={loadingFolders}
+                  loadingLists={loadingLists}
+                  openFolderModal={openFolderModal}
+                  openModal={openModal}
+                />
               </CollapsibleContent>
             </Collapsible>
           </SidebarMenuItem>
@@ -458,6 +396,26 @@ export function SidebarNav() {
 
         <SidebarRail />
       </Sidebar>
+
+      {/* Add Team Modal */}
+      <Modal isOpen={isTeamModalOpen} onClose={closeTeamModal}>
+        <ModalHeader>Add New Team</ModalHeader>
+        <ModalBody>
+          <Input
+            placeholder="Enter team name"
+            value={newTeamName}
+            onChange={(e) => setNewTeamName(e.target.value)}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={closeTeamModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddTeam}>
+            Add Team
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {/* Add List Modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
