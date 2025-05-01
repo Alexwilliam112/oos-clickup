@@ -111,20 +111,22 @@ export function ListView() {
   };
 
   const renderHeaders = () => (
-    <div className="w-full table bg-muted/40 border-b border-muted/20">
+    <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
       <div className="table-row text-xs font-medium text-muted-foreground">
-        <div className="table-cell min-w-[255px] p-2">Task Name</div>
-        <div className="table-cell min-w-[120px] p-2">Created</div>
-        <div className="table-cell min-w-[150px] p-2">Assignee</div>
-        <div className="table-cell min-w-[120px] p-2">Start Date</div>
-        <div className="table-cell min-w-[120px] p-2">Due Date</div>
-        <div className="table-cell min-w-[100px] p-2">Priority</div>
-        <div className="table-cell min-w-[100px] p-2">Status</div>
-        <div className="table-cell min-w-[160px] p-2">Lists</div>
-        <div className="table-cell min-w-[120px] p-2">Product</div>
-        <div className="table-cell min-w-[120px] p-2">Team</div>
-        <div className="table-cell min-w-[160px] p-2">Progress</div>
-        <div className="table-cell min-w-[100px] p-2 text-right">Actions</div>
+        <div className="table-cell min-w-[255px] p-3 bg-muted">Task Name</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Created</div>
+        <div className="table-cell min-w-[150px] p-3 bg-muted">Assignee</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Start Date</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Due Date</div>
+        <div className="table-cell min-w-[100px] p-3 bg-muted">Priority</div>
+        <div className="table-cell min-w-[100px] p-3 bg-muted">Status</div>
+        <div className="table-cell min-w-[160px] p-3 bg-muted">Lists</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Product</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Team</div>
+        <div className="table-cell min-w-[160px] p-3 bg-muted">Progress</div>
+        <div className="table-cell min-w-[100px] p-3 text-right bg-muted">
+          Actions
+        </div>
       </div>
     </div>
   );
@@ -133,7 +135,7 @@ export function ListView() {
     taskList.map((task) => (
       <div
         key={task.id}
-        className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition"
+        className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
       >
         <div className="flex items-center px-2 py-2 text-sm w-full">
           {/* Task Name with indentation and expand icon */}
@@ -221,12 +223,12 @@ export function ListView() {
       </div>
     ));
 
-  return (
-    <div className="flex-1 overflow-auto p-4 sm:p-6 w-full h-screen">
-      <div className="w-full table-auto">
-        {renderHeaders()}
-        <div className="table-row-group">{renderTasks(tasks)}</div>
+    return (
+      <div className="flex-1 overflow-auto w-full h-screen">
+        <div className="w-full table-auto">
+          {renderHeaders()}
+          <div className="table-row-group">{renderTasks(tasks)}</div>
+        </div>
       </div>
-    </div>
-  );
+    );
 }
