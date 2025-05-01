@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "./modal";
 
 export function ModalTrigger({
+  trigger, // New prop for custom trigger element
   buttonText = "Open Modal",
   buttonVariant = "default",
   modalTitle,
@@ -15,15 +16,26 @@ export function ModalTrigger({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
+
   return (
     <>
-      <Button variant={buttonVariant} onClick={() => setIsOpen(true)}>
-        {buttonText}
-      </Button>
+      {trigger ? (
+        // Render custom trigger if provided
+        <span onClick={handleOpen} className="cursor-pointer">
+          {trigger}
+        </span>
+      ) : (
+        // Default button trigger
+        <Button variant={buttonVariant} onClick={handleOpen}>
+          {buttonText}
+        </Button>
+      )}
 
       <Modal
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={handleClose}
         title={modalTitle}
         subtitle={modalSubtitle}
         showSidebar={showSidebar}

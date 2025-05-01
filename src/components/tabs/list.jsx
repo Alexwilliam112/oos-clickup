@@ -4,6 +4,10 @@ import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalTrigger } from "@/components/ui-modal/modal-trigger";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CalendarIcon, Clock, Tag, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Sample tasks
 const initialTasks = [
@@ -18,7 +22,7 @@ const initialTasks = [
     status: "In Progress",
     startDate: "2025-04-28",
     expanded: false,
-    lists: ["Backlogasdasdasdada", "Sprint asdasdas1", "Backlog", "Sprint 1"],
+    lists: ["Backlog", "Sprint 1"],
     product: "Website",
     team: "Frontend",
     progress: 60,
@@ -116,10 +120,10 @@ export function ListView() {
   const renderHeaders = () => (
     <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
       <div className="table-row text-xs font-medium text-muted-foreground">
-        <div className="table-cell min-w-[50px] p-3 bg-muted"></div> {/* New column for Add Task button */}
+        <div className="table-cell min-w-[50px] p-3 bg-muted"></div>
         <div className="table-cell min-w-[255px] p-3 bg-muted">Task Name</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Created</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Task Type</div> {/* New Task Type column */}
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Task Type</div>
         <div className="table-cell min-w-[150px] p-3 bg-muted">Assignee</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Start Date</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Due Date</div>
@@ -135,7 +139,6 @@ export function ListView() {
       </div>
     </div>
   );
-  
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
@@ -144,7 +147,6 @@ export function ListView() {
         className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
       >
         <div className="flex items-center px-2 py-2 text-sm w-full">
-          {/* New column for Add Task button */}
           <div className="min-w-[50px] p-2 flex justify-center">
             <Button
               variant="ghost"
@@ -155,40 +157,45 @@ export function ListView() {
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-  
-          {/* Task Name with indentation and expand icon */}
+
           <div
             className="min-w-[255px] p-2 flex items-center"
             style={{ paddingLeft: `${level * 20}px` }}
           >
             <button
-                className="text-muted-foreground hover:text-foreground transition mr-2"
-                onClick={() => toggleExpand(task)}
-              >
-                {task.expanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-            <span>{task.title}</span>
+              className="text-muted-foreground hover:text-foreground transition mr-2"
+              onClick={() => toggleExpand(task)}
+            >
+              {task.expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            <ModalTrigger
+              trigger={
+                <span className="text-blue-500 hover:underline">
+                  {task.title}
+                </span>
+              }
+              modalTitle="Task Details"
+              modalSubtitle="Created on May 1, 2025"
+              sidebarContent={<p>Sidebar content here</p>}
+            >
+              <p>Modal content here</p>
+            </ModalTrigger>
           </div>
           <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
-  
-          {/* New Task Type column */}
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
-              {task.task_type || "General"} {/* Default to "General" if no type */}
+              {task.task_type || "General"}
             </span>
           </div>
-  
           <div className="min-w-[150px] p-2">{task.assignee}</div>
           <div className="min-w-[120px] p-2">{formatDate(task.startDate)}</div>
           <div className="min-w-[120px] p-2">{formatDate(task.dueDate)}</div>
           <div className="min-w-[100px] p-2">{task.priority}</div>
           <div className="min-w-[100px] p-2">{task.status}</div>
-  
-          {/* Lists (multi-tag) */}
           <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
             {task.lists?.map((list, idx) => (
               <span
@@ -199,22 +206,16 @@ export function ListView() {
               </span>
             ))}
           </div>
-  
-          {/* Product tag */}
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
               {task.product || "-"}
             </span>
           </div>
-  
-          {/* Team tag */}
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
               {task.team || "-"}
             </span>
           </div>
-  
-          {/* Progress */}
           <div className="min-w-[160px] p-2">
             <div className="h-2 w-full bg-muted rounded-sm">
               <div
@@ -223,28 +224,24 @@ export function ListView() {
               ></div>
             </div>
           </div>
-  
-          {/* Actions */}
           <div className="min-w-[100px] p-2 flex justify-end gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
         </div>
-  
-        {/* Render children if expanded */}
         {task.expanded && task.children?.length > 0 && (
           <div className="w-full">{renderTasks(task.children, level + 1)}</div>
         )}
       </div>
     ));
 
-    return (
-      <div className="flex-1 overflow-auto w-full h-screen">
-        <div className="w-full table-auto">
-          {renderHeaders()}
-          <div className="table-row-group">{renderTasks(tasks)}</div>
-        </div>
+  return (
+    <div className="flex-1 overflow-auto w-full h-screen">
+      <div className="w-full table-auto">
+        {renderHeaders()}
+        <div className="table-row-group">{renderTasks(tasks)}</div>
       </div>
-    );
+    </div>
+  );
 }
