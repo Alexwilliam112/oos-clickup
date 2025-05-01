@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Overview } from './tabs/overview'
 import { Board } from './tabs/board'
+import { ListView } from './tabs/list'
 
 export function Dashboard() {
   return (
@@ -122,12 +123,11 @@ export function Dashboard() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview">
-        <Overview />
-      </TabsContent>
+      <TabsContent value="overview">{/* <Overview /> */}</TabsContent>
 
       <TabsContent value="board" className="overflow-x-auto h-full">
-        <Board />
+        {/* <Board /> */}
+        <ListView />
       </TabsContent>
     </Tabs>
   )
