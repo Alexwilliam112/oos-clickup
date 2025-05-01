@@ -102,7 +102,7 @@ export function ListView() {
       <div key={task.id} className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition">
         <div className="flex items-center px-2 py-2 text-sm w-full">
           {/* Expand/Collapse Arrow */}
-          <div className="w-5 flex justify-center items-center">
+          <div className="w-5 flex justify-center items-center min-w-[20px]">
             {task.children?.length > 0 ? (
               <button
                 className="text-muted-foreground hover:text-foreground transition mr-3"
