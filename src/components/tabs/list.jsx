@@ -1,32 +1,41 @@
 "use client";
+
 import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { GripVertical, Expand, MoreHorizontal, Plus, ChevronRight, ChevronDown } from "lucide-react";
-
+import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Sample tasks
 const initialTasks = [
   {
     id: uuidv4(),
     title: "Main Task 1",
-    createdAt: "22-01-2025",
+    createdAt: "2025-01-22",
     assignee: "Alice",
     dueDate: "2025-05-10",
     priority: "High",
     status: "In Progress",
     startDate: "2025-04-28",
     expanded: false,
+    lists: ["Backlogasdasdasdada", "Sprint asdasdas1", "Backlog", "Sprint 1"],
+    product: "Website",
+    team: "Frontend",
+    progress: 60,
     children: [
       {
         id: uuidv4(),
         title: "Subtask 1.1",
-        createdAt: "22-01-2025",
+        createdAt: "2025-01-22",
         assignee: "Bob",
         dueDate: "2025-05-08",
         priority: "Medium",
         status: "Todo",
         startDate: "2025-04-29",
         expanded: false,
+        lists: ["Backlog"],
+        product: "Website",
+        team: "Frontend",
+        progress: 40,
         children: [],
       },
     ],
@@ -34,13 +43,17 @@ const initialTasks = [
   {
     id: uuidv4(),
     title: "Main Task 2",
-    createdAt: "22-01-2025",
+    createdAt: "2025-01-22",
     assignee: "Charlie",
     dueDate: "2025-05-12",
     priority: "Low",
     status: "Todo",
     startDate: "2025-04-30",
     expanded: false,
+    lists: ["Sprint 2"],
+    product: "Mobile App",
+    team: "Backend",
+    progress: 20,
     children: [],
   },
 ];
@@ -70,6 +83,10 @@ export function ListView() {
             status: "Todo",
             startDate: "",
             expanded: false,
+            lists: [],
+            product: "",
+            team: "",
+            progress: 0,
             children: [],
           });
           task.expanded = true;
@@ -83,29 +100,50 @@ export function ListView() {
     setTasks(newTasks);
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const renderHeaders = () => (
-    <div className="flex items-center px-2 py-2 text-xs font-medium text-muted-foreground bg-muted/40 border-b border-muted/20">
-      <div className="w-5" />
-      <div className="min-w-[300px] flex-1 p-2">Task Name</div>
-      <div className="w-32 p-2">Created</div>
-      <div className="w-32 p-2">Assignee</div>
-      <div className="w-32 p-2">Start Date</div>
-      <div className="w-32 p-2">Due Date</div>
-      <div className="w-24 p-2">Priority</div>
-      <div className="w-24 p-2">Status</div>
-      <div className="w-28 p-2 text-right">Actions</div>
+    <div className="w-full table bg-muted/40 border-b border-muted/20">
+      <div className="table-row text-xs font-medium text-muted-foreground">
+        <div className="table-cell min-w-[255px] p-2">Task Name</div>
+        <div className="table-cell min-w-[120px] p-2">Created</div>
+        <div className="table-cell min-w-[150px] p-2">Assignee</div>
+        <div className="table-cell min-w-[120px] p-2">Start Date</div>
+        <div className="table-cell min-w-[120px] p-2">Due Date</div>
+        <div className="table-cell min-w-[100px] p-2">Priority</div>
+        <div className="table-cell min-w-[100px] p-2">Status</div>
+        <div className="table-cell min-w-[160px] p-2">Lists</div>
+        <div className="table-cell min-w-[120px] p-2">Product</div>
+        <div className="table-cell min-w-[120px] p-2">Team</div>
+        <div className="table-cell min-w-[160px] p-2">Progress</div>
+        <div className="table-cell min-w-[100px] p-2 text-right">Actions</div>
+      </div>
     </div>
   );
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
-      <div key={task.id} className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition">
+      <div
+        key={task.id}
+        className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition"
+      >
         <div className="flex items-center px-2 py-2 text-sm w-full">
-          {/* Expand/Collapse Arrow */}
-          <div className="w-5 flex justify-center items-center min-w-[20px]">
-            {task.children?.length > 0 ? (
+          {/* Task Name with indentation and expand icon */}
+          <div
+            className="min-w-[255px] p-2 flex items-center"
+            style={{ paddingLeft: `${level * 20}px` }}
+          >
+            {task.children?.length > 0 && (
               <button
-                className="text-muted-foreground hover:text-foreground transition mr-3"
+                className="text-muted-foreground hover:text-foreground transition mr-2"
                 onClick={() => toggleExpand(task)}
               >
                 {task.expanded ? (
@@ -114,25 +152,54 @@ export function ListView() {
                   <ChevronRight className="h-4 w-4" />
                 )}
               </button>
-            ) : null}
+            )}
+            <span>{task.title}</span>
           </div>
-  
-          {/* Task Columns */}
-          <div
-            className="min-w-[300px] flex-1 p-2"
-            style={{ paddingLeft: `${level * 20}px` }}
-          >
-            {task.title}
+          <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
+          <div className="min-w-[150px] p-2">{task.assignee}</div>
+          <div className="min-w-[120px] p-2">{formatDate(task.startDate)}</div>
+          <div className="min-w-[120px] p-2">{formatDate(task.dueDate)}</div>
+          <div className="min-w-[100px] p-2">{task.priority}</div>
+          <div className="min-w-[100px] p-2">{task.status}</div>
+
+          {/* Lists (multi-tag) */}
+          <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
+            {task.lists?.map((list, idx) => (
+              <span
+                key={idx}
+                className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm"
+              >
+                {list}
+              </span>
+            ))}
           </div>
-          <div className="w-32 p-2">{new Date(task.createdAt).toLocaleDateString()}</div>
-          <div className="w-32 p-2">{task.assignee}</div>
-          <div className="w-32 p-2">{task.startDate}</div>
-          <div className="w-32 p-2">{task.dueDate}</div>
-          <div className="w-24 p-2">{task.priority}</div>
-          <div className="w-24 p-2">{task.status}</div>
-  
+
+          {/* Product tag */}
+          <div className="min-w-[120px] p-2">
+            <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+              {task.product || "-"}
+            </span>
+          </div>
+
+          {/* Team tag */}
+          <div className="min-w-[120px] p-2">
+            <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+              {task.team || "-"}
+            </span>
+          </div>
+
+          {/* Progress */}
+          <div className="min-w-[160px] p-2">
+            <div className="h-2 w-full bg-muted rounded-sm">
+              <div
+                className="h-2 bg-primary rounded-sm"
+                style={{ width: `${task.progress || 0}%` }}
+              ></div>
+            </div>
+          </div>
+
           {/* Actions */}
-          <div className="w-28 p-2 flex justify-end gap-1">
+          <div className="min-w-[100px] p-2 flex justify-end gap-1">
             <Button
               variant="ghost"
               size="icon"
@@ -146,20 +213,19 @@ export function ListView() {
             </Button>
           </div>
         </div>
-  
+
         {/* Render children if expanded */}
         {task.expanded && task.children?.length > 0 && (
           <div className="w-full">{renderTasks(task.children, level + 1)}</div>
         )}
       </div>
     ));
-  
 
   return (
     <div className="flex-1 overflow-auto p-4 sm:p-6 w-full h-screen">
-      <div className="w-full rounded-md">
+      <div className="w-full table-auto">
         {renderHeaders()}
-        {renderTasks(tasks)}
+        <div className="table-row-group">{renderTasks(tasks)}</div>
       </div>
     </div>
   );
