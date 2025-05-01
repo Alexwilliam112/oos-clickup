@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Overview } from "./tabs/overview";
 import { Board } from "./tabs/board";
+import { ListView } from "./tabs/list";
 
 export function Dashboard() {
   return (
@@ -181,8 +182,9 @@ export function Dashboard() {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden px-4 py-2 sm:px-6 w-full">
-        <Overview />
-        <Board />
+        {/* <Overview /> */}
+        {/* <Board /> */}
+        <ListView />
       </div>
     </div>
   );
