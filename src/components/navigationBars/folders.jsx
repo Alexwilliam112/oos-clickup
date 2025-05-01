@@ -122,7 +122,7 @@ export function Folders({
                                   .map((list) => (
                                     <div
                                       key={list.id_list}
-                                      className="py-1.5 flex items-center gap-2 ml-4"
+                                      className="py-2 flex items-center gap-2 ml-4"
                                     >
                                       <Inbox className="h-4 w-4 text-muted-foreground" />
                                       <a
