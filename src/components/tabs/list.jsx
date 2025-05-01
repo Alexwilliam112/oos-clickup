@@ -1,37 +1,31 @@
-'use client';
+"use client";
+import React, { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { GripVertical, Expand, MoreHorizontal, Plus, ChevronRight, ChevronDown } from "lucide-react";
 
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import {
-  GripVertical,
-  Expand,
-  MoreHorizontal,
-  Plus,
-} from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 const initialTasks = [
   {
     id: uuidv4(),
-    title: 'Main Task 1',
-    createdAt: '22-01-2025',
-    assignee: 'Alice',
-    dueDate: '2025-05-10',
-    priority: 'High',
-    status: 'In Progress',
-    startDate: '2025-04-28',
+    title: "Main Task 1",
+    createdAt: "22-01-2025",
+    assignee: "Alice",
+    dueDate: "2025-05-10",
+    priority: "High",
+    status: "In Progress",
+    startDate: "2025-04-28",
     expanded: false,
     children: [
       {
         id: uuidv4(),
-        title: 'Subtask 1.1',
-        createdAt: '22-01-2025',
-        assignee: 'Bob',
-        dueDate: '2025-05-08',
-        priority: 'Medium',
-        status: 'Todo',
-        startDate: '2025-04-29',
+        title: "Subtask 1.1",
+        createdAt: "22-01-2025",
+        assignee: "Bob",
+        dueDate: "2025-05-08",
+        priority: "Medium",
+        status: "Todo",
+        startDate: "2025-04-29",
         expanded: false,
         children: [],
       },
@@ -39,13 +33,13 @@ const initialTasks = [
   },
   {
     id: uuidv4(),
-    title: 'Main Task 2',
-    createdAt: '22-01-2025',
-    assignee: 'Charlie',
-    dueDate: '2025-05-12',
-    priority: 'Low',
-    status: 'Todo',
-    startDate: '2025-04-30',
+    title: "Main Task 2",
+    createdAt: "22-01-2025",
+    assignee: "Charlie",
+    dueDate: "2025-05-12",
+    priority: "Low",
+    status: "Todo",
+    startDate: "2025-04-30",
     expanded: false,
     children: [],
   },
@@ -70,11 +64,11 @@ export function ListView() {
             id: uuidv4(),
             title: `New Subtask ${task.children.length + 1}`,
             createdAt: new Date().toISOString(),
-            assignee: '',
-            dueDate: '',
-            priority: 'Low',
-            status: 'Todo',
-            startDate: '',
+            assignee: "",
+            dueDate: "",
+            priority: "Low",
+            status: "Todo",
+            startDate: "",
             expanded: false,
             children: [],
           });
@@ -107,34 +101,38 @@ export function ListView() {
     taskList.map((task) => (
       <div key={task.id} className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition">
         <div className="flex items-center px-2 py-2 text-sm w-full">
-          <div className="w-5">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          {/* Expand/Collapse Arrow */}
+          <div className="w-5 flex justify-center items-center">
+            {task.children?.length > 0 ? (
+              <button
+                className="text-muted-foreground hover:text-foreground transition mr-3"
+                onClick={() => toggleExpand(task)}
+              >
+                {task.expanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+            ) : null}
           </div>
+  
+          {/* Task Columns */}
           <div
             className="min-w-[200px] flex-1 p-2"
             style={{ paddingLeft: `${level * 20}px` }}
           >
             {task.title}
           </div>
-          <div className="w-32 p-2">
-            {new Date(task.createdAt).toLocaleDateString()}
-          </div>
+          <div className="w-32 p-2">{new Date(task.createdAt).toLocaleDateString()}</div>
           <div className="w-32 p-2">{task.assignee}</div>
           <div className="w-32 p-2">{task.startDate}</div>
           <div className="w-32 p-2">{task.dueDate}</div>
           <div className="w-24 p-2">{task.priority}</div>
           <div className="w-24 p-2">{task.status}</div>
+  
+          {/* Actions */}
           <div className="w-28 p-2 flex justify-end gap-1">
-            {task.children?.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => toggleExpand(task)}
-              >
-                <Expand className="h-4 w-4" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"
@@ -148,12 +146,14 @@ export function ListView() {
             </Button>
           </div>
         </div>
-
+  
+        {/* Render children if expanded */}
         {task.expanded && task.children?.length > 0 && (
           <div className="w-full">{renderTasks(task.children, level + 1)}</div>
         )}
       </div>
     ));
+  
 
   return (
     <div className="flex-1 overflow-auto p-4 sm:p-6 w-full h-screen">
