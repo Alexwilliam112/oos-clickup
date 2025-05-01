@@ -135,7 +135,7 @@ export function Dashboard() {
               strokeWidth="2"
             />
           </svg>
-          Project Info
+          General Info
         </TabsTrigger>
         <TabsTrigger value="board" className="gap-2">
           <svg className="h-4 w-4" viewBox="0 0 24 24">

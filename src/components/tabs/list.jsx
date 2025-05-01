@@ -12,6 +12,7 @@ const initialTasks = [
     title: "Main Task 1",
     createdAt: "2025-01-22",
     assignee: "Alice",
+    task_type: "Feature",
     dueDate: "2025-05-10",
     priority: "High",
     status: "In Progress",
@@ -26,6 +27,7 @@ const initialTasks = [
         id: uuidv4(),
         title: "Subtask 1.1",
         createdAt: "2025-01-22",
+        task_type: "Feature",
         assignee: "Bob",
         dueDate: "2025-05-08",
         priority: "Medium",
@@ -46,6 +48,7 @@ const initialTasks = [
     createdAt: "2025-01-22",
     assignee: "Charlie",
     dueDate: "2025-05-12",
+    task_type: "Feature",
     priority: "Low",
     status: "Todo",
     startDate: "2025-04-30",
@@ -116,6 +119,7 @@ export function ListView() {
         <div className="table-cell min-w-[50px] p-3 bg-muted"></div> {/* New column for Add Task button */}
         <div className="table-cell min-w-[255px] p-3 bg-muted">Task Name</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Created</div>
+        <div className="table-cell min-w-[120px] p-3 bg-muted">Task Type</div> {/* New Task Type column */}
         <div className="table-cell min-w-[150px] p-3 bg-muted">Assignee</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Start Date</div>
         <div className="table-cell min-w-[120px] p-3 bg-muted">Due Date</div>
@@ -172,6 +176,14 @@ export function ListView() {
             <span>{task.title}</span>
           </div>
           <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
+  
+          {/* New Task Type column */}
+          <div className="min-w-[120px] p-2">
+            <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+              {task.task_type || "General"} {/* Default to "General" if no type */}
+            </span>
+          </div>
+  
           <div className="min-w-[150px] p-2">{task.assignee}</div>
           <div className="min-w-[120px] p-2">{formatDate(task.startDate)}</div>
           <div className="min-w-[120px] p-2">{formatDate(task.dueDate)}</div>
