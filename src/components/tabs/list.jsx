@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ModalTrigger } from "@/components/ui-modal/modal-trigger";
+import { DetailModalTrigger, CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CalendarIcon, Clock, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -73,40 +73,6 @@ export function ListView() {
     setTasks([...tasks]);
   };
 
-  const addSubtask = (parentId) => {
-    const newTasks = [...tasks];
-
-    const insertSubtask = (items) => {
-      items.forEach((task) => {
-        if (task.id === parentId) {
-          task.children = task.children || [];
-          task.children.push({
-            id: uuidv4(),
-            title: `New Subtask ${task.children.length + 1}`,
-            createdAt: new Date().toISOString(),
-            assignee: "",
-            dueDate: "",
-            priority: "Low",
-            status: "Todo",
-            startDate: "",
-            expanded: false,
-            lists: [],
-            product: "",
-            team: "",
-            progress: 0,
-            children: [],
-          });
-          task.expanded = true;
-        } else if (task.children?.length) {
-          insertSubtask(task.children);
-        }
-      });
-    };
-
-    insertSubtask(newTasks);
-    setTasks(newTasks);
-  };
-
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -148,14 +114,16 @@ export function ListView() {
       >
         <div className="flex items-center px-2 py-2 text-sm w-full">
           <div className="min-w-[50px] p-2 flex justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => addSubtask(task.id)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+            <CreateModalTrigger
+              trigger={
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              }
+              modalTitle="Create Subtask"
+              modalSubtitle={`Add a subtask to "${task.title}"`}
+              sidebarContent={<p>Sidebar content for subtasks</p>}
+            />
           </div>
 
           <div
@@ -172,7 +140,7 @@ export function ListView() {
                 <ChevronRight className="h-4 w-4" />
               )}
             </button>
-            <ModalTrigger
+            <DetailModalTrigger
               trigger={
                 <span className="text-blue-500 hover:underline">
                   {task.title}
@@ -183,7 +151,7 @@ export function ListView() {
               sidebarContent={<p>Sidebar content here</p>}
             >
               <p>Modal content here</p>
-            </ModalTrigger>
+            </DetailModalTrigger>
           </div>
           <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
           <div className="min-w-[120px] p-2">

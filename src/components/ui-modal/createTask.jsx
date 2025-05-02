@@ -1,96 +1,135 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { X, ChevronUp, ArrowDownRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
-import { Calendar } from '@/components/ui/calendar'
-import { SingleSelectTag, MultipleSelectTags } from '@/components/ui/tag-input' // Updated import
+import { useEffect, useState } from "react";
+import { X, ChevronUp, ArrowDownRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Calendar } from "@/components/ui/calendar";
+import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
 
-export function Modal({
+export function TaskCreateModal({
   isOpen,
   onClose,
-  title = 'Task View',
+  title = "Task View",
   subtitle,
   children,
   showSidebar = true,
   sidebarContent,
   sidebarWidth = 420,
-  width = 'calc(100vw - 40px)',
-  height = 'calc(100vh - 40px)',
+  width = "calc(100vw - 40px)",
+  height = "calc(100vh - 40px)",
 }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
+  const [isVisible, setIsVisible] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Task fields state
-  const [taskName, setTaskName] = useState('')
-  const [taskType, setTaskType] = useState('')
-  const [assignees, setAssignees] = useState([])
-  const [dateRange, setDateRange] = useState({ start: null, end: null })
-  const [priority, setPriority] = useState('')
-  const [status, setStatus] = useState('')
-  const [lists, setLists] = useState([])
-  const [product, setProduct] = useState('')
-  const [team, setTeam] = useState('')
-  const [progress, setProgress] = useState(0)
-  const [description, setDescription] = useState('')
-  const [attachments, setAttachments] = useState([])
+  const [taskName, setTaskName] = useState("");
+  const [taskType, setTaskType] = useState("");
+  const [assignees, setAssignees] = useState([]);
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState("");
+  const [lists, setLists] = useState([]);
+  const [product, setProduct] = useState("");
+  const [team, setTeam] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [description, setDescription] = useState("");
+  const [attachments, setAttachments] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
-      setIsVisible(true)
-      document.body.style.overflow = 'hidden'
+      setIsVisible(true);
+      document.body.style.overflow = "hidden";
     } else {
       setTimeout(() => {
-        setIsVisible(false)
-        document.body.style.overflow = ''
-      }, 300)
+        setIsVisible(false);
+        document.body.style.overflow = "";
+      }, 300);
     }
 
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === "Escape" && isOpen) {
+        onClose();
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   const handleFileUpload = (e) => {
-    setAttachments([...attachments, ...e.target.files])
-  }
+    setAttachments([...attachments, ...e.target.files]);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Collect task data
+    const taskData = {
+      taskName,
+      taskType,
+      assignees,
+      dateRange,
+      priority,
+      status,
+      lists,
+      product,
+      team,
+      progress,
+      description,
+      attachments,
+    };
+
+    console.log("Task Created:", taskData);
+
+    // Reset form fields
+    setTaskName("");
+    setTaskType("");
+    setAssignees([]);
+    setDateRange({ start: null, end: null });
+    setPriority("");
+    setStatus("");
+    setLists([]);
+    setProduct("");
+    setTeam("");
+    setProgress(0);
+    setDescription("");
+    setAttachments([]);
+
+    // Close modal
+    onClose();
+  };
 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300',
-        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        "fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300",
+        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
       onClick={onClose}
     >
       <div
         className={cn(
-          'bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform',
-          isOpen ? 'scale-100' : 'scale-95',
-          isMinimized ? 'h-14 overflow-hidden' : ''
+          "bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform",
+          isOpen ? "scale-100" : "scale-95",
+          isMinimized ? "h-14 overflow-hidden" : ""
         )}
         style={{
-          width: isMinimized ? '400px' : width,
-          height: isMinimized ? 'auto' : height,
-          maxWidth: 'calc(100vw - 40px)',
-          maxHeight: 'calc(100vh - 40px)',
+          width: isMinimized ? "400px" : width,
+          height: isMinimized ? "auto" : height,
+          maxWidth: "calc(100vw - 40px)",
+          maxHeight: "calc(100vh - 40px)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -104,13 +143,6 @@ export function Modal({
           </div>
           <div className="flex items-center space-x-1">
             <button
-              onClick={() => setIsMinimized(!isMinimized)}
-              className="p-1 rounded-md hover:bg-gray-100"
-              aria-label={isMinimized ? 'Expand' : 'Minimize'}
-            >
-              {isMinimized ? <ChevronUp size={18} /> : <ArrowDownRight size={18} />}
-            </button>
-            <button
               onClick={onClose}
               className="p-1 rounded-md hover:bg-gray-100"
               aria-label="Close"
@@ -122,7 +154,7 @@ export function Modal({
 
         {/* Modal Content */}
         {!isMinimized && (
-          <div className="flex flex-1 overflow-hidden">
+          <form onSubmit={handleSubmit} className="flex flex-1 overflow-hidden">
             {/* Main Content */}
             <div className="flex-1 overflow-auto p-4 space-y-4">
               {/* Task Name */}
@@ -141,7 +173,7 @@ export function Modal({
                 <SingleSelectTag
                   value={taskType}
                   onChange={(value) => setTaskType(value)}
-                  options={['Bug', 'Feature', 'Improvement']}
+                  options={["Bug", "Feature", "Improvement"]}
                   placeholder="Select task type"
                 />
               </div>
@@ -152,7 +184,7 @@ export function Modal({
                 <MultipleSelectTags
                   value={assignees}
                   onChange={(value) => setAssignees(value)}
-                  options={['Alice', 'Bob', 'Charlie']}
+                  options={["Alice", "Bob", "Charlie"]}
                   placeholder="Add assignees"
                 />
               </div>
@@ -160,7 +192,11 @@ export function Modal({
               {/* Start Date & Due Date */}
               <div>
                 <label className="block text-sm font-medium">Date Range</label>
-                <Calendar value={dateRange} onChange={(range) => setDateRange(range)} range />
+                <Calendar
+                  value={dateRange}
+                  onChange={(range) => setDateRange(range)}
+                  range
+                />
               </div>
 
               {/* Priority */}
@@ -169,7 +205,7 @@ export function Modal({
                 <SingleSelectTag
                   value={priority}
                   onChange={(value) => setPriority(value)}
-                  options={['Low', 'Medium', 'High']}
+                  options={["Low", "Medium", "High"]}
                   placeholder="Select priority"
                 />
               </div>
@@ -180,7 +216,7 @@ export function Modal({
                 <SingleSelectTag
                   value={status}
                   onChange={(value) => setStatus(value)}
-                  options={['Todo', 'In Progress', 'Done']}
+                  options={["Todo", "In Progress", "Done"]}
                   placeholder="Select status"
                 />
               </div>
@@ -191,7 +227,7 @@ export function Modal({
                 <MultipleSelectTags
                   value={lists}
                   onChange={(value) => setLists(value)}
-                  options={['Backlog', 'Sprint 1', 'Sprint 2']}
+                  options={["Backlog", "Sprint 1", "Sprint 2"]}
                   placeholder="Add lists"
                 />
               </div>
@@ -202,7 +238,7 @@ export function Modal({
                 <SingleSelectTag
                   value={product}
                   onChange={(value) => setProduct(value)}
-                  options={['Website', 'Mobile App', 'API']}
+                  options={["Website", "Mobile App", "API"]}
                   placeholder="Select product"
                 />
               </div>
@@ -213,7 +249,7 @@ export function Modal({
                 <SingleSelectTag
                   value={team}
                   onChange={(value) => setTeam(value)}
-                  options={['Frontend', 'Backend', 'Design']}
+                  options={["Frontend", "Backend", "Design"]}
                   placeholder="Select team"
                 />
               </div>
@@ -261,17 +297,31 @@ export function Modal({
             {showSidebar && (
               <>
                 <div className="w-1 bg-gray-100 cursor-col-resize" />
-                <div className="overflow-auto border-l" style={{ width: sidebarWidth }}>
+                <div
+                  className="overflow-auto border-l"
+                  style={{ width: sidebarWidth }}
+                >
                   <div className="p-4">
                     <h3 className="text-lg font-medium mb-4">Activity</h3>
-                    {sidebarContent || <div className="text-gray-500">No activity to display</div>}
+                    {sidebarContent || (
+                      <div className="text-gray-500">
+                        No activity to display
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
             )}
-          </div>
+
+            {/* Submit Button */}
+            <div className="p-4 border-t">
+              <Button type="submit" className="w-full bg-blue-500 text-white">
+                Create Task
+              </Button>
+            </div>
+          </form>
         )}
       </div>
     </div>
-  )
+  );
 }
