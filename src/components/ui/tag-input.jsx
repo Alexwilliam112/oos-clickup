@@ -1,16 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Single Select Tag Component
 export function SingleSelectTag({ value = "", onChange, options = [], placeholder }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleSelect = (option) => {
     onChange(option);
     setIsDropdownOpen(false);
   };
 
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <div
         className="border p-2 rounded cursor-pointer"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -38,6 +52,7 @@ export function SingleSelectTag({ value = "", onChange, options = [], placeholde
 export function MultipleSelectTags({ value = [], onChange, options = [], placeholder }) {
   const [inputValue, setInputValue] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Ensure value is always an array
   const tags = Array.isArray(value) ? value : [];
@@ -47,7 +62,6 @@ export function MultipleSelectTags({ value = [], onChange, options = [], placeho
       onChange([...tags, tag]);
     }
     setInputValue("");
-    setIsDropdownOpen(false);
   };
 
   const handleRemoveTag = (tag) => {
@@ -60,8 +74,21 @@ export function MultipleSelectTags({ value = [], onChange, options = [], placeho
       String(option).toLowerCase().includes(inputValue.toLowerCase())
   );
 
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <div className="flex flex-wrap items-center gap-2 border p-2 rounded">
         {tags.map((tag, index) => (
           <span

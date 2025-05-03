@@ -120,9 +120,9 @@ export function ListView() {
                   <Plus className="h-4 w-4" />
                 </Button>
               }
-              modalTitle="Create Subtask"
-              modalSubtitle={`Add a subtask to "${task.title}"`}
-              sidebarContent={<p>Sidebar content for subtasks</p>}
+              modalTitle="Create Task"
+              modalSubtitle={""}
+              sidebarContent={<p></p>}
             />
           </div>
 

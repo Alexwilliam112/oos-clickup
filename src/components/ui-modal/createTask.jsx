@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, ChevronUp, ArrowDownRight } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,15 +15,10 @@ export function TaskCreateModal({
   onClose,
   title = "Task View",
   subtitle,
-  children,
-  showSidebar = true,
-  sidebarContent,
-  sidebarWidth = 420,
   width = "calc(100vw - 40px)",
   height = "calc(100vh - 40px)",
 }) {
   const [isVisible, setIsVisible] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
 
   // Task fields state
   const [taskName, setTaskName] = useState("");
@@ -122,12 +117,11 @@ export function TaskCreateModal({
       <div
         className={cn(
           "bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform",
-          isOpen ? "scale-100" : "scale-95",
-          isMinimized ? "h-14 overflow-hidden" : ""
+          isOpen ? "scale-100" : "scale-95"
         )}
         style={{
-          width: isMinimized ? "400px" : width,
-          height: isMinimized ? "auto" : height,
+          width,
+          height,
           maxWidth: "calc(100vw - 40px)",
           maxHeight: "calc(100vh - 40px)",
         }}
@@ -135,30 +129,26 @@ export function TaskCreateModal({
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-4 py-2 border-b">
-          <div className="flex items-center space-x-2">
-            <div className="flex flex-col">
-              <h2 className="text-lg font-semibold">{title}</h2>
-              {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
-            </div>
+          <div className="flex flex-col">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={onClose}
-              className="p-1 rounded-md hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Modal Content */}
-        {!isMinimized && (
-          <form onSubmit={handleSubmit} className="flex flex-1 overflow-hidden">
-            {/* Main Content */}
-            <div className="flex-1 overflow-auto p-4 space-y-4">
-              {/* Task Name */}
-              <div>
+        <form onSubmit={handleSubmit} className="flex flex-1 overflow-hidden relative">
+          {/* Main Content */}
+          <div className="flex-1 overflow-auto p-4 space-y-4">
+            {/* Task Name and Task Type */}
+            <div className="flex gap-4">
+              <div className="flex-1">
                 <label className="block text-sm font-medium">Task Name</label>
                 <Input
                   value={taskName}
@@ -166,9 +156,7 @@ export function TaskCreateModal({
                   placeholder="Enter task name"
                 />
               </div>
-
-              {/* Task Type */}
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium">Task Type</label>
                 <SingleSelectTag
                   value={taskType}
@@ -177,30 +165,11 @@ export function TaskCreateModal({
                   placeholder="Select task type"
                 />
               </div>
+            </div>
 
-              {/* Assignees */}
-              <div>
-                <label className="block text-sm font-medium">Assignees</label>
-                <MultipleSelectTags
-                  value={assignees}
-                  onChange={(value) => setAssignees(value)}
-                  options={["Alice", "Bob", "Charlie"]}
-                  placeholder="Add assignees"
-                />
-              </div>
-
-              {/* Start Date & Due Date */}
-              <div>
-                <label className="block text-sm font-medium">Date Range</label>
-                <Calendar
-                  value={dateRange}
-                  onChange={(range) => setDateRange(range)}
-                  range
-                />
-              </div>
-
-              {/* Priority */}
-              <div>
+            {/* Priority and Status */}
+            <div className="flex gap-4">
+              <div className="flex-1">
                 <label className="block text-sm font-medium">Priority</label>
                 <SingleSelectTag
                   value={priority}
@@ -209,9 +178,7 @@ export function TaskCreateModal({
                   placeholder="Select priority"
                 />
               </div>
-
-              {/* Status */}
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium">Status</label>
                 <SingleSelectTag
                   value={status}
@@ -220,107 +187,108 @@ export function TaskCreateModal({
                   placeholder="Select status"
                 />
               </div>
-
-              {/* Lists */}
-              <div>
-                <label className="block text-sm font-medium">Lists</label>
-                <MultipleSelectTags
-                  value={lists}
-                  onChange={(value) => setLists(value)}
-                  options={["Backlog", "Sprint 1", "Sprint 2"]}
-                  placeholder="Add lists"
-                />
-              </div>
-
-              {/* Product */}
-              <div>
-                <label className="block text-sm font-medium">Product</label>
-                <SingleSelectTag
-                  value={product}
-                  onChange={(value) => setProduct(value)}
-                  options={["Website", "Mobile App", "API"]}
-                  placeholder="Select product"
-                />
-              </div>
-
-              {/* Team */}
-              <div>
-                <label className="block text-sm font-medium">Team</label>
-                <SingleSelectTag
-                  value={team}
-                  onChange={(value) => setTeam(value)}
-                  options={["Frontend", "Backend", "Design"]}
-                  placeholder="Select team"
-                />
-              </div>
-
-              {/* Progress */}
-              <div>
-                <label className="block text-sm font-medium">Progress</label>
-                <Slider
-                  value={[progress]}
-                  onChange={(value) => setProgress(value)}
-                  defaultValue={[50]}
-                  max={[100]}
-                />
-                <span className="text-sm">{progress}%</span>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium">Description</label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter description"
-                />
-              </div>
-
-              {/* Attachments */}
-              <div>
-                <label className="block text-sm font-medium">Attachments</label>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <ul className="mt-2 text-sm text-gray-500">
-                  {attachments.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
-              </div>
             </div>
 
-            {/* Sidebar */}
-            {showSidebar && (
-              <>
-                <div className="w-1 bg-gray-100 cursor-col-resize" />
-                <div
-                  className="overflow-auto border-l"
-                  style={{ width: sidebarWidth }}
-                >
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium mb-4">Activity</h3>
-                    {sidebarContent || (
-                      <div className="text-gray-500">
-                        No activity to display
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Submit Button */}
-            <div className="p-4 border-t">
-              <Button type="submit" className="w-full bg-blue-500 text-white">
-                Create Task
-              </Button>
+            {/* Assignees */}
+            <div>
+              <label className="block text-sm font-medium">Assignees</label>
+              <MultipleSelectTags
+                value={assignees}
+                onChange={(value) => setAssignees(value)}
+                options={["Alice", "Bob", "Charlie"]}
+                placeholder="Add assignees"
+              />
             </div>
-          </form>
-        )}
+
+            {/* Start Date & Due Date */}
+            <div>
+              <label className="block text-sm font-medium">Date Range</label>
+              <Calendar
+                value={dateRange}
+                onChange={(range) => setDateRange(range)}
+                range
+              />
+            </div>
+
+            {/* Lists */}
+            <div>
+              <label className="block text-sm font-medium">Lists</label>
+              <MultipleSelectTags
+                value={lists}
+                onChange={(value) => setLists(value)}
+                options={["Backlog", "Sprint 1", "Sprint 2"]}
+                placeholder="Add lists"
+              />
+            </div>
+
+            {/* Product */}
+            <div>
+              <label className="block text-sm font-medium">Product</label>
+              <SingleSelectTag
+                value={product}
+                onChange={(value) => setProduct(value)}
+                options={["Website", "Mobile App", "API"]}
+                placeholder="Select product"
+              />
+            </div>
+
+            {/* Team */}
+            <div>
+              <label className="block text-sm font-medium">Team</label>
+              <SingleSelectTag
+                value={team}
+                onChange={(value) => setTeam(value)}
+                options={["Frontend", "Backend", "Design"]}
+                placeholder="Select team"
+              />
+            </div>
+
+            {/* Progress */}
+            <div>
+              <label className="block text-sm font-medium">Progress</label>
+              <Slider
+                value={[progress]}
+                onChange={(value) => setProgress(value)}
+                defaultValue={[50]}
+                max={[100]}
+              />
+              <span className="text-sm">{progress}%</span>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium">Description</label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+
+            {/* Attachments */}
+            <div>
+              <label className="block text-sm font-medium">Attachments</label>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              <ul className="mt-2 text-sm text-gray-500">
+                {attachments.map((file, index) => (
+                  <li key={index}>{file.name}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="absolute bottom-4 right-4">
+            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md">
+              ADD
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
