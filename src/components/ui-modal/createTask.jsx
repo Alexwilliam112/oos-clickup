@@ -43,9 +43,13 @@ export function TaskCreateModal({
   const editorRef = useRef(null);
 
   useEffect(() => {
-    let editor = null;
-
     async function initEditor() {
+      const editorElement = document.getElementById("editorjs");
+      if (!editorElement) {
+        console.error("EditorJS element is missing");
+        return;
+      }
+  
       const EditorJSModule = (await import("@editorjs/editorjs")).default;
       const [
         Header,
@@ -72,8 +76,8 @@ export function TaskCreateModal({
         import("@editorjs/text-variant-tune").then((m) => m.default),
         import("@editorjs/checklist").then((m) => m.default),
       ]);
-
-      editor = new EditorJSModule({
+  
+      const editor = new EditorJSModule({
         holder: "editorjs",
         placeholder: "Write something...",
         tools: {
@@ -84,7 +88,6 @@ export function TaskCreateModal({
               placeholder: "Enter a header",
               levels: [1, 2, 3, 4],
               defaultLevel: 1,
-              dropdown: true, 
             },
             tunes: ["textVariantTune"],
           },
@@ -117,34 +120,36 @@ export function TaskCreateModal({
           },
         },
       });
-
+  
       editorRef.current = editor;
     }
-
+  
     if (isOpen) {
       setIsVisible(true);
       document.body.style.overflow = "hidden";
-
-      if (!editorRef.current) {
-        initEditor();
-      }
+  
+      setTimeout(() => {
+        if (!editorRef.current) {
+          initEditor();
+        }
+      }, 0); // Ensure DOM is rendered before initializing
     } else {
       setTimeout(() => {
         setIsVisible(false);
-        if (document) {
-          document.body.style.overflow = "";
+        if (editorRef.current) {
+          editorRef.current.destroy();
+          editorRef.current = null;
         }
-      }, 300);
+        document.body.style.overflow = "";
+      }, 300); // Match modal close animation duration
     }
-
+  
     return () => {
       if (editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
       }
-      if (document) {
-        document.body.style.overflow = "";
-      }
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
