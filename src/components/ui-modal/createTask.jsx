@@ -32,7 +32,6 @@ export function TaskCreateModal({
   const [lists, setLists] = useState([]);
   const [product, setProduct] = useState("");
   const [team, setTeam] = useState("");
-  const [progress, setProgress] = useState(0);
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
@@ -49,7 +48,7 @@ export function TaskCreateModal({
         console.error("EditorJS element is missing");
         return;
       }
-  
+
       const EditorJSModule = (await import("@editorjs/editorjs")).default;
       const [
         Header,
@@ -76,7 +75,7 @@ export function TaskCreateModal({
         import("@editorjs/text-variant-tune").then((m) => m.default),
         import("@editorjs/checklist").then((m) => m.default),
       ]);
-  
+
       const editor = new EditorJSModule({
         holder: "editorjs",
         placeholder: "Write something...",
@@ -120,14 +119,14 @@ export function TaskCreateModal({
           },
         },
       });
-  
+
       editorRef.current = editor;
     }
-  
+
     if (isOpen) {
       setIsVisible(true);
       document.body.style.overflow = "hidden";
-  
+
       setTimeout(() => {
         if (!editorRef.current) {
           initEditor();
@@ -143,7 +142,7 @@ export function TaskCreateModal({
         document.body.style.overflow = "";
       }, 300); // Match modal close animation duration
     }
-  
+
     return () => {
       if (editorRef.current) {
         editorRef.current.destroy();
@@ -189,7 +188,6 @@ export function TaskCreateModal({
       lists,
       product,
       team,
-      progress,
       description: descriptionData,
       attachments,
     };
@@ -206,7 +204,6 @@ export function TaskCreateModal({
     setLists([]);
     setProduct("");
     setTeam("");
-    setProgress(0);
     setAttachments([]);
 
     // Close modal
@@ -379,18 +376,6 @@ export function TaskCreateModal({
                 ]}
                 placeholder="Select team"
               />
-            </div>
-
-            {/* Progress */}
-            <div>
-              <label className="block text-sm font-medium">Progress</label>
-              <Slider
-                value={[progress]}
-                onChange={(value) => setProgress(value)}
-                defaultValue={[50]}
-                max={[100]}
-              />
-              <span className="text-sm">{progress}%</span>
             </div>
 
             {/* Description */}
