@@ -20,11 +20,12 @@ export function Dashboard() {
       const workspaceId = searchParams.get("workspace_id");
       const page = searchParams.get("page");
       const paramId = searchParams.get("param_id");
+      const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
 
       if (workspaceId && page && paramId) {
         try {
           const response = await fetch(
-            `https://api-oos.jojonomic.com/27414/clickup/v2/page-info?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
+            `${baseUrl}/page-info?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
           );
           const data = await response.json();
 

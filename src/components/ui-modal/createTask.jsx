@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
-
-// Lazy load EditorJS
 const EditorJS = lazy(() => import("@editorjs/editorjs"));
 
 export function TaskCreateModal({
@@ -21,6 +19,7 @@ export function TaskCreateModal({
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
   const [isVisible, setIsVisible] = useState(false);
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
 
   // Task fields state
   const [taskName, setTaskName] = useState("");

@@ -45,6 +45,7 @@ export function SidebarNav() {
   const [currentTeamId, setCurrentTeamId] = React.useState(null);
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
   const [newTeamName, setNewTeamName] = React.useState("");
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
 
   const fetchTeams = React.useCallback(() => {
     const params = new URLSearchParams(window.location.search);
@@ -53,7 +54,7 @@ export function SidebarNav() {
     if (workspaceId) {
       setLoading(true);
       fetch(
-        `https://api-oos.jojonomic.com/27414/clickup/v2/team/index?workspace_id=${workspaceId}`
+        `${baseUrl}/team/index?workspace_id=${workspaceId}`
       )
         .then((response) => {
           if (!response.ok) {
@@ -94,7 +95,7 @@ export function SidebarNav() {
     }
 
     fetch(
-      `https://api-oos.jojonomic.com/27414/clickup/v2/team/create?workspace_id=${workspaceId}`,
+      `${baseUrl}/team/create?workspace_id=${workspaceId}`,
       {
         method: "POST",
         headers: {
@@ -132,7 +133,7 @@ export function SidebarNav() {
     if (workspaceId) {
       setLoadingFolders(true);
       fetch(
-        `https://api-oos.jojonomic.com/27414/clickup/v2/folder/index?workspace_id=${workspaceId}`
+        `${baseUrl}/folder/index?workspace_id=${workspaceId}`
       )
         .then((response) => {
           if (!response.ok) {
@@ -165,7 +166,7 @@ export function SidebarNav() {
     if (workspaceId) {
       setLoadingLists(true);
       fetch(
-        `https://api-oos.jojonomic.com/27414/clickup/v2/lists/index?workspace_id=${workspaceId}`
+        `${baseUrl}/lists/index?workspace_id=${workspaceId}`
       )
         .then((response) => {
           if (!response.ok) {
@@ -206,7 +207,7 @@ export function SidebarNav() {
     }
 
     fetch(
-      `https://api-oos.jojonomic.com/27414/clickup/v2/folder/create?workspace_id=${workspaceId}`,
+      `${baseUrl}/folder/create?workspace_id=${workspaceId}`,
       {
         method: "POST",
         headers: {
@@ -253,7 +254,7 @@ export function SidebarNav() {
     }
 
     fetch(
-      `https://api-oos.jojonomic.com/27414/clickup/v2/lists/create?workspace_id=${workspaceId}`,
+      `${baseUrl}/lists/create?workspace_id=${workspaceId}`,
       {
         method: "POST",
         headers: {
