@@ -31,6 +31,7 @@ export function TaskCreateModal({
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
   const [lists, setLists] = useState([]);
+  const [folder, setFolder] = useState({ id: "", name: "" });
   const [product, setProduct] = useState("");
   const [team, setTeam] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -45,6 +46,7 @@ export function TaskCreateModal({
   const [indexProduct, setIndexProduct] = useState([]);
   const [indexMember, setIndexMember] = useState([]);
   const [indexTeam, setIndexTeam] = useState([]);
+  const [indexFolder, setIndexFolder] = useState([]);
   const [indexList, setIndexList] = useState([]);
 
   //fetch data
@@ -166,6 +168,25 @@ export function TaskCreateModal({
           console.error("Error fetching teams:", error);
         });
       console.log("teams successfully:", indexTeam);
+
+      //GET FOLDERS
+      fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch folders.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to folders.");
+          }
+          setIndexFolder(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching folders:", error);
+        });
+      console.log("folders successfully:", indexFolder);
 
       //GET LIST
       fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
@@ -465,17 +486,8 @@ export function TaskCreateModal({
               />
             </div>
 
-            {/* Lists and Product */}
+            {/* Team and Product */}
             <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium">Lists</label>
-                <MultipleSelectTags
-                  value={lists}
-                  onChange={(value) => setLists(value)}
-                  options={indexList}
-                  placeholder="Add lists"
-                />
-              </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium">Product</label>
                 <SingleSelectTag
@@ -485,17 +497,37 @@ export function TaskCreateModal({
                   placeholder="Select product"
                 />
               </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium">Team</label>
+                <SingleSelectTag
+                  value={team}
+                  onChange={(value) => setTeam(value)}
+                  options={indexTeam}
+                  placeholder="Select team"
+                />
+              </div>
             </div>
 
-            {/* Team */}
-            <div>
-              <label className="block text-sm font-medium">Team</label>
-              <SingleSelectTag
-                value={team}
-                onChange={(value) => setTeam(value)}
-                options={indexTeam}
-                placeholder="Select team"
-              />
+            {/* Folder and Lists */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium">Folder</label>
+                <SingleSelectTag
+                  value={folder.id}
+                  onChange={(value) => setFolder(value)}
+                  options={indexFolder}
+                  placeholder="Select Folder"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium">Lists</label>
+                <MultipleSelectTags
+                  value={lists}
+                  onChange={(value) => setLists(value)}
+                  options={indexList}
+                  placeholder="Add lists"
+                />
+              </div>
             </div>
 
             {/* Description */}
@@ -505,7 +537,7 @@ export function TaskCreateModal({
             </div>
 
             {/* Attachments */}
-            <DynamicFileAttachments/>
+            <DynamicFileAttachments />
           </div>
 
           {/* Submit Button */}
