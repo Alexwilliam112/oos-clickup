@@ -16,6 +16,7 @@ export function TaskCreateModal({
   onClose,
   title = "Task View",
   subtitle,
+  parentTaskId,
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {

@@ -14,6 +14,7 @@ export function CreateModalTrigger({
   showSidebar = true,
   children,
   sidebarContent,
+  parentTaskId,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,6 +36,7 @@ export function CreateModalTrigger({
       )}
 
       <TaskCreateModal
+        parentTaskId={parentTaskId}
         isOpen={isOpen}
         onClose={handleClose}
         title={modalTitle}

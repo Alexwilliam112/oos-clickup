@@ -4,7 +4,10 @@ import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DetailModalTrigger, CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
+import {
+  DetailModalTrigger,
+  CreateModalTrigger,
+} from "@/components/ui-modal/modal-trigger";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CalendarIcon, Clock, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -86,20 +89,40 @@ export function ListView() {
   const renderHeaders = () => (
     <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
       <div className="table-row text-xs font-medium text-muted-foreground">
-        <div className="table-cell min-w-[50px] p-3 bg-muted"></div>
-        <div className="table-cell min-w-[255px] p-3 bg-muted">Task Name</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Created</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Task Type</div>
-        <div className="table-cell min-w-[150px] p-3 bg-muted">Assignee</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Start Date</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Due Date</div>
-        <div className="table-cell min-w-[100px] p-3 bg-muted">Priority</div>
-        <div className="table-cell min-w-[100px] p-3 bg-muted">Status</div>
-        <div className="table-cell min-w-[160px] p-3 bg-muted">Lists</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Product</div>
-        <div className="table-cell min-w-[120px] p-3 bg-muted">Team</div>
-        <div className="table-cell min-w-[160px] p-3 bg-muted">Progress</div>
-        <div className="table-cell min-w-[100px] p-3 text-right bg-muted">
+        <div className="table-cell min-w-[50px] p-3 pl-4 bg-muted"></div>
+        <div className="table-cell min-w-[255px] p-3  pl-4 bg-muted">
+          Task Name
+        </div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
+          Created
+        </div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
+          Task Type
+        </div>
+        <div className="table-cell min-w-[150px] p-3  pl-4 bg-muted">
+          Assignee
+        </div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
+          Start Date
+        </div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
+          Due Date
+        </div>
+        <div className="table-cell min-w-[100px] p-3  pl-4 bg-muted">
+          Priority
+        </div>
+        <div className="table-cell min-w-[100px] p-3  pl-4 bg-muted">
+          Status
+        </div>
+        <div className="table-cell min-w-[160px] p-3  pl-4 bg-muted">Lists</div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
+          Product
+        </div>
+        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">Team</div>
+        <div className="table-cell min-w-[160px] p-3  pl-4 bg-muted">
+          Progress
+        </div>
+        <div className="table-cell min-w-[100px] p-3  pl-4 text-right bg-muted">
           Actions
         </div>
       </div>
@@ -121,6 +144,7 @@ export function ListView() {
                 </Button>
               }
               modalTitle="Create Task"
+              parentTaskId={task.id}
               modalSubtitle={""}
               sidebarContent={<p></p>}
             />
@@ -206,6 +230,24 @@ export function ListView() {
 
   return (
     <div className="flex-1 overflow-auto w-full h-screen">
+      <div className="min-w-[50px] p-2 flex justify-left">
+        <CreateModalTrigger
+          trigger={
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-18 border border-green-500 text-green-600 font-medium rounded-md hover:bg-green-500 hover:text-white transition-colors"
+            >
+              ADD
+              <Plus className="h-4 w-4" />
+            </Button>
+          }
+          modalTitle="Create Task"
+          parentTaskId={"0"}
+          modalSubtitle={""}
+          sidebarContent={<p></p>}
+        />
+      </div>
       <div className="w-full table-auto">
         {renderHeaders()}
         <div className="table-row-group">{renderTasks(tasks)}</div>
