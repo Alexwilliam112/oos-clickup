@@ -5,6 +5,47 @@
 
 @tailwind utilities;
 
+#editorjs {
+  text-align: left; /* Align text to the left */
+  padding: 15; /* Remove padding */
+  padding-top: 5;
+  margin: 0; /* Remove margin */
+}
+
+#editorjs .ce-block__content {
+  text-align: left; /* Ensure content inside blocks is aligned left */
+  padding: 0; /* Remove padding inside blocks */
+  margin: 0; /* Remove margin inside blocks */
+}
+
+#editorjs .ce-toolbar__settings-btn {
+  display: block !important;
+}
+
+.ce-block h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.ce-block h2 {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.ce-block h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #999;
+}
+
+.ce-block h4 {
+  font-size: 1.3rem;
+  font-weight: normal;
+  color: #999;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

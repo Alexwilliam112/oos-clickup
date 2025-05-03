@@ -80,6 +80,12 @@ export function TaskCreateModal({
           header: {
             class: Header,
             inlineToolbar: true,
+            config: {
+              placeholder: "Enter a header",
+              levels: [1, 2, 3, 4],
+              defaultLevel: 1,
+              dropdown: true, 
+            },
             tunes: ["textVariantTune"],
           },
           list: { class: List, inlineToolbar: true },
@@ -96,22 +102,6 @@ export function TaskCreateModal({
           image: { class: SimpleImage, inlineToolbar: true },
           marker: { class: Marker, shortcut: "CMD+SHIFT+M" },
           inlineCode: { class: InlineCode, shortcut: "CMD+SHIFT+C" },
-          Color: {
-            class: TextColorPlugin,
-            config: {
-              colorCollections: [
-                "#000",
-                "#FF1300",
-                "#EA4335",
-                "#FBBC05",
-                "#34A853",
-                "#4285F4",
-                "#8e24aa",
-              ],
-              defaultColor: "#FF1300",
-              type: "text",
-            },
-          },
           textVariantTune: {
             class: TextVariantTune,
             config: {
