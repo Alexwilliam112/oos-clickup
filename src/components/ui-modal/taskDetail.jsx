@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Calendar } from "@/components/ui/calendar";
+import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input"; // Updated import
 
 export function TaskDetailModal({
@@ -29,7 +29,7 @@ export function TaskDetailModal({
   const [taskName, setTaskName] = useState("");
   const [taskType, setTaskType] = useState("");
   const [assignees, setAssignees] = useState([]);
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [selectedRange, setSelectedRange] = useState({ from: null, to: null });
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
   const [lists, setLists] = useState([]);
@@ -153,10 +153,10 @@ export function TaskDetailModal({
               {/* Start Date & Due Date */}
               <div>
                 <label className="block text-sm font-medium">Date Range</label>
-                <Calendar
-                  value={dateRange}
-                  onChange={(range) => setDateRange(range)}
-                  range
+                <DateRangePicker
+                  value={selectedRange}
+                  onChange={(range) => setSelectedRange(range)}
+                  placeholder="Select a date range"
                 />
               </div>
 

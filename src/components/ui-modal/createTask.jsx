@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Calendar } from "@/components/ui/calendar";
+import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
 
 export function TaskCreateModal({
@@ -24,7 +24,7 @@ export function TaskCreateModal({
   const [taskName, setTaskName] = useState("");
   const [taskType, setTaskType] = useState("");
   const [assignees, setAssignees] = useState([]);
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
   const [lists, setLists] = useState([]);
@@ -33,6 +33,10 @@ export function TaskCreateModal({
   const [progress, setProgress] = useState(0);
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [selectedRange, setSelectedRange] = useState({
+    from: null,
+    to: null,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -92,7 +96,7 @@ export function TaskCreateModal({
     setTaskName("");
     setTaskType("");
     setAssignees([]);
-    setDateRange({ start: null, end: null });
+    setDateRange({ from: null, to: null });
     setPriority("");
     setStatus("");
     setLists([]);
@@ -143,7 +147,10 @@ export function TaskCreateModal({
         </div>
 
         {/* Modal Content */}
-        <form onSubmit={handleSubmit} className="flex flex-1 overflow-hidden relative">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 overflow-hidden relative"
+        >
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-4 space-y-4">
             {/* Task Name and Task Type */}
@@ -203,10 +210,10 @@ export function TaskCreateModal({
             {/* Start Date & Due Date */}
             <div>
               <label className="block text-sm font-medium">Date Range</label>
-              <Calendar
-                value={dateRange}
-                onChange={(range) => setDateRange(range)}
-                range
+              <DateRangePicker
+                value={selectedRange}
+                onChange={(range) => setSelectedRange(range)}
+                placeholder="Select a date range"
               />
             </div>
 
@@ -284,7 +291,10 @@ export function TaskCreateModal({
 
           {/* Submit Button */}
           <div className="absolute bottom-4 right-4">
-            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md">
+            <Button
+              type="submit"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md"
+            >
               ADD
             </Button>
           </div>
