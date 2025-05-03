@@ -168,7 +168,11 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={taskType}
                   onChange={(value) => setTaskType(value)}
-                  options={["Bug", "Feature", "Improvement"]}
+                  options={[
+                    { id: "1", value: "High Priority", color: "#FF0000" },
+                    { id: "2", value: "Medium Priority", color: "#FFA500" },
+                    { id: "3", value: "Low Priority", color: "#00FF00" },
+                  ]}
                   placeholder="Select task type"
                 />
               </div>
@@ -181,7 +185,11 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={priority}
                   onChange={(value) => setPriority(value)}
-                  options={["Low", "Medium", "High"]}
+                  options={[
+                    { id: "1", value: "High Priority", color: "#FF0000" },
+                    { id: "2", value: "Medium Priority", color: "#FFA500" },
+                    { id: "3", value: "Low Priority", color: "#00FF00" },
+                  ]}
                   placeholder="Select priority"
                 />
               </div>
@@ -190,7 +198,11 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={status}
                   onChange={(value) => setStatus(value)}
-                  options={["Todo", "In Progress", "Done"]}
+                  options={[
+                    { id: "1", value: "High Priority", color: "#FF0000" },
+                    { id: "2", value: "Medium Priority", color: "#FFA500" },
+                    { id: "3", value: "Low Priority", color: "#00FF00" },
+                  ]}
                   placeholder="Select status"
                 />
               </div>
@@ -202,7 +214,11 @@ export function TaskCreateModal({
               <MultipleSelectTags
                 value={assignees}
                 onChange={(value) => setAssignees(value)}
-                options={["Alice", "Bob", "Charlie"]}
+                options={[
+                  { id: "1", value: "Bob" },
+                  { id: "2", value: "Alice" },
+                  { id: "3", value: "John" },
+                ]}
                 placeholder="Add assignees"
               />
             </div>
@@ -217,26 +233,34 @@ export function TaskCreateModal({
               />
             </div>
 
-            {/* Lists */}
-            <div>
-              <label className="block text-sm font-medium">Lists</label>
-              <MultipleSelectTags
-                value={lists}
-                onChange={(value) => setLists(value)}
-                options={["Backlog", "Sprint 1", "Sprint 2"]}
-                placeholder="Add lists"
-              />
-            </div>
-
-            {/* Product */}
-            <div>
-              <label className="block text-sm font-medium">Product</label>
-              <SingleSelectTag
-                value={product}
-                onChange={(value) => setProduct(value)}
-                options={["Website", "Mobile App", "API"]}
-                placeholder="Select product"
-              />
+            {/* Lists and Product */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium">Lists</label>
+                <MultipleSelectTags
+                  value={lists}
+                  onChange={(value) => setLists(value)}
+                  options={[
+                    { id: "1", value: "Bob" },
+                    { id: "2", value: "Alice" },
+                    { id: "3", value: "John" },
+                  ]}
+                  placeholder="Add lists"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium">Product</label>
+                <SingleSelectTag
+                  value={product}
+                  onChange={(value) => setProduct(value)}
+                  options={[
+                    { id: "1", value: "High Priority", color: "#FF0000" },
+                    { id: "2", value: "Medium Priority", color: "#FFA500" },
+                    { id: "3", value: "Low Priority", color: "#00FF00" },
+                  ]}
+                  placeholder="Select product"
+                />
+              </div>
             </div>
 
             {/* Team */}
@@ -245,7 +269,11 @@ export function TaskCreateModal({
               <SingleSelectTag
                 value={team}
                 onChange={(value) => setTeam(value)}
-                options={["Frontend", "Backend", "Design"]}
+                options={[
+                  { value: "High Priority", color: "#FF0000" },
+                  { value: "Medium Priority", color: "#FFA500" },
+                  { value: "Low Priority", color: "#00FF00" },
+                ]}
                 placeholder="Select team"
               />
             </div>
