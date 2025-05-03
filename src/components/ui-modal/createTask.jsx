@@ -1,14 +1,16 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense, useRef } from "react";
+import dynamic from "next/dynamic";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
+
+// Lazy load EditorJS
+const EditorJS = lazy(() => import("@editorjs/editorjs"));
 
 export function TaskCreateModal({
   isOpen,
@@ -38,19 +40,121 @@ export function TaskCreateModal({
     to: null,
   });
 
+  const editorRef = useRef(null);
+
   useEffect(() => {
+    let editor = null;
+
+    async function initEditor() {
+      const EditorJSModule = (await import("@editorjs/editorjs")).default;
+      const [
+        Header,
+        List,
+        Table,
+        Quote,
+        Embed,
+        SimpleImage,
+        Marker,
+        InlineCode,
+        TextColorPlugin,
+        TextVariantTune,
+        Checklist,
+      ] = await Promise.all([
+        import("@editorjs/header").then((m) => m.default),
+        import("@editorjs/list").then((m) => m.default),
+        import("@editorjs/table").then((m) => m.default),
+        import("@editorjs/quote").then((m) => m.default),
+        import("@editorjs/embed").then((m) => m.default),
+        import("@editorjs/simple-image").then((m) => m.default),
+        import("@editorjs/marker").then((m) => m.default),
+        import("@editorjs/inline-code").then((m) => m.default),
+        import("editorjs-text-color-plugin").then((m) => m.default),
+        import("@editorjs/text-variant-tune").then((m) => m.default),
+        import("@editorjs/checklist").then((m) => m.default),
+      ]);
+
+      editor = new EditorJSModule({
+        holder: "editorjs",
+        placeholder: "Write something...",
+        tools: {
+          header: {
+            class: Header,
+            inlineToolbar: true,
+            tunes: ["textVariantTune"],
+          },
+          list: { class: List, inlineToolbar: true },
+          table: { class: Table, inlineToolbar: true },
+          checklist: { class: Checklist, inlineToolbar: true },
+          quote: { class: Quote, inlineToolbar: true },
+          embed: {
+            class: Embed,
+            inlineToolbar: false,
+            config: {
+              services: { youtube: true, twitter: true, instagram: true },
+            },
+          },
+          image: { class: SimpleImage, inlineToolbar: true },
+          marker: { class: Marker, shortcut: "CMD+SHIFT+M" },
+          inlineCode: { class: InlineCode, shortcut: "CMD+SHIFT+C" },
+          Color: {
+            class: TextColorPlugin,
+            config: {
+              colorCollections: [
+                "#000",
+                "#FF1300",
+                "#EA4335",
+                "#FBBC05",
+                "#34A853",
+                "#4285F4",
+                "#8e24aa",
+              ],
+              defaultColor: "#FF1300",
+              type: "text",
+            },
+          },
+          textVariantTune: {
+            class: TextVariantTune,
+            config: {
+              types: [
+                "primary",
+                "secondary",
+                "info",
+                "success",
+                "warning",
+                "danger",
+              ],
+            },
+          },
+        },
+      });
+
+      editorRef.current = editor;
+    }
+
     if (isOpen) {
       setIsVisible(true);
       document.body.style.overflow = "hidden";
+
+      if (!editorRef.current) {
+        initEditor();
+      }
     } else {
       setTimeout(() => {
         setIsVisible(false);
-        document.body.style.overflow = "";
+        if (document) {
+          document.body.style.overflow = "";
+        }
       }, 300);
     }
 
     return () => {
-      document.body.style.overflow = "";
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+      if (document) {
+        document.body.style.overflow = "";
+      }
     };
   }, [isOpen]);
 
@@ -71,8 +175,13 @@ export function TaskCreateModal({
     setAttachments([...attachments, ...e.target.files]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Collect Editor.js data
+    const descriptionData = editorRef.current
+      ? await editorRef.current.save()
+      : {};
 
     // Collect task data
     const taskData = {
@@ -86,7 +195,7 @@ export function TaskCreateModal({
       product,
       team,
       progress,
-      description,
+      description: descriptionData,
       attachments,
     };
 
@@ -103,7 +212,6 @@ export function TaskCreateModal({
     setProduct("");
     setTeam("");
     setProgress(0);
-    setDescription("");
     setAttachments([]);
 
     // Close modal
@@ -293,11 +401,7 @@ export function TaskCreateModal({
             {/* Description */}
             <div>
               <label className="block text-sm font-medium">Description</label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter description"
-              />
+              <div id="editorjs" className="border rounded p-2 text-left"></div>
             </div>
 
             {/* Attachments */}
