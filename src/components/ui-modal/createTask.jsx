@@ -31,15 +31,162 @@ export function TaskCreateModal({
   const [lists, setLists] = useState([]);
   const [product, setProduct] = useState("");
   const [team, setTeam] = useState("");
-  const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
     from: null,
     to: null,
   });
 
-  const editorRef = useRef(null);
+  const [indexTaskType, setIndexTaskType] = useState([]);
+  const [indexStatus, setIndexStatus] = useState([]);
+  const [indexPriority, setIndexPriority] = useState([]);
+  const [indexProduct, setIndexProduct] = useState([]);
+  const [indexMember, setIndexMember] = useState([]);
+  const [indexTeam, setIndexTeam] = useState([]);
+  const [indexList, setIndexList] = useState([]);
 
+  //fetch data
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    if (workspaceId) {
+      //GET TASK TYPES
+      fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch task types.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to task types.");
+          }
+          setIndexTaskType(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching task types:", error);
+        });
+      console.log("Task types fetched successfully:", indexTaskType);
+
+      //GET STATUS
+      fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Status.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Status.");
+          }
+          setIndexStatus(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Status:", error);
+        });
+      console.log("Status fetched successfully:", indexStatus);
+
+      //GET PRIORITY
+      fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Priority.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Priority.");
+          }
+          setIndexPriority(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Priority:", error);
+        });
+      console.log("Task Priority successfully:", indexPriority);
+
+      //GET PRODUCTS
+      fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Products.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Products.");
+          }
+          setIndexProduct(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Products:", error);
+        });
+      console.log("Task Products successfully:", indexProduct);
+
+      //GET MEMBERS
+      fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Members.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Members.");
+          }
+          setIndexMember(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Members:", error);
+        });
+      console.log("Members successfully:", indexMember);
+
+      //GET TEAMS
+      fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch teams.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to teams.");
+          }
+          setIndexTeam(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching teams:", error);
+        });
+      console.log("teams successfully:", indexTeam);
+
+      //GET LIST
+      fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch teams.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to teams.");
+          }
+          setIndexList(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching teams:", error);
+        });
+      console.log("teams successfully:", indexList);
+    }
+  }, []);
+
+  const editorRef = useRef(null);
   useEffect(() => {
     async function initEditor() {
       const editorElement = document.getElementById("editorjs");
@@ -267,11 +414,7 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={taskType}
                   onChange={(value) => setTaskType(value)}
-                  options={[
-                    { id: "1", value: "High Priority", color: "#FF0000" },
-                    { id: "2", value: "Medium Priority", color: "#FFA500" },
-                    { id: "3", value: "Low Priority", color: "#00FF00" },
-                  ]}
+                  options={indexTaskType}
                   placeholder="Select task type"
                 />
               </div>
@@ -284,11 +427,7 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={priority}
                   onChange={(value) => setPriority(value)}
-                  options={[
-                    { id: "1", value: "High Priority", color: "#FF0000" },
-                    { id: "2", value: "Medium Priority", color: "#FFA500" },
-                    { id: "3", value: "Low Priority", color: "#00FF00" },
-                  ]}
+                  options={indexPriority}
                   placeholder="Select priority"
                 />
               </div>
@@ -297,11 +436,7 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={status}
                   onChange={(value) => setStatus(value)}
-                  options={[
-                    { id: "1", value: "High Priority", color: "#FF0000" },
-                    { id: "2", value: "Medium Priority", color: "#FFA500" },
-                    { id: "3", value: "Low Priority", color: "#00FF00" },
-                  ]}
+                  options={indexStatus}
                   placeholder="Select status"
                 />
               </div>
@@ -313,11 +448,7 @@ export function TaskCreateModal({
               <MultipleSelectTags
                 value={assignees}
                 onChange={(value) => setAssignees(value)}
-                options={[
-                  { id: "1", value: "Bob" },
-                  { id: "2", value: "Alice" },
-                  { id: "3", value: "John" },
-                ]}
+                options={indexMember}
                 placeholder="Add assignees"
               />
             </div>
@@ -339,11 +470,7 @@ export function TaskCreateModal({
                 <MultipleSelectTags
                   value={lists}
                   onChange={(value) => setLists(value)}
-                  options={[
-                    { id: "1", value: "Bob" },
-                    { id: "2", value: "Alice" },
-                    { id: "3", value: "John" },
-                  ]}
+                  options={indexList}
                   placeholder="Add lists"
                 />
               </div>
@@ -352,11 +479,7 @@ export function TaskCreateModal({
                 <SingleSelectTag
                   value={product}
                   onChange={(value) => setProduct(value)}
-                  options={[
-                    { id: "1", value: "High Priority", color: "#FF0000" },
-                    { id: "2", value: "Medium Priority", color: "#FFA500" },
-                    { id: "3", value: "Low Priority", color: "#00FF00" },
-                  ]}
+                  options={indexProduct}
                   placeholder="Select product"
                 />
               </div>
@@ -368,11 +491,7 @@ export function TaskCreateModal({
               <SingleSelectTag
                 value={team}
                 onChange={(value) => setTeam(value)}
-                options={[
-                  { value: "High Priority", color: "#FF0000" },
-                  { value: "Medium Priority", color: "#FFA500" },
-                  { value: "Low Priority", color: "#00FF00" },
-                ]}
+                options={indexTeam}
                 placeholder="Select team"
               />
             </div>

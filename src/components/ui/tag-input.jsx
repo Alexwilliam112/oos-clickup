@@ -50,7 +50,7 @@ export function SingleSelectTag({
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: value.color }}
             ></span>
-            {value.value}
+            {value.name}
           </span>
         ) : (
           <span className="text-gray-400">{placeholder}</span>
@@ -68,7 +68,7 @@ export function SingleSelectTag({
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: option.color }}
               ></span>
-              {option.value}
+              {option.name}
             </div>
           ))}
         </div>
@@ -92,20 +92,20 @@ export function MultipleSelectTags({
   const tags = Array.isArray(value) ? value : [];
 
   const handleAddTag = (tag) => {
-    if (!tags.some((t) => t.id === tag.id)) {
+    if (!tags.some((t) => t.id_record === tag.id_record)) {
       onChange([...tags, tag]);
     }
     setInputValue("");
   };
 
   const handleRemoveTag = (tag) => {
-    onChange(tags.filter((item) => item.id !== tag.id));
+    onChange(tags.filter((item) => item.id_record !== tag.id_record));
   };
 
   const filteredOptions = options.filter(
     (option) =>
-      !tags.some((tag) => tag.id === option.id) &&
-      option.value.toLowerCase().includes(inputValue.toLowerCase())
+      !tags.some((tag) => tag.id_record === option.id_record) &&
+      option.name.toLowerCase().includes(inputValue.toLowerCase())
   );
 
   const handleClickOutside = (event) => {
@@ -126,10 +126,10 @@ export function MultipleSelectTags({
       <div className="flex flex-wrap items-center gap-2 border p-1.5 rounded">
         {tags.map((tag) => (
           <span
-            key={tag.id}
+            key={tag.id_record}
             className="bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center"
           >
-            {tag.value}
+            {tag.name}
             <button
               onClick={() => handleRemoveTag(tag)}
               className="ml-2 text-red-500 rounded hover:bg-red-100"
@@ -152,11 +152,11 @@ export function MultipleSelectTags({
         <div className="absolute z-10 mt-1 bg-white border rounded shadow-lg w-full max-h-60 overflow-auto">
           {filteredOptions.map((option) => (
             <div
-              key={option.id}
+              key={option.id_record}
               className="p-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleAddTag(option)}
             >
-              {option.value}
+              {option.name}
             </div>
           ))}
         </div>
