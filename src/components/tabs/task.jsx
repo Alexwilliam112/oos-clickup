@@ -41,6 +41,7 @@ export default function Task({
   tasks,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [taskId, setTaskId] = useState(null);
 
   useEffect(() => {
     // Set as expanded only on the first load
@@ -48,6 +49,11 @@ export default function Task({
       setIsExpanded(true);
     }
   }, []);
+
+  useEffect(() => {
+    // Set the taskId to the current task's id_task
+    setTaskId(task.id_task);
+  }, [task]);
 
   const toggleExpand = (task) => {
     setIsExpanded(!isExpanded);
@@ -138,9 +144,9 @@ export default function Task({
                 </span>
               }
               modalTitle="Task Details"
-              parentTaskId={task.id_task}
               fetchTasks={fetchTasks}
               showSidebar={true}
+              task={task}
               selectData={selectData}
               modalSubtitle={task.created_at}
               sidebarContent={<p>Sidebar content here</p>}
