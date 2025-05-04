@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { TaskDetailModal } from "./taskDetail";
 import { TaskCreateModal } from "./createTask";
+import { TaskDetailModalV2 } from "./detailTask";
 
 export function CreateModalTrigger({
   trigger, // New prop for custom trigger element
@@ -57,16 +57,19 @@ export function CreateModalTrigger({
 
 export function DetailModalTrigger({
   trigger, // New prop for custom trigger element
-  buttonText = "Open Modal",
+  buttonText = "Create Task",
   buttonVariant = "default",
-  modalTitle,
-  modalSubtitle,
+  modalTitle = "Create New Task",
+  modalSubtitle = "Fill in the details below to create a new task",
   showSidebar = true,
   children,
   sidebarContent,
+  parentTaskId,
+  fetchTasks,
+  selectData,
+  initialValues,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
@@ -84,16 +87,20 @@ export function DetailModalTrigger({
         </Button>
       )}
 
-      <TaskDetailModal
+      <TaskDetailModalV2
+        parentTaskId={parentTaskId}
+        fetchTasks={fetchTasks}
         isOpen={isOpen}
         onClose={handleClose}
         title={modalTitle}
         subtitle={modalSubtitle}
         showSidebar={showSidebar}
         sidebarContent={sidebarContent}
+        selectData={selectData}
+        initialValues={initialValues}
       >
         {children}
-      </TaskDetailModal>
+      </TaskDetailModalV2>
     </>
   );
 }

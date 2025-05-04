@@ -358,6 +358,24 @@ export function ListView() {
                 </span>
               }
               modalTitle="Task Details"
+              parentTaskId={task.id_task}
+              fetchTasks={fetchTasks}
+              showSidebar={true}
+              initialValues={{
+                team,
+                folder,
+                lists,
+              }}
+              selectData={{
+                indexTaskType,
+                indexStatus,
+                indexPriority,
+                indexProduct,
+                indexMember,
+                indexTeam,
+                indexFolder,
+                indexList,
+              }}
               modalSubtitle="Created on May 1, 2025"
               sidebarContent={<p>Sidebar content here</p>}
             >
