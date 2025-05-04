@@ -17,6 +17,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
@@ -35,6 +36,8 @@ function getContrastColor(hexColor) {
 }
 
 export function Board() {
+  const [isOpen, setIsOpen] = useState(false);
+
   const [tasks, setTasks] = useState([]);
   const [indexTaskType, setIndexTaskType] = useState([]);
   const [indexStatus, setIndexStatus] = useState([]);
@@ -342,13 +345,35 @@ export function Board() {
               </Badge>
             </div>
             <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-white/20"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              <CreateModalTrigger
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-7 w-7 border-radius-full hover:bg-white/20">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                }
+                modalTitle="Create Task"
+                parentTaskId={"0"}
+                modalSubtitle={""}
+                sidebarContent={<p></p>}
+                fetchTasks={fetchTasks}
+                initialValues={{
+                  team,
+                  folder,
+                  lists,
+                }}
+                selectData={{
+                  indexTaskType,
+                  indexStatus,
+                  indexPriority,
+                  indexProduct,
+                  indexMember,
+                  indexTeam,
+                  indexFolder,
+                  indexList,
+                }}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
             </div>
           </div>
 
@@ -508,10 +533,42 @@ export function Board() {
                   </div>
                 </Card>
               ))}
-            <Button variant="ghost" className="mt-2 justify-start">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Task
-            </Button>
+            <div className="w-full">
+              <CreateModalTrigger
+                trigger={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer flex h-8 w-full border border-green-500 text-green-600 font-medium rounded-md hover:bg-green-100 hover:text-green-500 transition-colors"
+                  >
+                    ADD
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                }
+                modalTitle="Create Task"
+                parentTaskId={"0"}
+                modalSubtitle={""}
+                sidebarContent={<p></p>}
+                fetchTasks={fetchTasks}
+                initialValues={{
+                  team,
+                  folder,
+                  lists,
+                }}
+                selectData={{
+                  indexTaskType,
+                  indexStatus,
+                  indexPriority,
+                  indexProduct,
+                  indexMember,
+                  indexTeam,
+                  indexFolder,
+                  indexList,
+                }}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
+            </div>
           </div>
         </div>
       ))}

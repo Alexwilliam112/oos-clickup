@@ -327,7 +327,7 @@ export function ListView() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-18 border border-green-500 text-green-600 font-medium rounded-md hover:bg-green-500 hover:text-white transition-colors"
+              className="cursor-pointer h-8 w-18 border border-green-500 text-green-600 font-medium rounded-md hover:bg-green-500 hover:text-white transition-colors"
             >
               ADD
               <Plus className="h-4 w-4" />
