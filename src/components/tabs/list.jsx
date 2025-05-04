@@ -48,7 +48,7 @@ export function ListView() {
   const page = params.get("page");
   const paramId = params.get("param_id");
 
-  useEffect(() => {
+  const fetchTasks = () => {
     let taskDataInitial = [];
     fetch(
       //GET TASKS
@@ -71,6 +71,10 @@ export function ListView() {
         console.error("Error fetching TASKS DATA:", error);
       });
     console.log("SUCCESS FETCH TASKS DATA");
+  };
+
+  useEffect(() => {
+    fetchTasks();
   }, []);
 
   useEffect(() => {
@@ -312,6 +316,7 @@ export function ListView() {
               }
               modalTitle="Create Task"
               parentTaskId={task.id_task}
+              fetchTasks={fetchTasks}
               modalSubtitle={""}
               initialValues={{
                 team,
@@ -428,6 +433,7 @@ export function ListView() {
           parentTaskId={"0"}
           modalSubtitle={""}
           sidebarContent={<p></p>}
+          fetchTasks={fetchTasks}
           initialValues={{
             team,
             folder,

@@ -15,6 +15,7 @@ export function CreateModalTrigger({
   children,
   sidebarContent,
   parentTaskId,
+  fetchTasks,
   selectData,
   initialValues,
 }) {
@@ -38,6 +39,7 @@ export function CreateModalTrigger({
 
       <TaskCreateModal
         parentTaskId={parentTaskId}
+        fetchTasks={fetchTasks}
         isOpen={isOpen}
         onClose={handleClose}
         title={modalTitle}
