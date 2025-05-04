@@ -1,29 +1,32 @@
-"use client";
-import { useEffect, useState, lazy, Suspense, useRef } from "react";
-import dynamic from "next/dynamic";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
-import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
-import DynamicFileAttachments from "../ui/dynamicAttachments";
-const EditorJS = lazy(() => import("@editorjs/editorjs"));
+'use client'
+import { useEffect, useState, lazy, Suspense, useRef } from 'react'
+import dynamic from 'next/dynamic'
+import { X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
+import { DateRangePicker } from '@/components/ui/dateRangePicker.jsx'
+import { SingleSelectTag, MultipleSelectTags } from '@/components/ui/tag-input'
+import DynamicFileAttachments from '../ui/dynamicAttachments'
+const EditorJS = lazy(() => import('@editorjs/editorjs'))
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 export function TaskCreateModal({
   isOpen,
   onClose,
-  title = "Task View",
+  title = 'Task View',
   subtitle,
   parentTaskId,
   selectData,
   initialValues,
-  width = "calc(90vw - 36px)", // Reduced by 10%
-  height = "calc(90vh - 36px)", // Reduced by 10%
+  width = 'calc(90vw - 36px)', // Reduced by 10%
+  height = 'calc(90vh - 36px)', // Reduced by 10%
 }) {
-  const [isVisible, setIsVisible] = useState(false);
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+  const [isVisible, setIsVisible] = useState(false)
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   const {
     indexTaskType,
     indexStatus,
@@ -33,41 +36,57 @@ export function TaskCreateModal({
     indexTeam,
     indexFolder,
     indexList,
-  } = selectData;
+  } = selectData
 
   // Task fields state
-  const [taskName, setTaskName] = useState("");
-  const [taskType, setTaskType] = useState(null);
-  const [assignees, setAssignees] = useState([]);
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
-  const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState(null);
-  const [lists, setLists] = useState([]);
-  const [folder, setFolder] = useState(null);
-  const [product, setProduct] = useState(null);
-  const [team, setTeam] = useState(null);
-  const [attachments, setAttachments] = useState([]);
+  const [taskName, setTaskName] = useState('')
+  const [taskType, setTaskType] = useState(null)
+  const [assignees, setAssignees] = useState([])
+  const [dateRange, setDateRange] = useState({ from: null, to: null })
+  const [priority, setPriority] = useState('')
+  const [status, setStatus] = useState(null)
+  const [lists, setLists] = useState([])
+  const [folder, setFolder] = useState(null)
+  const [product, setProduct] = useState(null)
+  const [team, setTeam] = useState(null)
+  const [attachments, setAttachments] = useState([])
   const [selectedRange, setSelectedRange] = useState({
     from: null,
     to: null,
-  });
+  })
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+  } = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      taskName: '',
+      assignees: [],
+      lists: [],
+    },
+  })
 
   useEffect(() => {
-    setLists(initialValues.lists);
-    setFolder(initialValues.folder);
-    setTeam(initialValues.team);
-  }, [initialValues]);
+    setLists(initialValues.lists)
+    setFolder(initialValues.folder)
+    setTeam(initialValues.team)
+  }, [initialValues])
 
-  const editorRef = useRef(null);
+  const editorRef = useRef(null)
   useEffect(() => {
     async function initEditor() {
-      const editorElement = document.getElementById("editorjs");
+      const editorElement = document.getElementById('editorjs')
       if (!editorElement) {
-        console.error("EditorJS element is missing");
-        return;
+        console.error('EditorJS element is missing')
+        return
       }
 
-      const EditorJSModule = (await import("@editorjs/editorjs")).default;
+      const EditorJSModule = (await import('@editorjs/editorjs')).default
       const [
         Header,
         List,
@@ -81,32 +100,32 @@ export function TaskCreateModal({
         TextVariantTune,
         Checklist,
       ] = await Promise.all([
-        import("@editorjs/header").then((m) => m.default),
-        import("@editorjs/list").then((m) => m.default),
-        import("@editorjs/table").then((m) => m.default),
-        import("@editorjs/quote").then((m) => m.default),
-        import("@editorjs/embed").then((m) => m.default),
-        import("@editorjs/simple-image").then((m) => m.default),
-        import("@editorjs/marker").then((m) => m.default),
-        import("@editorjs/inline-code").then((m) => m.default),
-        import("editorjs-text-color-plugin").then((m) => m.default),
-        import("@editorjs/text-variant-tune").then((m) => m.default),
-        import("@editorjs/checklist").then((m) => m.default),
-      ]);
+        import('@editorjs/header').then((m) => m.default),
+        import('@editorjs/list').then((m) => m.default),
+        import('@editorjs/table').then((m) => m.default),
+        import('@editorjs/quote').then((m) => m.default),
+        import('@editorjs/embed').then((m) => m.default),
+        import('@editorjs/simple-image').then((m) => m.default),
+        import('@editorjs/marker').then((m) => m.default),
+        import('@editorjs/inline-code').then((m) => m.default),
+        import('editorjs-text-color-plugin').then((m) => m.default),
+        import('@editorjs/text-variant-tune').then((m) => m.default),
+        import('@editorjs/checklist').then((m) => m.default),
+      ])
 
       const editor = new EditorJSModule({
-        holder: "editorjs",
-        placeholder: "Write something...",
+        holder: 'editorjs',
+        placeholder: 'Write something...',
         tools: {
           header: {
             class: Header,
             inlineToolbar: true,
             config: {
-              placeholder: "Enter a header",
+              placeholder: 'Enter a header',
               levels: [1, 2, 3, 4],
               defaultLevel: 1,
             },
-            tunes: ["textVariantTune"],
+            tunes: ['textVariantTune'],
           },
           list: { class: List, inlineToolbar: true },
           table: { class: Table, inlineToolbar: true },
@@ -120,80 +139,73 @@ export function TaskCreateModal({
             },
           },
           image: { class: SimpleImage, inlineToolbar: true },
-          marker: { class: Marker, shortcut: "CMD+SHIFT+M" },
-          inlineCode: { class: InlineCode, shortcut: "CMD+SHIFT+C" },
+          marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
+          inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
           textVariantTune: {
             class: TextVariantTune,
             config: {
-              types: [
-                "primary",
-                "secondary",
-                "info",
-                "success",
-                "warning",
-                "danger",
-              ],
+              types: ['primary', 'secondary', 'info', 'success', 'warning', 'danger'],
             },
           },
         },
-      });
+      })
 
-      editorRef.current = editor;
+      editorRef.current = editor
     }
 
     if (isOpen) {
-      setIsVisible(true);
-      document.body.style.overflow = "hidden";
+      setIsVisible(true)
+      document.body.style.overflow = 'hidden'
 
       setTimeout(() => {
         if (!editorRef.current) {
-          initEditor();
+          initEditor()
         }
-      }, 0); // Ensure DOM is rendered before initializing
+      }, 0) // Ensure DOM is rendered before initializing
     } else {
       setTimeout(() => {
-        setIsVisible(false);
+        setIsVisible(false)
         if (editorRef.current) {
-          editorRef.current.destroy();
-          editorRef.current = null;
+          editorRef.current.destroy()
+          editorRef.current = null
         }
-        document.body.style.overflow = "";
-      }, 300); // Match modal close animation duration
+        document.body.style.overflow = ''
+      }, 300) // Match modal close animation duration
     }
 
     return () => {
       if (editorRef.current) {
-        editorRef.current.destroy();
-        editorRef.current = null;
+        editorRef.current.destroy()
+        editorRef.current = null
       }
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
 
-  if (!isVisible) return null;
+  const getBorderColor = (fieldName) => (errors[fieldName] ? 'border-red-500' : 'border-gray-300')
+
+  if (!isVisible) return null
 
   const handleFileUpload = (e) => {
-    setAttachments([...attachments, ...e.target.files]);
-  };
+    setAttachments([...attachments, ...e.target.files])
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (e) => {
+    e.preventDefault()
 
     // Collect Editor.js data
-    const descriptionData = editorRef.current
-      ? await editorRef.current.save()
-      : {};
+    const descriptionData = editorRef.current ? await editorRef.current.save() : {}
 
     // Collect task data
     const taskData = {
@@ -211,51 +223,53 @@ export function TaskCreateModal({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
-    };
+    }
 
-    console.log("Task Created:", taskData);
+    console.log('Task Created:', taskData)
 
     // Reset form fields
-    setTaskName("");
-    setTaskType(null);
-    setAssignees([]);
-    setDateRange({ from: null, to: null });
-    setSelectedRange({ from: null, to: null });
-    setPriority(null);
-    setStatus(null);
-    setLists([]);
-    setFolder(null);
-    setProduct(null);
-    setTeam(null);
-    setAttachments([]);
+    setTaskName('')
+    setTaskType(null)
+    setAssignees([])
+    setDateRange({ from: null, to: null })
+    setSelectedRange({ from: null, to: null })
+    setPriority(null)
+    setStatus(null)
+    setLists([])
+    setFolder(null)
+    setProduct(null)
+    setTeam(null)
+    setAttachments([])
 
-    const params = new URLSearchParams(window.location.search);
-    const workspaceId = params.get("workspace_id");
-    const page = params.get("page");
-    const paramId = params.get("param_id");
+    reset()
+
+    const params = new URLSearchParams(window.location.search)
+    const workspaceId = params.get('workspace_id')
+    const page = params.get('page')
+    const paramId = params.get('param_id')
 
     fetch(`${baseUrl}/task/create?workspace_id=${workspaceId}`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(taskData),
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to create task.");
+          throw new Error('Failed to create task.')
         }
-        return response.json();
+        return response.json()
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || "Failed to create task.");
+          throw new Error(data.message || 'Failed to create task.')
         }
-        console.log("Task created successfully:", data);
+        console.log('Task created successfully:', data)
       })
       .catch((error) => {
-        console.error("Error creating task:", error);
-      });
+        console.error('Error creating task:', error)
+      })
 
     // Close modal
 
@@ -265,44 +279,44 @@ export function TaskCreateModal({
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to fetch task types.");
+          throw new Error('Failed to fetch task types.')
         }
-        return response.json();
+        return response.json()
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || "Failed to task types.");
+          throw new Error(data.message || 'Failed to task types.')
         }
-        const initialValues = data.data;
-        setTeam(initialValues.team_id || null);
-        setFolder(initialValues.folder_id || null);
-        setLists(initialValues.list_ids || []);
+        const initialValues = data.data
+        setTeam(initialValues.team_id || null)
+        setFolder(initialValues.folder_id || null)
+        setLists(initialValues.list_ids || [])
       })
       .catch((error) => {
-        console.error("Error fetching initial values:", error);
-      });
+        console.error('Error fetching initial values:', error)
+      })
 
-    onClose();
-  };
+    onClose()
+  }
 
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300",
-        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        'fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300',
+        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       )}
       onClick={onClose}
     >
       <div
         className={cn(
-          "bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform",
-          isOpen ? "scale-100" : "scale-95"
+          'bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform',
+          isOpen ? 'scale-100' : 'scale-95'
         )}
         style={{
           width,
           height,
-          maxWidth: "calc(90vw - 36px)", // Reduced by 10%
-          maxHeight: "calc(90vh - 36px)", // Reduced by 10%
+          maxWidth: 'calc(90vw - 36px)', // Reduced by 10%
+          maxHeight: 'calc(90vh - 36px)', // Reduced by 10%
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -312,45 +326,61 @@ export function TaskCreateModal({
             <h2 className="text-lg font-semibold">{title}</h2>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md hover:bg-gray-100"
-            aria-label="Close"
-          >
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100" aria-label="Close">
             <X size={18} />
           </button>
         </div>
 
         {/* Modal Content */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-1 overflow-hidden relative"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-1 overflow-hidden relative">
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium">Task Name</label>
-                <Input
-                  value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
-                  placeholder="Enter task name"
+                <Controller
+                  name="taskName"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <Input
+                        {...field}
+                        className={`w-full ${getBorderColor('taskName')}`}
+                        placeholder="Enter task name"
+                      />
+                      {errors.taskName && (
+                        <p className="text-red-500 text-xs mt-1">{errors.taskName.message}</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium">Task Type</label>
-                <SingleSelectTag
-                  value={taskType}
-                  onChange={(value) =>
-                    setTaskType({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexTaskType}
-                  placeholder="Select task type"
+                <Controller
+                  name="taskType"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexTaskType}
+                        placeholder="Select task type"
+                        className={getBorderColor('taskType')}
+                      />
+                      {errors.taskType && (
+                        <p className="text-red-500 text-xs mt-1">Task type is required</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
             </div>
@@ -359,32 +389,56 @@ export function TaskCreateModal({
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium">Priority</label>
-                <SingleSelectTag
-                  value={priority}
-                  onChange={(value) =>
-                    setPriority({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexPriority}
-                  placeholder="Select priority"
+                <Controller
+                  name="priority"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexPriority}
+                        placeholder="Select priority"
+                        className={getBorderColor('priority')}
+                      />
+                      {errors.priority && (
+                        <p className="text-red-500 text-xs mt-1">Priority is required</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium">Status</label>
-                <SingleSelectTag
-                  value={status}
-                  onChange={(value) =>
-                    setStatus({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexStatus}
-                  placeholder="Select status"
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexStatus}
+                        placeholder="Select status"
+                        className={getBorderColor('status')}
+                      />
+                      {errors.status && (
+                        <p className="text-red-500 text-xs mt-1">Status is required</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
             </div>
@@ -392,21 +446,45 @@ export function TaskCreateModal({
             {/* Assignees */}
             <div>
               <label className="block text-sm font-medium">Assignees</label>
-              <MultipleSelectTags
-                value={assignees}
-                onChange={(value) => setAssignees(value)}
-                options={indexMember}
-                placeholder="Add assignees"
+              <Controller
+                name="assignees"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <MultipleSelectTags
+                      value={field.value}
+                      onChange={(value) => field.onChange(value)}
+                      options={indexMember}
+                      placeholder="Add assignees"
+                      className={getBorderColor('assignees')}
+                    />
+                    {errors.assignees && (
+                      <p className="text-red-500 text-xs mt-1">{errors.assignees.message}</p>
+                    )}
+                  </div>
+                )}
               />
             </div>
 
             {/* Start Date & Due Date */}
             <div>
               <label className="block text-sm font-medium">Date Range</label>
-              <DateRangePicker
-                value={selectedRange}
-                onChange={(range) => setSelectedRange(range)}
-                placeholder="Select a date range"
+              <Controller
+                name="selectedRange"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <DateRangePicker
+                      value={field.value}
+                      onChange={(range) => field.onChange(range)}
+                      placeholder="Select a date range"
+                      className={getBorderColor('selectedRange')}
+                    />
+                    {errors.selectedRange && (
+                      <p className="text-red-500 text-xs mt-1">Date range is required</p>
+                    )}
+                  </div>
+                )}
               />
             </div>
 
@@ -414,32 +492,54 @@ export function TaskCreateModal({
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium">Product</label>
-                <SingleSelectTag
-                  value={product}
-                  onChange={(value) =>
-                    setProduct({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexProduct}
-                  placeholder="Select product"
+                <Controller
+                  name="product"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexProduct}
+                        placeholder="Select product"
+                        className={getBorderColor('product')}
+                      />
+                      {errors.product && (
+                        <p className="text-red-500 text-xs mt-1">Product is required</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium">Team</label>
-                <SingleSelectTag
-                  value={team}
-                  onChange={(value) =>
-                    setTeam({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexTeam}
-                  placeholder="Select team"
+                <Controller
+                  name="team"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexTeam}
+                        placeholder="Select team"
+                        className={getBorderColor('team')}
+                      />
+                      {errors.team && <p className="text-red-500 text-xs mt-1">Team is required</p>}
+                    </div>
+                  )}
                 />
               </div>
             </div>
@@ -448,26 +548,46 @@ export function TaskCreateModal({
             <div className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium">Folder</label>
-                <SingleSelectTag
-                  value={folder}
-                  onChange={(value) =>
-                    setFolder({
-                      id: value.id_record,
-                      name: value.name,
-                      color: value.color,
-                    })
-                  }
-                  options={indexFolder}
-                  placeholder="Select Folder"
+                <Controller
+                  name="folder"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <SingleSelectTag
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange({
+                            id: value.id_record,
+                            name: value.name,
+                            color: value.color,
+                          })
+                        }}
+                        options={indexFolder}
+                        placeholder="Select Folder"
+                        className={getBorderColor('folder')}
+                      />
+                      {errors.folder && (
+                        <p className="text-red-500 text-xs mt-1">Folder is required</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium">Lists</label>
-                <MultipleSelectTags
-                  value={lists}
-                  onChange={(value) => setLists(value)}
-                  options={indexList}
-                  placeholder="Add lists"
+                <Controller
+                  name="lists"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <MultipleSelectTags
+                        value={field.value}
+                        onChange={(value) => field.onChange(value)}
+                        options={indexList}
+                        placeholder="Add lists"
+                      />
+                    </div>
+                  )}
                 />
               </div>
             </div>
@@ -475,7 +595,13 @@ export function TaskCreateModal({
             {/* Description */}
             <div>
               <label className="block text-sm font-medium">Description</label>
-              <div id="editorjs" className="border rounded p-2 text-left"></div>
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <div id="editorjs" className="border rounded p-2 text-left"></div>
+                )}
+              />
             </div>
 
             {/* Attachments */}
@@ -484,15 +610,67 @@ export function TaskCreateModal({
 
           {/* Submit Button */}
           <div className="absolute bottom-4 right-4">
-            <Button
-              type="submit"
-              className="bg-blue-500 text-white px-6 py-2 rounded-md"
-            >
+            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md">
               ADD
             </Button>
           </div>
         </form>
       </div>
     </div>
-  );
+  )
 }
+
+const formSchema = z.object({
+  taskName: z.string().min(1, 'Task name is required'),
+  taskType: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  priority: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  status: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  assignees: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        color: z.string(),
+      })
+    )
+    .min(1, 'At least one assignee is required'),
+  selectedRange: z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+  }),
+  product: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  team: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  folder: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    color: z.string(),
+  }),
+  lists: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      color: z.string(),
+    })
+  ),
+  description: z.string().optional(),
+})
