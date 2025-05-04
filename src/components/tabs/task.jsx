@@ -41,6 +41,8 @@ export default function Task({
   tasks,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpenCreate, setIsOpenCreate] = useState(false);
+  const [isOpenDetail, setIsOpenDetail] = useState(false);
   const [taskId, setTaskId] = useState(null);
 
   useEffect(() => {
@@ -90,9 +92,9 @@ export default function Task({
           <div
             className="table-cell min-w-[50px] p-2 flex justify-center"
             style={{
-              position: "sticky",
+              position: isOpenCreate ? 'static' : 'sticky',
               left: 0,
-              zIndex: 1,
+              zIndex: isOpenCreate ? null : 10,
               backgroundColor: `rgba(${startColor - level * multiplier}, ${
                 startColor - level * multiplier
               }, ${startColor - level * multiplier}, ${transparency})`, // Match row background
@@ -111,6 +113,8 @@ export default function Task({
               initialValues={initialValues}
               selectData={selectData}
               sidebarContent={<p></p>}
+              isOpen={isOpenCreate}
+              setIsOpen={setIsOpenCreate}
             />
           </div>
 
@@ -119,9 +123,9 @@ export default function Task({
             className="table-cell min-w-[255px] p-3 pl-4"
             style={{
               paddingLeft: `${level * 20}px`,
-              position: "sticky",
+              position: isOpenDetail ? 'static' : 'sticky',
               left: 50,
-              zIndex: 1,
+              zIndex: isOpenDetail ? null : 10,
               backgroundColor: `rgba(${startColor - level * multiplier}, ${
                 startColor - level * multiplier
               }, ${startColor - level * multiplier}, ${transparency})`, // Match row background
@@ -150,6 +154,8 @@ export default function Task({
               selectData={selectData}
               modalSubtitle={task.created_at}
               sidebarContent={<p>Sidebar content here</p>}
+              isOpen={isOpenDetail}
+              setIsOpen={setIsOpenDetail}
             >
               <p>Modal content here</p>
             </DetailModalTrigger>
