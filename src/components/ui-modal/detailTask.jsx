@@ -1,11 +1,9 @@
 "use client";
 import { useEffect, useState, lazy, Suspense, useRef, use } from "react";
-import dynamic from "next/dynamic";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
 import DynamicFileAttachments from "../ui/dynamicAttachments";
@@ -344,10 +342,28 @@ export function TaskDetailModalV2({
         {/* Modal Content */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-1 overflow-hidden relative"
+          className="flex flex-row flex-1 overflow-hidden relative"
         >
+          {/* Sidebar */}
+          {showSidebar && (
+            <div className=" flex-1 overflow-auto p-4 space-y-4 mb-10">
+              <div className="w-1 bg-gray-100 cursor-col-resize" />
+              <div
+                className="overflow-auto border-l"
+                style={{ width: sidebarWidth }}
+              >
+                <div className="p-4">
+                  <h3 className="text-lg font-medium mb-4">Sub-Tasks</h3>
+                  {sidebarContent || (
+                    <div className="text-gray-500">List of sub tasks</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
-          <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
+          <div className="flex-3 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}
             <div className="flex gap-4">
               <div className="flex-1">
@@ -433,34 +449,65 @@ export function TaskDetailModalV2({
                   )}
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium">Status</label>
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <div>
-                      <SingleSelectTag
-                        value={field.value}
-                        onChange={(value) => {
-                          field.onChange({
-                            id: value.id_record,
-                            name: value.name,
-                            color: value.color,
-                          });
-                        }}
-                        options={indexStatus}
-                        placeholder="Select status"
-                        className={getBorderColor("status")}
+
+              {/* Priority and action */}
+              <div className="flex-1 flex flex-row">
+                {/* task status */}
+                <div className="flex-4">
+                  <label className="block text-sm font-medium">Status</label>
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <div>
+                        <SingleSelectTag
+                          value={field.value}
+                          onChange={(value) => {
+                            field.onChange({
+                              id: value.id_record,
+                              name: value.name,
+                              color: value.color,
+                            });
+                          }}
+                          options={indexStatus}
+                          placeholder="Select status"
+                          className={getBorderColor("status")}
+                        />
+                        {errors.status && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Status is required
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Next status button */}
+                <div className="flex-1 flex flex-col items-center justify-end">
+                  <label className="block text-sm font-medium"></label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 w-10 flex items-center gap-2 px-2 py-2 border border-blue-500 text-blue-500 font-medium rounded-md hover:bg-blue-500 hover:text-white transition-colors"
+                    onClick={() => console.log("Next status triggered")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 3l14 9-14 9V3z"
                       />
-                      {errors.status && (
-                        <p className="text-red-500 text-xs mt-1">
-                          Status is required
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
+                    </svg>
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -641,12 +688,15 @@ export function TaskDetailModalV2({
             </div>
 
             {/* Attachments */}
-            <DynamicFileAttachments setAttachments={setAttachments} attachments={attachments} />
+            <DynamicFileAttachments
+              setAttachments={setAttachments}
+              attachments={attachments}
+            />
           </div>
 
           {/* Sidebar */}
           {showSidebar && (
-            <>
+            <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
               <div className="w-1 bg-gray-100 cursor-col-resize" />
               <div
                 className="overflow-auto border-l"
@@ -659,7 +709,7 @@ export function TaskDetailModalV2({
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {/* Submit Button */}

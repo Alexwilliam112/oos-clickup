@@ -17,7 +17,10 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
+import {
+  DetailModalTrigger,
+  CreateModalTrigger,
+} from "@/components/ui-modal/modal-trigger";
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
@@ -37,6 +40,7 @@ function getContrastColor(hexColor) {
 
 export function Board() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenDetail, setIsOpenDetail] = useState(false);
 
   const [tasks, setTasks] = useState([]);
   const [indexTaskType, setIndexTaskType] = useState([]);
@@ -347,7 +351,11 @@ export function Board() {
             <div className="flex items-center gap-1">
               <CreateModalTrigger
                 trigger={
-                  <Button variant="ghost" size="icon" className="h-7 w-7 border-radius-full hover:bg-white/20">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 border-radius-full hover:bg-white/20"
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 }
@@ -382,88 +390,24 @@ export function Board() {
             {tasks
               .filter((task) => task.status_id.id === status.id_record)
               .map((task) => (
-                <Card key={task._id} className="p-3 gap-2">
-                  <div
-                    className="mb-0 text-sm font-medium w-full p-0 pb-2"
-                    style={{ wordBreak: "break-word" }}
-                  >
-                    {task.name}
-                  </div>
-
-                  {/* TASK TYPE*/}
-                  <div className="flex items-center gap-2 text-xs">
-                    <svg
-                      className={`h-4 w-4 text-[${task.task_type_id.color}]`}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
+                <DetailModalTrigger
+                  key={task.id_task}
+                  trigger={
+                    <Card
+                      key={task.id_task}
+                      className="p-3 gap-2 hover:bg-gray-50"
                     >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <line x1="9" y1="9" x2="15" y2="15" />
-                      <line x1="15" y1="9" x2="9" y2="15" />
-                    </svg>
-                    <span
-                      className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm font-medium"
-                      style={{
-                        color: task.task_type_id.color,
-                        borderColor: task.task_type_id.color,
-                      }}
-                    >
-                      {task.task_type_id.name.toUpperCase()}
-                    </span>
-                  </div>
+                      <div
+                        className="mb-0 text-sm font-medium w-full p-0 pb-2"
+                        style={{ wordBreak: "break-word" }}
+                      >
+                        {task.name}
+                      </div>
 
-                  <div className="flex flex-col gap-2">
-                    {/* PRODUCT*/}
-                    <div className="flex items-center gap-2 text-xs">
-                      <svg
-                        className="h-4 w-4 text-muted-foreground"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M22 12H2M16 6l6 6-6 6M8 6l-6 6 6 6" />
-                      </svg>
-                      <span
-                        className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
-                        style={{
-                          backgroundColor: task.product_id.color,
-                          color: getContrastColor(task.product_id.color),
-                        }}
-                      >
-                        {task.product_id.name}
-                      </span>
-                    </div>
-
-                    {/* PRIORITY*/}
-                    <div className="flex items-center gap-2 text-xs">
-                      <svg
-                        className="h-4 w-4 text-muted-foreground"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M22 12H2M16 6l6 6-6 6M8 6l-6 6 6 6" />
-                      </svg>
-                      <span
-                        className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
-                        style={{
-                          backgroundColor: task.priority_id.color,
-                          color: getContrastColor(task.priority_id.color),
-                        }}
-                      >
-                        {task.priority_id.name}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs">
-                      {/* DATE RANGE */}
-                      <div className="flex items-center gap-2 min-w-[150px]">
+                      {/* TASK TYPE*/}
+                      <div className="flex items-center gap-2 text-xs">
                         <svg
-                          className="h-4 w-4 text-muted-foreground"
+                          className={`h-4 w-4 text-[${task.task_type_id.color}]`}
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -471,67 +415,166 @@ export function Board() {
                         >
                           <rect
                             x="3"
-                            y="4"
+                            y="3"
                             width="18"
                             height="18"
                             rx="2"
                             ry="2"
                           />
-                          <line x1="16" y1="2" x2="16" y2="6" />
-                          <line x1="8" y1="2" x2="8" y2="6" />
-                          <line x1="3" y1="10" x2="21" y2="10" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
                         </svg>
-                        <span className="text-black font-medium">
-                          {new Date(task.date_start).toLocaleDateString()} -{" "}
-                          {new Date(task.date_end).toLocaleDateString()}
+                        <span
+                          className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm font-medium"
+                          style={{
+                            color: task.task_type_id.color,
+                            borderColor: task.task_type_id.color,
+                          }}
+                        >
+                          {task.task_type_id.name.toUpperCase()}
                         </span>
                       </div>
 
-                      {/* ASSIGNEES */}
-                      <div className="flex items-center gap-1 ml-auto">
-                        {task.assignee_ids?.map((assignee, idx) => {
-                          const initials = assignee.name
-                            .split(" ")
-                            .map((word) => word.charAt(0))
-                            .slice(0, 2)
-                            .join("");
+                      <div className="flex flex-col gap-2">
+                        {/* PRODUCT*/}
+                        <div className="flex items-center gap-2 text-xs">
+                          <svg
+                            className="h-4 w-4 text-muted-foreground"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M22 12H2M16 6l6 6-6 6M8 6l-6 6 6 6" />
+                          </svg>
+                          <span
+                            className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
+                            style={{
+                              backgroundColor: task.product_id.color,
+                              color: getContrastColor(task.product_id.color),
+                            }}
+                          >
+                            {task.product_id.name}
+                          </span>
+                        </div>
 
-                          return (
-                            <Tooltip key={idx}>
-                              <TooltipTrigger asChild>
-                                <div
-                                  className="relative border rounded-full border-gray-700"
-                                  style={{
-                                    marginLeft: idx === 0 ? "0" : "-13%", // Overlap by 15%
-                                  }}
-                                >
-                                  <Avatar>
-                                    <AvatarImage
-                                      src={assignee.avatar}
-                                      alt={assignee.name}
-                                    />
-                                    <AvatarFallback
+                        {/* PRIORITY*/}
+                        <div className="flex items-center gap-2 text-xs">
+                          <svg
+                            className="h-4 w-4 text-muted-foreground"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M22 12H2M16 6l6 6-6 6M8 6l-6 6 6 6" />
+                          </svg>
+                          <span
+                            className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
+                            style={{
+                              backgroundColor: task.priority_id.color,
+                              color: getContrastColor(task.priority_id.color),
+                            }}
+                          >
+                            {task.priority_id.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          {/* DATE RANGE */}
+                          <div className="flex items-center gap-2 min-w-[150px]">
+                            <svg
+                              className="h-4 w-4 text-muted-foreground"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <rect
+                                x="3"
+                                y="4"
+                                width="18"
+                                height="18"
+                                rx="2"
+                                ry="2"
+                              />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            <span className="text-black font-medium">
+                              {new Date(task.date_start).toLocaleDateString()} -{" "}
+                              {new Date(task.date_end).toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          {/* ASSIGNEES */}
+                          <div className="flex items-center gap-1 ml-auto">
+                            {task.assignee_ids?.map((assignee, idx) => {
+                              const initials = assignee.name
+                                .split(" ")
+                                .map((word) => word.charAt(0))
+                                .slice(0, 2)
+                                .join("");
+
+                              return (
+                                <Tooltip key={idx}>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className="relative border rounded-full border-gray-700"
                                       style={{
-                                        backgroundColor: "#F5B1FF",
-                                        color: getContrastColor("#F5B1FF"),
-                                        cursor: "pointer",
+                                        marginLeft: idx === 0 ? "0" : "-13%", // Overlap by 15%
                                       }}
                                     >
-                                      {initials}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <span>{assignee.name}</span>
-                              </TooltipContent>
-                            </Tooltip>
-                          );
-                        })}
+                                      <Avatar>
+                                        <AvatarImage
+                                          src={assignee.avatar}
+                                          alt={assignee.name}
+                                        />
+                                        <AvatarFallback
+                                          style={{
+                                            backgroundColor: "#F5B1FF",
+                                            color: getContrastColor("#F5B1FF"),
+                                            cursor: "pointer",
+                                          }}
+                                        >
+                                          {initials}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <span>{assignee.name}</span>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </Card>
+                    </Card>
+                  }
+                  modalTitle="Task Details"
+                  fetchTasks={fetchTasks}
+                  showSidebar={true}
+                  task={task}
+                  selectData={{
+                    indexTaskType,
+                    indexStatus,
+                    indexPriority,
+                    indexProduct,
+                    indexMember,
+                    indexTeam,
+                    indexFolder,
+                    indexList,
+                  }}
+                  modalSubtitle={task.created_at}
+                  sidebarContent={<p>Sidebar content here</p>}
+                  isOpen={isOpenDetail}
+                  setIsOpen={setIsOpenDetail}
+                >
+                  <p>Modal content here</p>
+                </DetailModalTrigger>
               ))}
             <div className="w-full">
               <CreateModalTrigger
