@@ -18,10 +18,11 @@ export function Dashboard() {
 
   useEffect(() => {
     const fetchPageInfo = async () => {
-      const workspaceId = searchParams.get("workspace_id");
-      const page = searchParams.get("page");
-      const paramId = searchParams.get("param_id");
       const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+      const params = new URLSearchParams(window.location.search);
+      const workspaceId = params.get("workspace_id");
+      const page = params.get("page");
+      const paramId = params.get("param_id");
 
       if (workspaceId && page && paramId) {
         try {
