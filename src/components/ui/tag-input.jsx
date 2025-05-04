@@ -92,19 +92,19 @@ export function MultipleSelectTags({
   const tags = Array.isArray(value) ? value : [];
 
   const handleAddTag = (tag) => {
-    if (!tags.some((t) => t.id_record === tag.id_record)) {
+    if (!tags.some((t) => t.id === tag.id)) {
       onChange([...tags, tag]);
     }
     setInputValue("");
   };
 
   const handleRemoveTag = (tag) => {
-    onChange(tags.filter((item) => item.id_record !== tag.id_record));
+    onChange(tags.filter((item) => item.id !== tag.id));
   };
 
   const filteredOptions = options.filter(
     (option) =>
-      !tags.some((tag) => tag.id_record === option.id_record) &&
+      !tags.some((tag) => tag.id === option.id) &&
       option.name.toLowerCase().includes(inputValue.toLowerCase())
   );
 
@@ -126,7 +126,7 @@ export function MultipleSelectTags({
       <div className="flex flex-wrap items-center gap-2 border p-1.5 rounded">
         {tags.map((tag) => (
           <span
-            key={tag.id_record}
+            key={tag.id}
             className="bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center"
           >
             {tag.name}
@@ -152,7 +152,7 @@ export function MultipleSelectTags({
         <div className="absolute z-10 mt-1 bg-white border rounded shadow-lg w-full max-h-60 overflow-auto">
           {filteredOptions.map((option) => (
             <div
-              key={option.id_record}
+              key={option.id}
               className="p-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleAddTag(option)}
             >

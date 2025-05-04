@@ -25,15 +25,15 @@ export function TaskCreateModal({
 
   // Task fields state
   const [taskName, setTaskName] = useState("");
-  const [taskType, setTaskType] = useState("");
+  const [taskType, setTaskType] = useState(null);
   const [assignees, setAssignees] = useState([]);
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(null);
   const [lists, setLists] = useState([]);
-  const [folder, setFolder] = useState({ id: "", name: "" });
-  const [product, setProduct] = useState("");
-  const [team, setTeam] = useState("");
+  const [folder, setFolder] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [team, setTeam] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
     from: null,
@@ -49,12 +49,45 @@ export function TaskCreateModal({
   const [indexFolder, setIndexFolder] = useState([]);
   const [indexList, setIndexList] = useState([]);
 
-  //fetch data
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const workspaceId = params.get("workspace_id");
 
     if (workspaceId) {
+      if (parentTaskId == "0") {
+      }
+    }
+  }, []);
+
+  //fetch data
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+    const page = params.get("page");
+    const paramId = params.get("param_id");
+
+    if (workspaceId) {
+      //GET INITIAL VALUES
+      fetch(`${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch task types.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to task types.");
+          }
+          const initialValues = data.data;
+          setTeam(initialValues.team_id || null);
+          setFolder(initialValues.folder_id || null);
+          setLists(initialValues.list_ids || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching initial values:", error);
+        });
+
       //GET TASK TYPES
       fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
         .then((response) => {
@@ -436,7 +469,13 @@ export function TaskCreateModal({
                 <label className="block text-sm font-medium">Task Type</label>
                 <SingleSelectTag
                   value={taskType}
-                  onChange={(value) => setTaskType(value)}
+                  onChange={(value) =>
+                    setTaskType({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexTaskType}
                   placeholder="Select task type"
                 />
@@ -449,7 +488,13 @@ export function TaskCreateModal({
                 <label className="block text-sm font-medium">Priority</label>
                 <SingleSelectTag
                   value={priority}
-                  onChange={(value) => setPriority(value)}
+                  onChange={(value) =>
+                    setPriority({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexPriority}
                   placeholder="Select priority"
                 />
@@ -458,7 +503,13 @@ export function TaskCreateModal({
                 <label className="block text-sm font-medium">Status</label>
                 <SingleSelectTag
                   value={status}
-                  onChange={(value) => setStatus(value)}
+                  onChange={(value) =>
+                    setStatus({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexStatus}
                   placeholder="Select status"
                 />
@@ -492,7 +543,13 @@ export function TaskCreateModal({
                 <label className="block text-sm font-medium">Product</label>
                 <SingleSelectTag
                   value={product}
-                  onChange={(value) => setProduct(value)}
+                  onChange={(value) =>
+                    setProduct({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexProduct}
                   placeholder="Select product"
                 />
@@ -501,7 +558,13 @@ export function TaskCreateModal({
                 <label className="block text-sm font-medium">Team</label>
                 <SingleSelectTag
                   value={team}
-                  onChange={(value) => setTeam(value)}
+                  onChange={(value) =>
+                    setTeam({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexTeam}
                   placeholder="Select team"
                 />
@@ -513,8 +576,14 @@ export function TaskCreateModal({
               <div className="flex-1">
                 <label className="block text-sm font-medium">Folder</label>
                 <SingleSelectTag
-                  value={folder.id}
-                  onChange={(value) => setFolder(value)}
+                  value={folder}
+                  onChange={(value) =>
+                    setFolder({
+                      id: value.id_record,
+                      name: value.name,
+                      color: value.color,
+                    })
+                  }
                   options={indexFolder}
                   placeholder="Select Folder"
                 />
