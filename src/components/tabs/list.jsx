@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,65 +10,10 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CalendarIcon, Clock, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-// Sample tasks
-const initialTasks = [
-  {
-    id: uuidv4(),
-    title: "Main Task 1",
-    createdAt: "2025-01-22",
-    assignee: "Alice",
-    task_type: "Feature",
-    dueDate: "2025-05-10",
-    priority: "High",
-    status: "In Progress",
-    startDate: "2025-04-28",
-    expanded: false,
-    lists: ["Backlog", "Sprint 1"],
-    product: "Website",
-    team: "Frontend",
-    progress: 60,
-    children: [
-      {
-        id: uuidv4(),
-        title: "Subtask 1.1",
-        createdAt: "2025-01-22",
-        task_type: "Feature",
-        assignee: "Bob",
-        dueDate: "2025-05-08",
-        priority: "Medium",
-        status: "Todo",
-        startDate: "2025-04-29",
-        expanded: false,
-        lists: ["Backlog"],
-        product: "Website",
-        team: "Frontend",
-        progress: 40,
-        children: [],
-      },
-    ],
-  },
-  {
-    id: uuidv4(),
-    title: "Main Task 2",
-    createdAt: "2025-01-22",
-    assignee: "Charlie",
-    dueDate: "2025-05-12",
-    task_type: "Feature",
-    priority: "Low",
-    status: "Todo",
-    startDate: "2025-04-30",
-    expanded: false,
-    lists: ["Sprint 2"],
-    product: "Mobile App",
-    team: "Backend",
-    progress: 20,
-    children: [],
-  },
-];
+import { generateChildren } from "@/lib/utils";
 
 export function ListView() {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState([]);
 
   const [indexTaskType, setIndexTaskType] = useState([]);
   const [indexStatus, setIndexStatus] = useState([]);
@@ -98,191 +42,216 @@ export function ListView() {
     });
   };
 
-    useEffect(() => {
-      const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-      const params = new URLSearchParams(window.location.search);
-      const workspaceId = params.get("workspace_id");
-      const page = params.get("page");
-      const paramId = params.get("param_id");
-  
-      if (workspaceId) {
-        //GET INITIAL VALUES
-        fetch(
-          `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-        )
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch initial values.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to initial values.");
-            }
-            const initialValues = data.data;
-            setTeam(initialValues.team_id || null);
-            setFolder(initialValues.folder_id || null);
-            setLists(initialValues.list_ids || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching initial values:", error);
-          });
-          console.log("SUCCESS FETCH INITIAL VALUES")
-  
-        //GET TASK TYPES
-        fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch task types.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to task types.");
-            }
-            setIndexTaskType(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching task types:", error);
-          });
-        console.log("Task types fetched successfully:", indexTaskType);
-  
-        //GET STATUS
-        fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch Status.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to Status.");
-            }
-            setIndexStatus(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching Status:", error);
-          });
-        console.log("Status fetched successfully:", indexStatus);
-  
-        //GET PRIORITY
-        fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch Priority.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to Priority.");
-            }
-            setIndexPriority(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching Priority:", error);
-          });
-        console.log("Task Priority successfully:", indexPriority);
-  
-        //GET PRODUCTS
-        fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch Products.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to Products.");
-            }
-            setIndexProduct(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching Products:", error);
-          });
-        console.log("Task Products successfully:", indexProduct);
-  
-        //GET MEMBERS
-        fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch Members.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to Members.");
-            }
-            setIndexMember(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching Members:", error);
-          });
-        console.log("Members successfully:", indexMember);
-  
-        //GET TEAMS
-        fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch teams.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to teams.");
-            }
-            setIndexTeam(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching teams:", error);
-          });
-        console.log("teams successfully:", indexTeam);
-  
-        //GET FOLDERS
-        fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch folders.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to folders.");
-            }
-            setIndexFolder(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching folders:", error);
-          });
-        console.log("folders successfully:", indexFolder);
-  
-        //GET LIST
-        fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch teams.");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.message || "Failed to teams.");
-            }
-            setIndexList(data.data || []);
-          })
-          .catch((error) => {
-            console.error("Error fetching teams:", error);
-          });
-        console.log("teams successfully:", indexList);
-      }
-    }, []);
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+  const params = new URLSearchParams(window.location.search);
+  const workspaceId = params.get("workspace_id");
+  const page = params.get("page");
+  const paramId = params.get("param_id");
+
+  useEffect(() => {
+    let taskDataInitial = [];
+    fetch(
+      //GET TASKS
+      `${baseUrl}/task/index?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch TASKS DATA.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || "Failed to TASKS DATA.");
+        }
+        taskDataInitial = data.data;
+        setTasks(generateChildren(taskDataInitial));
+      })
+      .catch((error) => {
+        console.error("Error fetching TASKS DATA:", error);
+      });
+    console.log("SUCCESS FETCH TASKS DATA");
+  }, []);
+
+  useEffect(() => {
+    if (workspaceId) {
+      //GET INITIAL VALUES
+      fetch(
+        `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch initial values.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to initial values.");
+          }
+          const initialValues = data.data;
+          setTeam(initialValues.team_id || null);
+          setFolder(initialValues.folder_id || null);
+          setLists(initialValues.list_ids || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching initial values:", error);
+        });
+      console.log("SUCCESS FETCH INITIAL VALUES");
+
+      //GET TASK TYPES
+      fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch task types.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to task types.");
+          }
+          setIndexTaskType(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching task types:", error);
+        });
+      console.log("Task types fetched successfully:", indexTaskType);
+
+      //GET STATUS
+      fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Status.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Status.");
+          }
+          setIndexStatus(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Status:", error);
+        });
+      console.log("Status fetched successfully:", indexStatus);
+
+      //GET PRIORITY
+      fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Priority.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Priority.");
+          }
+          setIndexPriority(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Priority:", error);
+        });
+      console.log("Task Priority successfully:", indexPriority);
+
+      //GET PRODUCTS
+      fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Products.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Products.");
+          }
+          setIndexProduct(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Products:", error);
+        });
+      console.log("Task Products successfully:", indexProduct);
+
+      //GET MEMBERS
+      fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch Members.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to Members.");
+          }
+          setIndexMember(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching Members:", error);
+        });
+      console.log("Members successfully:", indexMember);
+
+      //GET TEAMS
+      fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch teams.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to teams.");
+          }
+          setIndexTeam(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching teams:", error);
+        });
+      console.log("teams successfully:", indexTeam);
+
+      //GET FOLDERS
+      fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch folders.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to folders.");
+          }
+          setIndexFolder(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching folders:", error);
+        });
+      console.log("folders successfully:", indexFolder);
+
+      //GET LIST
+      fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch teams.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.error) {
+            throw new Error(data.message || "Failed to teams.");
+          }
+          setIndexList(data.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching teams:", error);
+        });
+      console.log("teams successfully:", indexList);
+    }
+  }, []);
 
   const renderHeaders = () => (
     <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
@@ -316,7 +285,7 @@ export function ListView() {
         <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
           Product
         </div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">Team</div>
+        <div className="table-cell min-w-[170px] p-3  pl-4 bg-muted">Team</div>
         <div className="table-cell min-w-[160px] p-3  pl-4 bg-muted">
           Progress
         </div>
@@ -330,7 +299,7 @@ export function ListView() {
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
       <div
-        key={task.id}
+        key={task.id_task}
         className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
       >
         <div className="flex items-center px-2 py-2 text-sm w-full">
@@ -342,7 +311,7 @@ export function ListView() {
                 </Button>
               }
               modalTitle="Create Task"
-              parentTaskId={task.id}
+              parentTaskId={task.id_task}
               modalSubtitle={""}
               initialValues={{
                 team,
@@ -380,7 +349,7 @@ export function ListView() {
             <DetailModalTrigger
               trigger={
                 <span className="text-blue-500 hover:underline">
-                  {task.title}
+                  {task.name}
                 </span>
               }
               modalTitle="Task Details"
@@ -390,17 +359,17 @@ export function ListView() {
               <p>Modal content here</p>
             </DetailModalTrigger>
           </div>
-          <div className="min-w-[120px] p-2">{formatDate(task.createdAt)}</div>
+          <div className="min-w-[120px] p-2">{formatDate(task.created_at)}</div>
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
-              {task.task_type || "General"}
+              {task.task_type_id.name}
             </span>
           </div>
           <div className="min-w-[150px] p-2">{task.assignee}</div>
-          <div className="min-w-[120px] p-2">{formatDate(task.startDate)}</div>
-          <div className="min-w-[120px] p-2">{formatDate(task.dueDate)}</div>
-          <div className="min-w-[100px] p-2">{task.priority}</div>
-          <div className="min-w-[100px] p-2">{task.status}</div>
+          <div className="min-w-[120px] p-2">{formatDate(task.date_start)}</div>
+          <div className="min-w-[120px] p-2">{formatDate(task.date_end)}</div>
+          <div className="min-w-[100px] p-2">{task.priority_id.name}</div>
+          <div className="min-w-[100px] p-2">{task.status_id.name}</div>
           <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
             {task.lists?.map((list, idx) => (
               <span
@@ -413,12 +382,12 @@ export function ListView() {
           </div>
           <div className="min-w-[120px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
-              {task.product || "-"}
+              {task.product_id.name}
             </span>
           </div>
-          <div className="min-w-[120px] p-2">
+          <div className="min-w-[170px] p-2">
             <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
-              {task.team || "-"}
+              {task.team_id.name}
             </span>
           </div>
           <div className="min-w-[160px] p-2">
