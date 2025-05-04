@@ -18,8 +18,9 @@ export function CreateModalTrigger({
   fetchTasks,
   selectData,
   initialValues,
+  isOpen,
+  setIsOpen,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
@@ -67,8 +68,9 @@ export function DetailModalTrigger({
   parentTaskId,
   fetchTasks,
   selectData,
+  isOpen,
+  setIsOpen,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
