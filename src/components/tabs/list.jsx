@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  DetailModalTrigger,
   CreateModalTrigger,
 } from "@/components/ui-modal/modal-trigger";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CalendarIcon, Clock, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { generateChildren } from "@/lib/utils";

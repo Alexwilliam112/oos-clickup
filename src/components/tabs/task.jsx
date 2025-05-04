@@ -2,11 +2,33 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DetailModalTrigger,
   CreateModalTrigger,
 } from "@/components/ui-modal/modal-trigger";
+
+function getContrastColor(hexColor) {
+  // Remove the hash if it exists
+  const color = hexColor.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(color.substring(0, 2), 16);
+  const g = parseInt(color.substring(2, 4), 16);
+  const b = parseInt(color.substring(4, 6), 16);
+
+  // Calculate brightness
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+  // Return black for light backgrounds, white for dark backgrounds
+  return brightness > 128 ? "#000000" : "#FFFFFF";
+}
 
 export default function Task({
   task,
@@ -28,7 +50,7 @@ export default function Task({
   }, []);
 
   const toggleExpand = (task) => {
-    setIsExpanded(!isExpanded)
+    setIsExpanded(!isExpanded);
     setTasks([...tasks]);
   };
 
@@ -96,32 +118,107 @@ export default function Task({
         </div>
         <div className="min-w-[120px] p-2">{formatDate(task.created_at)}</div>
         <div className="min-w-[120px] p-2">
-          <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.task_type_id.color,
+              color: getContrastColor(task.task_type_id.color),
+            }}
+          >
             {task.task_type_id.name}
           </span>
         </div>
-        <div className="min-w-[150px] p-2">{task.assignee}</div>
+        <div className="min-w-[150px] p-2 gap-1 flex flex-wrap">
+          {task.assignee_ids?.map((assignee, idx) => {
+            // Extract initials (first letter of first name and last name)
+            const initials = assignee.name
+              .split(" ")
+              .map((word) => word.charAt(0))
+              .slice(0, 2) // Take only the first two letters
+              .join("");
+
+            return (
+              <Tooltip key={idx}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Avatar>
+                      <AvatarImage src={assignee.avatar} alt={assignee.name} />
+                      <AvatarFallback
+                        style={{
+                          backgroundColor: "#F5B1FF", // Set the background color
+                          color: getContrastColor("#F5B1FF"), // Ensure text contrast
+                          cursor: "pointer",
+                        }}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>{assignee.name}</span>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
         <div className="min-w-[120px] p-2">{formatDate(task.date_start)}</div>
         <div className="min-w-[120px] p-2">{formatDate(task.date_end)}</div>
-        <div className="min-w-[100px] p-2">{task.priority_id.name}</div>
-        <div className="min-w-[130px] p-2">{task.status_id.name}</div>
+        <div className="min-w-[100px] p-2">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.priority_id.color,
+              color: getContrastColor(task.priority_id.color),
+            }}
+          >
+            {task.priority_id.name}
+          </span>
+        </div>
+        <div className="min-w-[130px] p-2">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.status_id.color,
+              color: getContrastColor(task.status_id.color),
+            }}
+          >
+            {task.status_id.name}
+          </span>
+        </div>
         <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
           {task.list_ids?.map((list, idx) => (
             <span
               key={idx}
-              className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm"
+              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+              style={{
+                backgroundColor: "#B1D9FF",
+                color: getContrastColor("#B1D9FF"),
+              }}
             >
               {list.name}
             </span>
           ))}
         </div>
         <div className="min-w-[120px] p-2">
-          <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.product_id.color,
+              color: getContrastColor(task.product_id.color),
+            }}
+          >
             {task.product_id.name}
           </span>
         </div>
         <div className="min-w-[170px] p-2">
-          <span className="text-xs px-2 py-0.5 border border-muted-foreground/20 rounded-sm">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: "#B1D9FF",
+              color: getContrastColor("#B1D9FF"),
+            }}
+          >
             {task.team_id.name}
           </span>
         </div>
