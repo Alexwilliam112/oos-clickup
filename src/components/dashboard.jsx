@@ -8,13 +8,11 @@ import { ListFilter } from "lucide-react";
 import { Overview } from "./tabs/overview";
 import { Board } from "./tabs/board";
 import { ListView } from "./tabs/list";
-import { useSearchParams } from "next/navigation";
 
 export function Dashboard() {
   const [title, setTitle] = useState("Team Space");
   const [subtitle, setSubtitle] = useState("Placeholder for subtitle");
   const [path, setPath] = useState([]);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchPageInfo = async () => {
@@ -155,6 +153,17 @@ export function Dashboard() {
             List
           </TabsTrigger>
           <TabsTrigger value="board" className="gap-2">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="2" y="3" width="6" height="18" rx="1" />
+              <rect x="9" y="3" width="6" height="10" rx="1" />
+              <rect x="16" y="3" width="6" height="14" rx="1" />
+            </svg>
             Board
           </TabsTrigger>
           <TabsTrigger value="calendar" className="gap-2">
