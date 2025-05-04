@@ -280,7 +280,7 @@ export function TaskCreateModal({
     // Close modal
 
     //RESET INITIAL VALUES
-    fetch(
+    await fetch(
       `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
     )
       .then((response) => {

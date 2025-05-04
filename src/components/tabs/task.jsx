@@ -270,14 +270,7 @@ export default function Task({
               {task.team_id.name.toUpperCase()}
             </span>
           </div>
-          <div className="min-w-[160px] p-2">
-            <div className="h-2 w-full bg-muted rounded-sm">
-              <div
-                className="h-2 bg-primary rounded-sm"
-                style={{ width: `${task.progress || 0}%` }}
-              ></div>
-            </div>
-          </div>
+          
           <div className="min-w-[100px] p-2 flex justify-end gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7">
               <MoreHorizontal className="h-4 w-4" />

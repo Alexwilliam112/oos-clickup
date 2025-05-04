@@ -278,9 +278,6 @@ export function ListView() {
           Product
         </div>
         <div className="table-cell min-w-[190px] p-3  pl-4 bg-muted">Team</div>
-        <div className="table-cell min-w-[160px] p-3  pl-4 bg-muted">
-          Progress
-        </div>
         <div className="table-cell min-w-[100px] p-3  pl-4 text-right bg-muted">
           Actions
         </div>
