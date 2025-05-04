@@ -211,15 +211,15 @@ export default function Task({
             {task.product_id.name}
           </span>
         </div>
-        <div className="min-w-[170px] p-2">
+        <div className="min-w-[190px] p-2">
           <span
-            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm"
             style={{
               backgroundColor: "#B1D9FF",
               color: getContrastColor("#B1D9FF"),
             }}
           >
-            {task.team_id.name}
+            {task.team_id.name.toUpperCase()}
           </span>
         </div>
         <div className="min-w-[160px] p-2">
