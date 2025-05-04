@@ -461,7 +461,7 @@ export function TaskCreateModal({
                       value={field.value}
                       onChange={(value) => field.onChange(value)}
                       options={indexMember}
-                      placeholder="Add assignees"
+                      placeholder=""
                       className={getBorderColor('assignees')}
                     />
                     {errors.assignees && (
@@ -615,7 +615,7 @@ export function TaskCreateModal({
             </div>
 
             {/* Attachments */}
-            <DynamicFileAttachments />
+            <DynamicFileAttachments setAttachments={setAttachments} attachments={attachments} />
           </div>
 
           {/* Submit Button */}

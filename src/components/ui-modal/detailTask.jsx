@@ -641,7 +641,7 @@ export function TaskDetailModalV2({
             </div>
 
             {/* Attachments */}
-            <DynamicFileAttachments />
+            <DynamicFileAttachments setAttachments={setAttachments} attachments={attachments} />
           </div>
 
           {/* Sidebar */}
