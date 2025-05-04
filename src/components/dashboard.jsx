@@ -67,7 +67,7 @@ export function Dashboard() {
                     <a
                       href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
                       className="text-muted-foreground hover:text-blue-500"
-                      key={"asd" + index}
+                      key={index}
                     >
                       {item.name}
                     </a>
@@ -77,7 +77,7 @@ export function Dashboard() {
                     <a
                       href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
                       className="text-muted-foreground hover:text-blue-500"
-                      key={"asd" + index}
+                      key={index}
                     >
                       {item.name} /
                     </a>
