@@ -68,7 +68,9 @@ export function TaskCreateModal({
 
     if (workspaceId) {
       //GET INITIAL VALUES
-      fetch(`${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`)
+      fetch(
+        `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
+      )
         .then((response) => {
           if (!response.ok) {
             throw new Error("Failed to fetch task types.");
@@ -381,34 +383,91 @@ export function TaskCreateModal({
 
     // Collect task data
     const taskData = {
-      taskName,
-      taskType,
-      assignees,
-      dateRange,
-      priority,
-      status,
-      lists,
-      product,
-      team,
+      name: taskName,
+      task_type_id: taskType,
+      assignee_ids: assignees,
+      date_start: new Date(selectedRange.from).getTime(),
+      date_end: new Date(selectedRange.to).getTime(),
+      folder_id: folder,
+      priority_id: priority,
+      status_id: status,
+      list_ids: lists,
+      product_id: product,
+      team_id: team,
       description: descriptionData,
-      attachments,
+      attachments: attachments,
+      parent_task_id: parentTaskId,
     };
 
     console.log("Task Created:", taskData);
 
     // Reset form fields
     setTaskName("");
-    setTaskType("");
+    setTaskType(null);
     setAssignees([]);
     setDateRange({ from: null, to: null });
-    setPriority("");
-    setStatus("");
+    setSelectedRange({ from: null, to: null });
+    setPriority(null);
+    setStatus(null);
     setLists([]);
-    setProduct("");
-    setTeam("");
+    setFolder(null);
+    setProduct(null);
+    setTeam(null);
     setAttachments([]);
 
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+    const page = params.get("page");
+    const paramId = params.get("param_id");
+
+    fetch(`${baseUrl}/task/create?workspace_id=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(taskData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to create task.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || "Failed to create task.");
+        }
+        console.log("Task created successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error creating task:", error);
+      });
+
     // Close modal
+
+    //RESET INITIAL VALUES
+    fetch(
+      `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch task types.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || "Failed to task types.");
+        }
+        const initialValues = data.data;
+        setTeam(initialValues.team_id || null);
+        setFolder(initialValues.folder_id || null);
+        setLists(initialValues.list_ids || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching initial values:", error);
+      });
+
     onClose();
   };
 
