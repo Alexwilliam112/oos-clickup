@@ -12,7 +12,8 @@ import { useSearchParams } from "next/navigation";
 
 export function Dashboard() {
   const [title, setTitle] = useState("Team Space");
-  const [subtitle, setSubtitle] = useState("Marketing Division");
+  const [subtitle, setSubtitle] = useState("Placeholder for subtitle");
+  const [path, setPath] = useState([]);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function Dashboard() {
           if (data.code === 200 && !data.error) {
             setTitle(data.data.title || "Page Title");
             setSubtitle(data.data.subtitle || "Path to Page");
+            setPath(data.data.path || "Placeholder for path");
           } else {
             console.error("Failed to fetch page info:", data.message);
           }
@@ -56,7 +58,32 @@ export function Dashboard() {
               <h1 className="text-base sm:text-lg font-medium">{title}</h1>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{subtitle}</span>
+              {path.map((item, index) => {
+                const workspaceId = searchParams.get("workspace_id");
+                const page = searchParams.get("page");
+                const paramId = searchParams.get("param_id");
+                if (index === path.length - 1) {
+                  return (
+                    <a
+                      href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
+                      className="text-muted-foreground hover:text-blue-500"
+                      key={"asd" + index}
+                    >
+                      {item.name}
+                    </a>
+                  );
+                } else {
+                  return (
+                    <a
+                      href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
+                      className="text-muted-foreground hover:text-blue-500"
+                      key={"asd" + index}
+                    >
+                      {item.name} /
+                    </a>
+                  );
+                }
+              })}
             </div>
           </div>
         </div>
