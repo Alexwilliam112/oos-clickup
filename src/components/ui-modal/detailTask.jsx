@@ -25,7 +25,6 @@ export function TaskDetailModalV2({
   sidebarContent,
   selectData,
   fetchTasks,
-  initialValues,
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
@@ -74,12 +73,6 @@ export function TaskDetailModalV2({
       lists: [],
     },
   });
-
-  useEffect(() => {
-    setLists(initialValues.lists);
-    setFolder(initialValues.folder);
-    setTeam(initialValues.team);
-  }, [initialValues]);
 
   const editorRef = useRef(null);
   useEffect(() => {

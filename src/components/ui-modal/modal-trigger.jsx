@@ -67,7 +67,6 @@ export function DetailModalTrigger({
   parentTaskId,
   fetchTasks,
   selectData,
-  initialValues,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const handleOpen = () => setIsOpen(true);
@@ -97,7 +96,6 @@ export function DetailModalTrigger({
         showSidebar={showSidebar}
         sidebarContent={sidebarContent}
         selectData={selectData}
-        initialValues={initialValues}
       >
         {children}
       </TaskDetailModalV2>
