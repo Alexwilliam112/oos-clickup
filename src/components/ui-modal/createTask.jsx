@@ -17,11 +17,23 @@ export function TaskCreateModal({
   title = "Task View",
   subtitle,
   parentTaskId,
+  selectData,
+  initialValues,
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+  const {
+    indexTaskType,
+    indexStatus,
+    indexPriority,
+    indexProduct,
+    indexMember,
+    indexTeam,
+    indexFolder,
+    indexList,
+  } = selectData;
 
   // Task fields state
   const [taskName, setTaskName] = useState("");
@@ -40,209 +52,11 @@ export function TaskCreateModal({
     to: null,
   });
 
-  const [indexTaskType, setIndexTaskType] = useState([]);
-  const [indexStatus, setIndexStatus] = useState([]);
-  const [indexPriority, setIndexPriority] = useState([]);
-  const [indexProduct, setIndexProduct] = useState([]);
-  const [indexMember, setIndexMember] = useState([]);
-  const [indexTeam, setIndexTeam] = useState([]);
-  const [indexFolder, setIndexFolder] = useState([]);
-  const [indexList, setIndexList] = useState([]);
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const workspaceId = params.get("workspace_id");
-
-    if (workspaceId) {
-      if (parentTaskId == "0") {
-      }
-    }
-  }, []);
-
-  //fetch data
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const workspaceId = params.get("workspace_id");
-    const page = params.get("page");
-    const paramId = params.get("param_id");
-
-    if (workspaceId) {
-      //GET INITIAL VALUES
-      fetch(
-        `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch task types.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to task types.");
-          }
-          const initialValues = data.data;
-          setTeam(initialValues.team_id || null);
-          setFolder(initialValues.folder_id || null);
-          setLists(initialValues.list_ids || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching initial values:", error);
-        });
-
-      //GET TASK TYPES
-      fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch task types.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to task types.");
-          }
-          setIndexTaskType(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching task types:", error);
-        });
-      console.log("Task types fetched successfully:", indexTaskType);
-
-      //GET STATUS
-      fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Status.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Status.");
-          }
-          setIndexStatus(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Status:", error);
-        });
-      console.log("Status fetched successfully:", indexStatus);
-
-      //GET PRIORITY
-      fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Priority.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Priority.");
-          }
-          setIndexPriority(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Priority:", error);
-        });
-      console.log("Task Priority successfully:", indexPriority);
-
-      //GET PRODUCTS
-      fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Products.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Products.");
-          }
-          setIndexProduct(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Products:", error);
-        });
-      console.log("Task Products successfully:", indexProduct);
-
-      //GET MEMBERS
-      fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Members.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Members.");
-          }
-          setIndexMember(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Members:", error);
-        });
-      console.log("Members successfully:", indexMember);
-
-      //GET TEAMS
-      fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
-          }
-          setIndexTeam(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexTeam);
-
-      //GET FOLDERS
-      fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch folders.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to folders.");
-          }
-          setIndexFolder(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching folders:", error);
-        });
-      console.log("folders successfully:", indexFolder);
-
-      //GET LIST
-      fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
-          }
-          setIndexList(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexList);
-    }
-  }, []);
+    setLists(initialValues.lists);
+    setFolder(initialValues.folder);
+    setTeam(initialValues.team);
+  }, [initialValues]);
 
   const editorRef = useRef(null);
   useEffect(() => {

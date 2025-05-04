@@ -15,9 +15,10 @@ export function CreateModalTrigger({
   children,
   sidebarContent,
   parentTaskId,
+  selectData,
+  initialValues,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
 
@@ -43,6 +44,8 @@ export function CreateModalTrigger({
         subtitle={modalSubtitle}
         showSidebar={showSidebar}
         sidebarContent={sidebarContent}
+        selectData={selectData}
+        initialValues={initialValues}
       >
         {children}
       </TaskCreateModal>
