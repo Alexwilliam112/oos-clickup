@@ -288,6 +288,8 @@ export function ListView() {
     </div>
   );
 
+  const [isOpen, setIsOpen] = useState(false)
+
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => {
       task.expanded = true; // Initialize expanded property
@@ -354,6 +356,8 @@ export function ListView() {
             indexFolder,
             indexList,
           }}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
         />
       </div>
       <div className="flex-1 overflow-auto w-full h-screen">
