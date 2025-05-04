@@ -39,7 +39,6 @@ export function TaskDetailModalV2({
     indexMember,
     indexTeam,
     indexFolder,
-    taskId,
     indexList,
   } = selectData;
 
@@ -58,6 +57,7 @@ export function TaskDetailModalV2({
     from: null,
     to: null,
   });
+  const [description, setDescription] = useState("");
 
   const {
     control,
@@ -90,8 +90,8 @@ export function TaskDetailModalV2({
       setValue("taskType", task.task_type_id || null);
       setValue("priority", task.priority_id || null);
       setValue("status", task.status_id || null);
-      setValue("description", task.description || "");
-      setValue("attachments", task.attachments || []);
+      setDescription(task.description || "");
+      setAttachments(task.attachments || []);
     }
   }, [task]);
 
@@ -173,6 +173,7 @@ export function TaskDetailModalV2({
             },
           },
         },
+        data: description || { blocks: [] },
       });
 
       editorRef.current = editor;

@@ -226,8 +226,8 @@ export function TaskCreateModal({
       list_ids: values.lists,
       product_id: values.product,
       team_id: values.team,
-      description: values.descriptionData,
-      attachments: values.attachments,
+      description: descriptionData,
+      attachments: attachments,
       parent_task_id: parentTaskId,
     }
 
