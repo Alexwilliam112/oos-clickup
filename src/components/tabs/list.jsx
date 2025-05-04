@@ -3,9 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  CreateModalTrigger,
-} from "@/components/ui-modal/modal-trigger";
+import { CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
 import { CalendarIcon, Clock, Tag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { generateChildren } from "@/lib/utils";
@@ -244,8 +242,14 @@ export function ListView() {
   const renderHeaders = () => (
     <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
       <div className="table-row text-xs font-medium text-muted-foreground">
-        <div className="table-cell min-w-[50px] p-3 pl-4 bg-muted"></div>
-        <div className="table-cell min-w-[255px] p-3  pl-4 bg-muted">
+        <div
+          className="table-cell min-w-[50px] p-3 pl-4 bg-muted"
+          style={{ position: "sticky", left: 0, zIndex: 30 }}
+        ></div>
+        <div
+          className="table-cell min-w-[255px] p-3 pl-4 bg-muted"
+          style={{ position: "sticky", left: 50, zIndex: 30 }}
+        >
           Task Name
         </div>
         <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
@@ -317,7 +321,7 @@ export function ListView() {
     });
 
   return (
-    <div className="flex-1 overflow-auto w-full h-screen">
+    <>
       <div className="min-w-[50px] p-2 flex justify-left">
         <CreateModalTrigger
           trigger={
@@ -352,10 +356,17 @@ export function ListView() {
           }}
         />
       </div>
-      <div className="w-full table-auto">
-        {renderHeaders()}
-        <div className="table-row-group">{renderTasks(tasks)}</div>
+      <div className="flex-1 overflow-auto w-full h-screen">
+        <div className="w-full table-auto mb-40">
+          {renderHeaders()}
+          <div
+            className="table-row-group overflow-y-auto"
+            style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}
+          >
+            {renderTasks(tasks)}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -70,7 +70,10 @@ export default function Task({
       className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
     >
       <div className="flex items-center px-2 py-2 text-sm w-full">
-        <div className="min-w-[50px] p-2 flex justify-center">
+        <div
+          className="table-cell min-w-[50px] p-2 bg-white flex justify-center"
+          style={{ position: "sticky", left: 0, zIndex: 0 }}
+        >
           <CreateModalTrigger
             trigger={
               <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -88,8 +91,13 @@ export default function Task({
         </div>
 
         <div
-          className="min-w-[255px] p-2 flex items-center"
-          style={{ paddingLeft: `${level * 20}px` }}
+          className="table-cell min-w-[255px] p-3 pl-4 bg-white"
+          style={{
+            paddingLeft: `${level * 20}px`,
+            position: "sticky",
+            left: 50,
+            zIndex: 0,
+          }}
         >
           <button
             className="text-muted-foreground hover:text-foreground transition mr-2"
