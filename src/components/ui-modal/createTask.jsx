@@ -301,7 +301,7 @@ export function TaskCreateModal({
       .catch((error) => {
         console.error('Error fetching initial values:', error)
       })
-    fetchTasks()
+    await fetchTasks()
     onClose()
   }
 
