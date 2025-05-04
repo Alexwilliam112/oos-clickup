@@ -13,11 +13,11 @@ export function Dashboard() {
   const [title, setTitle] = useState("Team Space");
   const [subtitle, setSubtitle] = useState("Placeholder for subtitle");
   const [path, setPath] = useState([]);
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
     const fetchPageInfo = async () => {
-      const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-      const params = new URLSearchParams(window.location.search);
       const workspaceId = params.get("workspace_id");
       const page = params.get("page");
       const paramId = params.get("param_id");
@@ -43,7 +43,7 @@ export function Dashboard() {
     };
 
     fetchPageInfo();
-  }, [searchParams]);
+  }, []);
 
   return (
     <SidebarInset className="h-screen w-screen overflow-hidden">
@@ -58,9 +58,8 @@ export function Dashboard() {
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               {path.map((item, index) => {
-                const workspaceId = searchParams.get("workspace_id");
-                const page = searchParams.get("page");
-                const paramId = searchParams.get("param_id");
+                const params = new URLSearchParams(window.location.search);
+                const workspaceId = params.get("workspace_id");
                 if (index === path.length - 1) {
                   return (
                     <a
