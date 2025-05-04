@@ -65,7 +65,7 @@ export function DetailModalTrigger({
   showSidebar = true,
   children,
   sidebarContent,
-  parentTaskId,
+  task,
   fetchTasks,
   selectData,
   isOpen,
@@ -73,7 +73,7 @@ export function DetailModalTrigger({
 }) {
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
-
+  
   return (
     <>
       {trigger ? (
@@ -89,7 +89,6 @@ export function DetailModalTrigger({
       )}
 
       <TaskDetailModalV2
-        parentTaskId={parentTaskId}
         fetchTasks={fetchTasks}
         isOpen={isOpen}
         onClose={handleClose}
@@ -98,6 +97,7 @@ export function DetailModalTrigger({
         showSidebar={showSidebar}
         sidebarContent={sidebarContent}
         selectData={selectData}
+        task={task}
       >
         {children}
       </TaskDetailModalV2>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, lazy, Suspense, useRef } from "react";
+import { useEffect, useState, lazy, Suspense, useRef, use } from "react";
 import dynamic from "next/dynamic";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ export function TaskDetailModalV2({
   sidebarContent,
   selectData,
   fetchTasks,
+  task,
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
@@ -45,7 +46,6 @@ export function TaskDetailModalV2({
   const [taskName, setTaskName] = useState("");
   const [taskType, setTaskType] = useState(null);
   const [assignees, setAssignees] = useState([]);
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState(null);
   const [lists, setLists] = useState([]);
@@ -57,6 +57,7 @@ export function TaskDetailModalV2({
     from: null,
     to: null,
   });
+  const [description, setDescription] = useState("");
 
   const {
     control,
@@ -73,6 +74,26 @@ export function TaskDetailModalV2({
       lists: [],
     },
   });
+
+  useEffect(() => {
+    if (task) {
+      setValue("taskName", task.name || "");
+      setValue("assignees", task.assignee_ids || []);
+      setValue("lists", task.list_ids || []);
+      setValue("folder", task.folder_id || null);
+      setValue("product", task.product_id || null);
+      setValue("team", task.team_id || null);
+      setValue("selectedRange", {
+        from: new Date(task.date_start),
+        to: new Date(task.date_end),
+      });
+      setValue("taskType", task.task_type_id || null);
+      setValue("priority", task.priority_id || null);
+      setValue("status", task.status_id || null);
+      setDescription(task.description || "");
+      setAttachments(task.attachments || []);
+    }
+  }, [task]);
 
   const editorRef = useRef(null);
   useEffect(() => {
@@ -152,6 +173,7 @@ export function TaskDetailModalV2({
             },
           },
         },
+        data: description || { blocks: [] },
       });
 
       editorRef.current = editor;
@@ -238,7 +260,6 @@ export function TaskDetailModalV2({
     setTaskName("");
     setTaskType(null);
     setAssignees([]);
-    setDateRange({ from: null, to: null });
     setSelectedRange({ from: null, to: null });
     setPriority(null);
     setStatus(null);
@@ -647,7 +668,7 @@ export function TaskDetailModalV2({
               type="submit"
               className="bg-blue-500 text-white px-6 py-2 rounded-md"
             >
-              ADD
+              SAVE
             </Button>
           </div>
         </form>
