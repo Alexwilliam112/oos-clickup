@@ -49,8 +49,8 @@ export function Dashboard() {
     <SidebarInset className="h-screen w-screen overflow-hidden">
       <header className="flex h-20 items-center border-b px-4 sm:px-6 shrink-0">
         <div className="flex items-center gap-4">
-          <Avatar className="h-8 w-8 bg-blue-500 text-white">
-            <AvatarFallback>T</AvatarFallback>
+          <Avatar className="h-9 w-9 bg-white-500 text-white">
+            <AvatarFallback className="bg-purple-700 text-sm">{title.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">

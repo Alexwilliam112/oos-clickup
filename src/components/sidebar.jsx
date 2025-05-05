@@ -1,16 +1,10 @@
 "use client";
 import * as React from "react";
-import { ChevronDown, Inbox, Megaphone, Plus, Search } from "lucide-react";
+import { Inbox, Megaphone, Plus } from "lucide-react";
 import { Folders } from "@/components/navigationBars/folders";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -53,9 +47,7 @@ export function SidebarNav() {
 
     if (workspaceId) {
       setLoading(true);
-      fetch(
-        `${baseUrl}/team/index?workspace_id=${workspaceId}`
-      )
+      fetch(`${baseUrl}/team/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Failed to fetch teams.");
@@ -94,18 +86,15 @@ export function SidebarNav() {
       return;
     }
 
-    fetch(
-      `${baseUrl}/team/create?workspace_id=${workspaceId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newTeamName,
-        }),
-      }
-    )
+    fetch(`${baseUrl}/team/create?workspace_id=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newTeamName,
+      }),
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to create team.");
@@ -132,9 +121,7 @@ export function SidebarNav() {
 
     if (workspaceId) {
       setLoadingFolders(true);
-      fetch(
-        `${baseUrl}/folder/index?workspace_id=${workspaceId}`
-      )
+      fetch(`${baseUrl}/folder/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Failed to fetch folders.");
@@ -165,9 +152,7 @@ export function SidebarNav() {
 
     if (workspaceId) {
       setLoadingLists(true);
-      fetch(
-        `${baseUrl}/lists/index?workspace_id=${workspaceId}`
-      )
+      fetch(`${baseUrl}/lists/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Failed to fetch lists.");
@@ -206,19 +191,16 @@ export function SidebarNav() {
       return;
     }
 
-    fetch(
-      `${baseUrl}/folder/create?workspace_id=${workspaceId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newFolderName,
-          team_id: currentTeamId,
-        }),
-      }
-    )
+    fetch(`${baseUrl}/folder/create?workspace_id=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newFolderName,
+        team_id: currentTeamId,
+      }),
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to create folder.");
@@ -253,19 +235,16 @@ export function SidebarNav() {
       return;
     }
 
-    fetch(
-      `${baseUrl}/lists/create?workspace_id=${workspaceId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newListName,
-          folder_id: currentFolderId,
-        }),
-      }
-    )
+    fetch(`${baseUrl}/lists/create?workspace_id=${workspaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newListName,
+        folder_id: currentFolderId,
+      }),
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to create list.");
@@ -326,7 +305,8 @@ export function SidebarNav() {
       <Sidebar>
         <SidebarHeader className="gap-4 p-4  border-muted-foreground">
           <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold">Dashboard</span>
+            {/* <span className="text-lg font-semibold">Task Management</span> */}
+            <img src="/officeless_brand.png" alt="" />
           </div>
         </SidebarHeader>
 

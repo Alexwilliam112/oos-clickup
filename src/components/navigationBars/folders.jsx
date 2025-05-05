@@ -50,9 +50,10 @@ export function Folders({
                   title={team.name}
                   onClick={() => navigateTo("team", team.id_team)} // Navigate to team
                 >
-                  <Avatar className="h-6 w-6 bg-blue-500 text-white">
-                    <AvatarFallback className="text-xs">
-                      {team.name ? team.name.charAt(0).toUpperCase() : "?"}
+                  <Avatar className="h-7 w-7 bg-blue-500 text-white">
+                    <AvatarFallback className="bg-purple-700 text-xs">
+                      {/* {team.name ? team.name.charAt(0).toUpperCase() : "?"} */}
+                      {team.name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span>{team.name || "Unnamed Team"}</span>
