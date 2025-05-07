@@ -90,8 +90,12 @@ export function Dashboard() {
         </div>
       </header>
 
-      <Tabs defaultValue="overview" className="h-full w-full p-4">
+      <Tabs defaultValue="list" className="h-full w-full p-4">
         <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <ListFilter className="h-4 w-4" />
+            List
+          </TabsTrigger>
           <TabsTrigger value="overview" className="gap-2">
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <rect
@@ -150,10 +154,7 @@ export function Dashboard() {
           <TabsTrigger value="info" className="gap-2">
             General Info
           </TabsTrigger>
-          <TabsTrigger value="list" className="gap-2">
-            <ListFilter className="h-4 w-4" />
-            List
-          </TabsTrigger>
+
           <TabsTrigger value="board" className="gap-2">
             <svg
               className="h-4 w-4"
