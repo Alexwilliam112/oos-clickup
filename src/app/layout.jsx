@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         <QueryClient>
           <SidebarProvider>
             <SidebarNav />
-            <div className="h-screen w-screen overflow-hidden">{children}</div>
+            <div className="w-full h-full">{children}</div>
           </SidebarProvider>
         </QueryClient>
       </body>

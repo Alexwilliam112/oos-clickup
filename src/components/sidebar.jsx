@@ -302,7 +302,7 @@ export function SidebarNav() {
 
   return (
     <>
-      <Sidebar>
+      <Sidebar className="z-50">
         <SidebarHeader className="gap-4 p-4  border-muted-foreground">
           <div className="flex items-center justify-between">
             {/* <span className="text-lg font-semibold">Task Management</span> */}

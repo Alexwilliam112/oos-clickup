@@ -13,6 +13,7 @@ import {
   DetailModalTrigger,
   CreateModalTrigger,
 } from "@/components/ui-modal/modal-trigger";
+import { TableRow, TableCell } from "@/components/ui/table";
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
@@ -75,212 +76,202 @@ export default function Task({
   const multiplier = 5; // Adjust this value to control the color change speed
   const startColor = 255; // Starting color value (white)
   const transparency = 1; // Adjust this value to control the transparency level
+  const rowBg = `rgba(${startColor - level * multiplier}, ${startColor - level * multiplier}, ${startColor - level * multiplier}, ${transparency})`;
 
   return (
     <>
-      <div
-        key={task.id_task}
-        className="flex flex-col w-full border-b border-muted/20 hover:bg-muted/10 transition z-10"
-        style={{
-          backgroundColor: `rgba(${startColor - level * multiplier}, ${
-            startColor - level * multiplier
-          }, ${startColor - level * multiplier}, ${transparency})`, // Start from white and gradually darken
-        }}
-      >
-        <div className="flex items-center px-2 py-2 text-sm w-full">
-          {/* Sticky Column 1 */}
-          <div
-            className="table-cell min-w-[50px] p-2 flex justify-center"
-            style={{
-              position: isOpenCreate ? 'static' : 'sticky',
-              left: 0,
-              zIndex: isOpenCreate ? null : 10,
-              backgroundColor: `rgba(${startColor - level * multiplier}, ${
-                startColor - level * multiplier
-              }, ${startColor - level * multiplier}, ${transparency})`, // Match row background
-            }}
+      <TableRow style={{ backgroundColor: rowBg }}>
+        <TableCell
+          className="p-2 min-w-[50px]"
+          style={{
+            position: isOpenCreate ? "static" : "sticky",
+            left: 0,
+            zIndex: isOpenCreate ? undefined : 10,
+            backgroundColor: rowBg,
+          }}
+        >
+          <CreateModalTrigger
+            trigger={
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Plus className="h-4 w-4" />
+              </Button>
+            }
+            modalTitle="Create Task"
+            parentTaskId={task.id_task}
+            fetchTasks={fetchTasks}
+            modalSubtitle={""}
+            initialValues={initialValues}
+            selectData={selectData}
+            sidebarContent={<p></p>}
+            isOpen={isOpenCreate}
+            setIsOpen={setIsOpenCreate}
+          />
+        </TableCell>
+
+        <TableCell
+          className="p-2 min-w-[255px]"
+          style={{
+            paddingLeft: `${level * 20}px`,
+            position: isOpenDetail ? "static" : "sticky",
+            left: 50,
+            zIndex: isOpenDetail ? undefined : 10,
+            backgroundColor: rowBg,
+          }}
+        >
+          <button
+            className="text-muted-foreground hover:text-foreground transition mr-2"
+            onClick={toggleExpand}
           >
-            <CreateModalTrigger
-              trigger={
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              }
-              modalTitle="Create Task"
-              parentTaskId={task.id_task}
-              fetchTasks={fetchTasks}
-              modalSubtitle={""}
-              initialValues={initialValues}
-              selectData={selectData}
-              sidebarContent={<p></p>}
-              isOpen={isOpenCreate}
-              setIsOpen={setIsOpenCreate}
-            />
-          </div>
-
-          {/* Sticky Column 2 */}
-          <div
-            className="table-cell min-w-[255px] p-3 pl-4"
-            style={{
-              paddingLeft: `${level * 20}px`,
-              position: isOpenDetail ? 'static' : 'sticky',
-              left: 50,
-              zIndex: isOpenDetail ? null : 10,
-              backgroundColor: `rgba(${startColor - level * multiplier}, ${
-                startColor - level * multiplier
-              }, ${startColor - level * multiplier}, ${transparency})`, // Match row background
-            }}
-          >
-            <button
-              className="text-muted-foreground hover:text-foreground transition mr-2"
-              onClick={() => toggleExpand(task)}
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-            <DetailModalTrigger
-              trigger={
-                <span className="text-blue-500 hover:underline">
-                  {task.name}
-                </span>
-              }
-              modalTitle="Task Details"
-              fetchTasks={fetchTasks}
-              showSidebar={true}
-              task={task}
-              selectData={selectData}
-              modalSubtitle={task.created_at}
-              sidebarContent={<p>Sidebar content here</p>}
-              isOpen={isOpenDetail}
-              setIsOpen={setIsOpenDetail}
-            >
-              <p>Modal content here</p>
-            </DetailModalTrigger>
-          </div>
-
-          {/* Other Columns */}
-          <div className="min-w-[120px] p-2">{formatDate(task.created_at)}</div>
-          <div className="min-w-[120px] p-2">
-            <span
-              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-              style={{
-                backgroundColor: task.task_type_id.color,
-                color: getContrastColor(task.task_type_id.color),
-              }}
-            >
-              {task.task_type_id.name}
-            </span>
-          </div>
-          <div className="min-w-[150px] p-2 gap-1 flex flex-wrap">
-            {task.assignee_ids?.map((assignee, idx) => {
-              const initials = assignee.name
-                .split(" ")
-                .map((word) => word.charAt(0))
-                .slice(0, 2)
-                .join("");
-
-              return (
-                <Tooltip key={idx}>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Avatar>
-                        <AvatarImage
-                          src={assignee.avatar}
-                          alt={assignee.name}
-                        />
-                        <AvatarFallback
-                          style={{
-                            backgroundColor: "#F5B1FF",
-                            color: getContrastColor("#F5B1FF"),
-                            cursor: "pointer",
-                          }}
-                        >
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>{assignee.name}</span>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-          <div className="min-w-[120px] p-2">{formatDate(task.date_start)}</div>
-          <div className="min-w-[120px] p-2">{formatDate(task.date_end)}</div>
-          <div className="min-w-[100px] p-2">
-            <span
-              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-              style={{
-                backgroundColor: task.priority_id.color,
-                color: getContrastColor(task.priority_id.color),
-              }}
-            >
-              {task.priority_id.name}
-            </span>
-          </div>
-          <div className="min-w-[130px] p-2">
-            <span
-              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-              style={{
-                backgroundColor: task.status_id.color,
-                color: getContrastColor(task.status_id.color),
-              }}
-            >
-              {task.status_id.name}
-            </span>
-          </div>
-          <div className="min-w-[160px] p-2 flex gap-1 flex-wrap">
-            {task.list_ids?.map((list, idx) => (
-              <span
-                key={idx}
-                className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-                style={{
-                  backgroundColor: "#B1D9FF",
-                  color: getContrastColor("#B1D9FF"),
-                }}
-              >
-                {list.name}
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+          <DetailModalTrigger
+            trigger={
+              <span className="text-blue-500 hover:underline">
+                {task.name}
               </span>
-            ))}
-          </div>
-          <div className="min-w-[120px] p-2">
+            }
+            modalTitle="Task Details"
+            fetchTasks={fetchTasks}
+            showSidebar={true}
+            task={task}
+            selectData={selectData}
+            modalSubtitle={task.created_at}
+            sidebarContent={<p>Sidebar content here</p>}
+            isOpen={isOpenDetail}
+            setIsOpen={setIsOpenDetail}
+          >
+            <p>Modal content here</p>
+          </DetailModalTrigger>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.created_at)}</TableCell>
+
+        <TableCell className="p-2 min-w-[120px]">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.task_type_id.color,
+              color: getContrastColor(task.task_type_id.color),
+            }}
+          >
+            {task.task_type_id.name}
+          </span>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[150px] gap-1 flex flex-wrap">
+          {task.assignee_ids?.map((assignee, idx) => {
+            const initials = assignee.name
+              .split(" ")
+              .map((word) => word.charAt(0))
+              .slice(0, 2)
+              .join("");
+            return (
+              <Tooltip key={idx}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Avatar>
+                      <AvatarImage
+                        src={assignee.avatar}
+                        alt={assignee.name}
+                      />
+                      <AvatarFallback
+                        style={{
+                          backgroundColor: "#F5B1FF",
+                          color: getContrastColor("#F5B1FF"),
+                          cursor: "pointer",
+                        }}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <span>{assignee.name}</span>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_start)}</TableCell>
+
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_end)}</TableCell>
+
+        <TableCell className="p-2 min-w-[100px]">
+          <span
+            className="text-xs px-2 min-w-[120px] py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.priority_id.color,
+              color: getContrastColor(task.priority_id.color),
+            }}
+          >
+            {task.priority_id.name}
+          </span>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[130px]">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.status_id.color,
+              color: getContrastColor(task.status_id.color),
+            }}
+          >
+            {task.status_id.name}
+          </span>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[160px] flex gap-1 flex-wrap">
+          {task.list_ids?.map((list, idx) => (
             <span
+              key={idx}
               className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-              style={{
-                backgroundColor: task.product_id.color,
-                color: getContrastColor(task.product_id.color),
-              }}
-            >
-              {task.product_id.name}
-            </span>
-          </div>
-          <div className="min-w-[190px] p-2">
-            <span
-              className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm"
               style={{
                 backgroundColor: "#B1D9FF",
                 color: getContrastColor("#B1D9FF"),
               }}
             >
-              {task.team_id.name.toUpperCase()}
+              {list.name}
             </span>
-          </div>
-          
-          <div className="min-w-[100px] p-2 flex justify-end gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {isExpanded && task.children?.length > 0 && (
-          <div className="w-full">{renderTasks(task.children, level + 1)}</div>
-        )}
-      </div>
+          ))}
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[120px]">
+          <span
+            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: task.product_id.color,
+              color: getContrastColor(task.product_id.color),
+            }}
+          >
+            {task.product_id.name}
+          </span>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[190px]">
+          <span
+            className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm"
+            style={{
+              backgroundColor: "#B1D9FF",
+              color: getContrastColor("#B1D9FF"),
+            }}
+          >
+            {task.team_id.name.toUpperCase()}
+          </span>
+        </TableCell>
+
+        <TableCell className="p-2 min-w-[100px] flex justify-end gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </TableCell>
+      </TableRow>
+      {isExpanded && task.children?.length > 0 && renderTasks(task.children, level + 1)}
     </>
   );
 }

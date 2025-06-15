@@ -4,13 +4,27 @@ import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
-import { CalendarIcon, Clock, Tag, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { generateChildren } from "@/lib/utils";
 import Task from "./task";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+} from "@/components/ui/table";
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 export function ListView() {
   const [tasks, setTasks] = useState([]);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
 
   const [indexTaskType, setIndexTaskType] = useState([]);
   const [indexStatus, setIndexStatus] = useState([]);
@@ -25,10 +39,43 @@ export function ListView() {
   const [lists, setLists] = useState([]);
 
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
   const workspaceId = params.get("workspace_id");
   const page = params.get("page");
   const paramId = params.get("param_id");
+
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch =
+      task.name.toLowerCase().includes(search.toLowerCase()) ||
+      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false);
+
+    const matchesStatus = statusFilter !== "all"
+      ? task.status_id?.id === statusFilter
+      : true;
+
+    const matchesAssignee = assigneeFilter !== "all"
+      ? task.assignee_ids?.some(a => a.id === assigneeFilter)
+      : true;
+
+    const matchesPriority = priorityFilter !== "all"
+      ? task.priority_id?.id === priorityFilter
+      : true;
+
+    const matchesTeam = teamFilter !== "all"
+      ? task.team_id?.id === teamFilter
+      : true;
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesAssignee &&
+      matchesPriority &&
+      matchesTeam
+    );
+  });
 
   const fetchTasks = () => {
     let taskDataInitial = [];
@@ -56,8 +103,10 @@ export function ListView() {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (workspaceId && page && paramId) {
+      fetchTasks();
+    }
+  }, [workspaceId, page, paramId]);
 
   useEffect(() => {
     if (workspaceId) {
@@ -237,63 +286,14 @@ export function ListView() {
         });
       console.log("teams successfully:", indexList);
     }
-  }, []);
-
-  const renderHeaders = () => (
-    <div className="w-full h-12 table bg-muted border-b border-muted/20 sticky top-0 z-20">
-      <div className="table-row text-xs font-medium text-muted-foreground">
-        <div
-          className="table-cell min-w-[50px] p-3 pl-4 bg-muted"
-          style={{ position: "sticky", left: 0, zIndex: 30 }}
-        ></div>
-        <div
-          className="table-cell min-w-[255px] p-3 pl-4 bg-muted"
-          style={{ position: "sticky", left: 50, zIndex: 30 }}
-        >
-          Task Name
-        </div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
-          Created
-        </div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
-          Task Type
-        </div>
-        <div className="table-cell min-w-[150px] p-3  pl-4 bg-muted">
-          Assignee
-        </div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
-          Start Date
-        </div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
-          Due Date
-        </div>
-        <div className="table-cell min-w-[100px] p-3  pl-4 bg-muted">
-          Priority
-        </div>
-        <div className="table-cell min-w-[130px] p-3  pl-4 bg-muted">
-          Status
-        </div>
-        <div className="table-cell min-w-[160px] p-3  pl-4 bg-muted">Lists</div>
-        <div className="table-cell min-w-[120px] p-3  pl-4 bg-muted">
-          Product
-        </div>
-        <div className="table-cell min-w-[190px] p-3  pl-4 bg-muted">Team</div>
-        <div className="table-cell min-w-[100px] p-3  pl-4 text-right bg-muted">
-          Actions
-        </div>
-      </div>
-    </div>
-  );
+  }, [workspaceId]);
 
   const [isOpen, setIsOpen] = useState(false)
 
   const renderTasks = (taskList, level = 0) =>
-    taskList.map((task) => {
-      task.expanded = true; // Initialize expanded property
-
-      return (
+    taskList.map((task) => (
+      <React.Fragment key={task.id_task}>
         <Task
-          key={task.id_task}
           level={level}
           task={task}
           fetchTasks={fetchTasks}
@@ -316,8 +316,8 @@ export function ListView() {
             indexList,
           }}
         />
-      );
-    });
+      </React.Fragment>
+    ));
 
   return (
     <>
@@ -357,17 +357,129 @@ export function ListView() {
           setIsOpen={setIsOpen}
         />
       </div>
-      <div className="flex-1 overflow-auto w-full h-screen">
-        <div className="w-full table-auto mb-40">
-          {renderHeaders()}
-          <div
-            className="table-row-group overflow-y-auto"
-            style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}
-          >
-            {renderTasks(tasks)}
-          </div>
-        </div>
-        <div className="mb-10 color-white">a</div>
+
+      <div className="flex gap-2 py-4">
+        <Input
+          type="text"
+          placeholder="Search tasks..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="grow-1 h-10"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="max-w-42">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {indexStatus.map(status => (
+              <SelectItem key={status.id_record} value={status.id_record}>
+                {status.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+          <SelectTrigger className="max-w-42">
+            <SelectValue placeholder="All Assignees" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Assignees</SelectItem>
+            {indexMember.map(member => (
+              <SelectItem key={member.id} value={member.id}>
+                {member.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="max-w-42">
+            <SelectValue placeholder="All Priorities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            {indexPriority.map(priority => (
+              <SelectItem key={priority.id_record} value={priority.id_record}>
+                {priority.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={teamFilter} onValueChange={setTeamFilter}>
+          <SelectTrigger className="max-w-42">
+            <SelectValue placeholder="All Teams" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Teams</SelectItem>
+            {indexTeam.map(team => (
+              <SelectItem key={team.id_record} value={team.id_record}>
+                {team.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex">
+        <ScrollArea type="always" className="w-1 flex-1">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead
+                  className="p-2 min-w-[50px] bg-muted"
+                  style={{ position: "sticky", left: 0, zIndex: 30 }}
+                ></TableHead>
+                <TableHead
+                  className="p-2 min-w-[255px] bg-muted"
+                  style={{ position: "sticky", left: 50, zIndex: 30 }}
+                >
+                  Task Name
+                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Created</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Task Type</TableHead>
+                <TableHead className="p-2 min-w-[150px] bg-muted">Assignee</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Start Date</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Due Date</TableHead>
+                <TableHead className="p-2 min-w-[100px] bg-muted">Priority</TableHead>
+                <TableHead className="p-2 min-w-[130px] bg-muted">Status</TableHead>
+                <TableHead className="p-2 min-w-[160px] bg-muted">Lists</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Product</TableHead>
+                <TableHead className="p-2 min-w-[190px] bg-muted">Team</TableHead>
+                <TableHead className="p-2 min-w-[100px] text-right bg-muted">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTasks.map((task) => (
+                <React.Fragment key={task.id_task}>
+                  <Task
+                    level={0}
+                    task={task}
+                    fetchTasks={fetchTasks}
+                    renderTasks={renderTasks}
+                    tasks={tasks}
+                    setTasks={setTasks}
+                    initialValues={{
+                      team,
+                      folder,
+                      lists,
+                    }}
+                    selectData={{
+                      indexTaskType,
+                      indexStatus,
+                      indexPriority,
+                      indexProduct,
+                      indexMember,
+                      indexTeam,
+                      indexFolder,
+                      indexList,
+                    }}
+                  />
+                </React.Fragment>
+              ))}
+            </TableBody>
+          </Table>
+          <ScrollBar orientation="horizontal" className="w-full" />
+        </ScrollArea>
       </div>
     </>
   );
