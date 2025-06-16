@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SidebarInset } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListFilter } from "lucide-react";
@@ -47,8 +47,9 @@ export function Dashboard() {
   }, []);
 
   return (
-    <SidebarInset className="h-screen w-screen overflow-hidden">
-      <header className="flex h-20 items-center border-b px-4 sm:px-6 shrink-0">
+    <SidebarInset>
+      <header className="flex h-20 items-center border-b px-4 gap-2">
+        <SidebarTrigger />
         <div className="flex items-center gap-4">
           <Avatar className="h-9 w-9 bg-white-500 text-white">
             <AvatarFallback className="bg-purple-700 text-sm">
@@ -192,7 +193,7 @@ export function Dashboard() {
           <Overview />
         </TabsContent>
 
-        <TabsContent value="board" className="overflow-x-auto h-full">
+        <TabsContent value="board" className="gap-2">
           <Board />
         </TabsContent>
 

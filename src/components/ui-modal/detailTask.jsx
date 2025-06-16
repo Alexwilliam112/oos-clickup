@@ -754,8 +754,8 @@ const formSchema = z.object({
     )
     .min(1, "At least one assignee is required"),
   selectedRange: z.object({
-    startDate: z.date(),
-    endDate: z.date(),
+    from: z.date(),
+    to: z.date(),
   }),
   product: z.object({
     id: z.string().min(1),
