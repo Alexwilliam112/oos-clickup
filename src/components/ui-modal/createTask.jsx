@@ -42,7 +42,7 @@ export function TaskCreateModal({
   // Task fields state
   const [taskName, setTaskName] = useState('')
   const [taskType, setTaskType] = useState(null)
-  const [assignees, setAssignees] = useState([])
+  const [assignee, setAssignee] = useState(null)
   const [dateRange, setDateRange] = useState({ from: null, to: null })
   const [priority, setPriority] = useState('')
   const [status, setStatus] = useState(null)
@@ -67,7 +67,7 @@ export function TaskCreateModal({
     resolver: zodResolver(formSchema),
     defaultValues: {
       taskName: '',
-      assignees: [],
+      assignee: null,
       lists: [],
     },
   })
@@ -217,7 +217,7 @@ export function TaskCreateModal({
     const taskData = {
       name: values.taskName,
       task_type_id: values.taskType,
-      assignee_ids: values.assignees,
+      assignee_id: values.assignee,
       date_start: new Date(values.selectedRange.from).getTime(),
       date_end: new Date(values.selectedRange.to).getTime(),
       folder_id: values.folder,
@@ -236,7 +236,7 @@ export function TaskCreateModal({
     // Reset form fields
     setTaskName('')
     setTaskType(null)
-    setAssignees([])
+    setAssignee(null)
     setDateRange({ from: null, to: null })
     setSelectedRange({ from: null, to: null })
     setPriority(null)
@@ -449,23 +449,29 @@ export function TaskCreateModal({
               </div>
             </div>
 
-            {/* Assignees */}
+            {/* Assignee */}
             <div>
-              <label className="block text-sm font-medium">Assignees</label>
+              <label className="block text-sm font-medium">Assignee</label>
               <Controller
-                name="assignees"
+                name="assignee"
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <MultipleSelectTags
+                    <SingleSelectTag
                       value={field.value}
-                      onChange={(value) => field.onChange(value)}
+                      onChange={(value) => {
+                        field.onChange({
+                          id: value.id_record,
+                          name: value.name,
+                          color: value.color,
+                        })
+                      }}
                       options={indexMember}
-                      placeholder=""
-                      className={getBorderColor('assignees')}
+                      placeholder="Add assignee"
+                      className={getBorderColor('assignee')}
                     />
-                    {errors.assignees && (
-                      <p className="text-red-500 text-xs mt-1">{errors.assignees.message}</p>
+                    {errors.assignee && (
+                      <p className="text-red-500 text-xs mt-1">{errors.assignee.message}</p>
                     )}
                   </div>
                 )}
@@ -647,14 +653,11 @@ const formSchema = z.object({
     name: z.string(),
     color: z.string(),
   }),
-  assignees: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-      })
-    )
-    .min(1, 'At least one assignee is required'),
+  assignee: z.object({
+    id: z.string().min(1, 'Assignee is required'),
+    name: z.string(),
+    color: z.string(),
+  }),
   selectedRange: z.object({
     from: z.date(),
     to: z.date(),
