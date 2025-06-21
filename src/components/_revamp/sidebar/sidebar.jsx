@@ -11,8 +11,37 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { useQuery } from '@tanstack/react-query'
+import { workspaceService } from '@/service/index.mjs'
 
 export default function Sidebar({ children }) {
+  const {
+    data: teamsData,
+    isSuccess: teamsSuccess,
+    isLoading: teamsLoading,
+  } = useQuery({
+    queryFn: workspaceService.getTeams,
+    queryKey: ['workspaceService.getTeams'],
+  })
+
+  const {
+    data: foldersData,
+    isSuccess: foldersSuccess,
+    isLoading: foldersLoading,
+  } = useQuery({
+    queryFn: workspaceService.getFolders,
+    queryKey: ['workspaceService.getFolders'],
+  })
+
+  const {
+    data: listData,
+    isSuccess: listSuccess,
+    isLoading: listLoading,
+  } = useQuery({
+    queryFn: workspaceService.getList,
+    queryKey: ['workspaceService.getList'],
+  })
+
   return (
     <SidebarProvider>
       <AppSidebar />

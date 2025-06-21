@@ -24,6 +24,7 @@ const apiClientV2 = axios.create({
   },
 })
 
+// Request interceptor
 apiClient.interceptors.request.use(function (request) {
   console.log('Request', request.params)
 
@@ -38,6 +39,7 @@ apiClient.interceptors.request.use(function (request) {
   return request
 })
 
+// Response interceptor
 apiClientV2.interceptors.response.use(function (response) {
   const { data, error, message } = response.data
 

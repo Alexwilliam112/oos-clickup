@@ -12,19 +12,27 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { useQuery } from '@tanstack/react-query'
-import { masterService } from '@/service/index.mjs'
+import { workspaceService } from '@/service'
 import { useEffect } from 'react'
+import Link from 'next/link'
+import { Users } from 'lucide-react'
+import { Folder } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 
 export function NavMain() {
+  const router = useRouter()
+  const { setOpen, setOpenMobile } = useSidebar()
+
   const {
     data: teamsData,
     isSuccess: teamsSuccess,
     isLoading: teamsLoading,
   } = useQuery({
-    queryFn: masterService.getTeams,
-    queryKey: ['masterService.getTeams'],
+    queryFn: workspaceService.getTeams,
+    queryKey: ['workspaceService.getTeams'],
   })
 
   const {
@@ -32,8 +40,8 @@ export function NavMain() {
     isSuccess: foldersSuccess,
     isLoading: foldersLoading,
   } = useQuery({
-    queryFn: masterService.getFolders,
-    queryKey: ['masterService.getFolders'],
+    queryFn: workspaceService.getFolders,
+    queryKey: ['workspaceService.getFolders'],
   })
 
   const {
@@ -41,44 +49,56 @@ export function NavMain() {
     isSuccess: listSuccess,
     isLoading: listLoading,
   } = useQuery({
-    queryFn: masterService.getList,
-    queryKey: ['masterService.getList'],
+    queryFn: workspaceService.getList,
+    queryKey: ['workspaceService.getList'],
   })
 
-  useEffect(() => {
-    console.log(teamsData)
-  }, [teamsData])
+  const navigateTo = (page, param_id) => {
+    const params = new URLSearchParams(window.location.search)
+    const workspace_id = params.get('workspace_id')
+
+    if (workspace_id) {
+      const url = `/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${param_id}`
+      router.push(url)
+      setOpen(false)
+      setOpenMobile(false)
+    } else {
+      console.error('workspace_id is missing in the query parameters.')
+    }
+  }
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Teams</SidebarGroupLabel>
       <SidebarMenu>
-        {teamsData?.map((item) => (
+        {teamsData?.map((team) => (
           <Collapsible
-            key={item.name}
+            key={team.name}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen={team.isActive}
             className="group/collapsible"
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.name}>
-                  {item.icon && <item.icon />}
-                  <span>{item.name}</span>
+                <SidebarMenuButton tooltip={team.name}>
+                  <Users />
+                  <span onClick={() => navigateTo('team', team.id_team)}>{team.name}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {foldersData?.filter(f => f.).map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
+                  {foldersData
+                    ?.filter((f) => f.team_id === team.id_team)
+                    .map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.name}>
+                        <SidebarMenuSubButton asChild>
+                          <span>
+                            <Folder /> {subItem.name}
+                          </span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>
