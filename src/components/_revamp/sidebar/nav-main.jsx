@@ -21,12 +21,176 @@ import { Users } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FolderOpen } from 'lucide-react'
 import { Circle } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/modals/general.jsx'
+import { useState } from 'react'
 
 export function NavMain() {
   const router = useRouter()
   const params = useSearchParams()
 
   const { setOpen, setOpenMobile } = useSidebar()
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
+
+  const handleAddTeam = () => {
+    if (!newTeamName) {
+      setError('Team name cannot be empty.')
+      return
+    }
+
+    const workspaceId = params.get('workspace_id')
+
+    if (!workspaceId) {
+      setError('Workspace ID is missing.')
+      return
+    }
+
+    fetch(`${baseUrl}/team/create?workspace_id=${workspaceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newTeamName,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create team.')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || 'Failed to create team.')
+        }
+        setNewTeamName('') // Clear the input field
+        setIsTeamModalOpen(false) // Close the modal
+        fetchTeams() // Refetch the teams to update the UI
+      })
+      .catch((error) => {
+        console.error('Error creating team:', error)
+        setError('Failed to create team. Please try again.')
+      })
+  }
+
+  const handleAddFolder = () => {
+    if (!newFolderName) {
+      setError('Folder name cannot be empty.')
+      return
+    }
+
+    const workspaceId = params.get('workspace_id')
+
+    if (!workspaceId) {
+      setError('Workspace ID is missing.')
+      return
+    }
+
+    fetch(`${baseUrl}/folder/create?workspace_id=${workspaceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newFolderName,
+        team_id: currentTeamId,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create folder.')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || 'Failed to create folder.')
+        }
+        setNewFolderName('') // Clear the input field
+        setIsFolderModalOpen(false) // Close the modal
+        fetchFolders() // Refetch the folders to update the UI
+      })
+      .catch((error) => {
+        console.error('Error creating folder:', error)
+        setError('Failed to create folder. Please try again.')
+      })
+  }
+
+  const handleAddList = () => {
+    if (!newListName) {
+      setError('List name cannot be empty.')
+      return
+    }
+
+    const workspaceId = params.get('workspace_id')
+
+    if (!workspaceId) {
+      setError('Workspace ID is missing.')
+      return
+    }
+
+    fetch(`${baseUrl}/lists/create?workspace_id=${workspaceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newListName,
+        folder_id: currentFolderId,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create list.')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || 'Failed to create list.')
+        }
+        setNewListName('') // Clear the input field
+        setIsModalOpen(false) // Close the modal
+        fetchLists() // Refetch the lists to update the UI
+      })
+      .catch((error) => {
+        console.error('Error creating list:', error)
+        setError('Failed to create list. Please try again.')
+      })
+  }
+
+  const openModal = (folderId) => {
+    setCurrentFolderId(folderId)
+    setIsModalOpen(true)
+  }
+
+  const openTeamModal = () => {
+    setIsTeamModalOpen(true)
+  }
+
+  const openFolderModal = (teamId) => {
+    setCurrentTeamId(teamId)
+    setIsFolderModalOpen(true)
+  }
+
+  const closeTeamModal = () => {
+    setIsTeamModalOpen(false)
+    setNewTeamName('')
+  }
+
+  const closeFolderModal = () => {
+    setIsFolderModalOpen(false)
+    setNewFolderName('')
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setNewListName('')
+  }
 
   const {
     data: teamsData,
@@ -94,6 +258,10 @@ export function NavMain() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
+                  <SidebarMenuSubButton className="hover:cursor-pointer text-muted-foreground">
+                    <Plus />
+                    Add folder
+                  </SidebarMenuSubButton>
                   {foldersData
                     ?.filter((folder) => folder.team_id === team.id_team)
                     .map((folder) => (
@@ -146,6 +314,66 @@ export function NavMain() {
             </SidebarMenuItem>
           ))}
       </SidebarMenu>
+
+      {/* Add Team Modal */}
+      <Modal isOpen={isTeamModalOpen} onClose={closeTeamModal}>
+        <ModalHeader>Add New Team</ModalHeader>
+        <ModalBody>
+          <Input
+            placeholder="Enter team name"
+            value={newTeamName}
+            onChange={(e) => setNewTeamName(e.target.value)}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={closeTeamModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddTeam}>
+            Add Team
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Add List Modal */}
+      <Modal isOpen={isModalOpen} onClose={closeModal}>
+        <ModalHeader>Add New List</ModalHeader>
+        <ModalBody>
+          <Input
+            placeholder="Enter list name"
+            value={newListName}
+            onChange={(e) => setNewListName(e.target.value)}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={closeModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddList}>
+            Add List
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Add Folder Modal */}
+      <Modal isOpen={isFolderModalOpen} onClose={closeFolderModal}>
+        <ModalHeader>Add New Folder</ModalHeader>
+        <ModalBody>
+          <Input
+            placeholder="Enter folder name"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={closeFolderModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddFolder}>
+            Add Folder
+          </Button>
+        </ModalFooter>
+      </Modal>
     </SidebarGroup>
   )
 }

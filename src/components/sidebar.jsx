@@ -30,13 +30,13 @@ export function SidebarNav() {
   const [loadingLists, setLoadingLists] = React.useState(true)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
-  const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [newListName, setNewListName] = React.useState('')
   const [currentFolderId, setCurrentFolderId] = React.useState(null)
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isFolderModalOpen, setIsFolderModalOpen] = React.useState(false)
+  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false)
   const [newFolderName, setNewFolderName] = React.useState('')
   const [currentTeamId, setCurrentTeamId] = React.useState(null)
-  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false)
   const [newTeamName, setNewTeamName] = React.useState('')
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
@@ -69,48 +69,6 @@ export function SidebarNav() {
       setLoading(false)
     }
   }, [])
-
-  const handleAddTeam = () => {
-    if (!newTeamName) {
-      setError('Team name cannot be empty.')
-      return
-    }
-
-    const workspaceId = params.get('workspace_id')
-
-    if (!workspaceId) {
-      setError('Workspace ID is missing.')
-      return
-    }
-
-    fetch(`${baseUrl}/team/create?workspace_id=${workspaceId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: newTeamName,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to create team.')
-        }
-        return response.json()
-      })
-      .then((data) => {
-        if (data.error) {
-          throw new Error(data.message || 'Failed to create team.')
-        }
-        setNewTeamName('') // Clear the input field
-        setIsTeamModalOpen(false) // Close the modal
-        fetchTeams() // Refetch the teams to update the UI
-      })
-      .catch((error) => {
-        console.error('Error creating team:', error)
-        setError('Failed to create team. Please try again.')
-      })
-  }
 
   const fetchFolders = React.useCallback(() => {
     const workspaceId = params.get('workspace_id')
@@ -171,6 +129,48 @@ export function SidebarNav() {
       setLoadingLists(false)
     }
   }, [])
+
+  const handleAddTeam = () => {
+    if (!newTeamName) {
+      setError('Team name cannot be empty.')
+      return
+    }
+
+    const workspaceId = params.get('workspace_id')
+
+    if (!workspaceId) {
+      setError('Workspace ID is missing.')
+      return
+    }
+
+    fetch(`${baseUrl}/team/create?workspace_id=${workspaceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: newTeamName,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create team.')
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.message || 'Failed to create team.')
+        }
+        setNewTeamName('') // Clear the input field
+        setIsTeamModalOpen(false) // Close the modal
+        fetchTeams() // Refetch the teams to update the UI
+      })
+      .catch((error) => {
+        console.error('Error creating team:', error)
+        setError('Failed to create team. Please try again.')
+      })
+  }
 
   const handleAddFolder = () => {
     if (!newFolderName) {
