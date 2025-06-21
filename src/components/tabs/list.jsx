@@ -52,14 +52,41 @@ export function ListView() {
   const page = params.get("page");
   const paramId = params.get("param_id");
 
-  function filterTasksByName(tasks, search) {
+  function filterTasksByName(tasks, search, statusFilter, assigneeFilter, priorityFilter, teamFilter) {
     const lowerSearch = search.toLowerCase();
     return tasks
       .map((task) => {
-        const selfMatches = task.name?.toLowerCase().includes(lowerSearch);
+        const matchesSearch =
+          task.name?.toLowerCase().includes(lowerSearch) ||
+          (task.task_type_id?.name?.toLowerCase().includes(lowerSearch) ?? false) ||
+          (task.product_id?.name?.toLowerCase().includes(lowerSearch) ?? false);
+
+        const matchesStatus =
+          statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
+
+        const matchesAssignee =
+          assigneeFilter !== "all"
+            ? Array.isArray(task.assignee_ids)
+              ? task.assignee_ids.some((a) => a.id === assigneeFilter)
+              : task.assignee_ids?.id === assigneeFilter
+            : true;
+
+        const matchesPriority =
+          priorityFilter !== "all" ? task.priority_id?.id === priorityFilter : true;
+
+        const matchesTeam =
+          teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
+
         const filteredChildren = task.children
-          ? filterTasksByName(task.children, search)
+          ? filterTasksByName(task.children, search, statusFilter, assigneeFilter, priorityFilter, teamFilter)
           : [];
+
+        const selfMatches =
+          matchesSearch &&
+          matchesStatus &&
+          matchesAssignee &&
+          matchesPriority &&
+          matchesTeam;
 
         if (selfMatches) {
           return {
@@ -70,42 +97,20 @@ export function ListView() {
           return filteredChildren;
         }
 
-        return null; 
+        return null;
       })
-      .flat() 
+      .flat()
       .filter(Boolean);
   }
-  
-  const filteredTasks = filterTasksByName(tasks,search).filter(task => {
-    const matchesSearch =
-      task.name.toLowerCase().includes(search.toLowerCase()) ||
-      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false);
+    const filteredTasks = filterTasksByName(
+    tasks,
+    search,
+    statusFilter,
+    assigneeFilter,
+    priorityFilter,
+    teamFilter
+  );
 
-      
-    const matchesStatus = statusFilter !== "all"
-      ? task.status_id?.id === statusFilter
-      : true;
-
-    const matchesAssignee =
-      assigneeFilter !== "all"
-        ? task.assignee_ids?.some((a) => a.id === assigneeFilter)
-        : true;
-
-    const matchesPriority =
-      priorityFilter !== "all" ? task.priority_id?.id === priorityFilter : true;
-
-    const matchesTeam =
-      teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesAssignee &&
-      matchesPriority &&
-      matchesTeam
-    );
-  });
 
   const fetchTasks = () => {
     let taskDataInitial = [];
