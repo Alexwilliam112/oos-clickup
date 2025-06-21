@@ -52,16 +52,40 @@ export function ListView() {
   const page = params.get("page");
   const paramId = params.get("param_id");
 
-  const filteredTasks = tasks.filter((task) => {
+  function filterTasksByName(tasks, search) {
+    const lowerSearch = search.toLowerCase();
+    return tasks
+      .map((task) => {
+        const selfMatches = task.name?.toLowerCase().includes(lowerSearch);
+        const filteredChildren = task.children
+          ? filterTasksByName(task.children, search)
+          : [];
+
+        if (selfMatches) {
+          return {
+            ...task,
+            children: filteredChildren,
+          };
+        } else if (filteredChildren.length > 0) {
+          return filteredChildren;
+        }
+
+        return null; 
+      })
+      .flat() 
+      .filter(Boolean);
+  }
+  
+  const filteredTasks = filterTasksByName(tasks,search).filter(task => {
     const matchesSearch =
       task.name.toLowerCase().includes(search.toLowerCase()) ||
-      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
-        false) ||
-      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
-        false);
+      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false);
 
-    const matchesStatus =
-      statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
+      
+    const matchesStatus = statusFilter !== "all"
+      ? task.status_id?.id === statusFilter
+      : true;
 
     const matchesAssignee =
       assigneeFilter !== "all"
@@ -432,13 +456,13 @@ export function ListView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead
+                {/* <TableHead
                   className="p-2 min-w-[50px] bg-muted"
                   style={{ position: "sticky", left: 0, zIndex: 30 }}
-                ></TableHead>
+                ></TableHead> */}
                 <TableHead
-                  className="p-2 min-w-[255px] bg-muted"
-                  style={{ position: "sticky", left: 50, zIndex: 30 }}
+                  className="p-2 min-w-[255px] bg-muted "
+                  // style={{ position: "sticky", left: 50, zIndex: 30 }}
                 >
                   Task Name
                 </TableHead>
@@ -478,10 +502,10 @@ export function ListView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTasks.map((task) => (
+              {filteredTasks.map((task, idx) => (
                 <React.Fragment key={task.id_task}>
                   <Task
-                    level={0}
+                    level={idx}
                     task={task}
                     fetchTasks={fetchTasks}
                     renderTasks={renderTasks}

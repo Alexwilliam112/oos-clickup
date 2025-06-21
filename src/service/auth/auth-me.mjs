@@ -4,7 +4,7 @@ import { apiClient } from '../api/api-client.mjs'
 
 const authService = {
   async getUser(payload = {}) {
-    const response = await apiClient.post('/clickup/v2/auth/me', payload)
+    const response = await apiClient.post('/auth/me', payload)
     return response.data.data
   },
 }
