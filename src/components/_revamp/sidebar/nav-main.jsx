@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
@@ -21,6 +22,7 @@ import Link from 'next/link'
 import { Users } from 'lucide-react'
 import { Folder } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
 
 export function NavMain() {
   const router = useRouter()
@@ -91,19 +93,40 @@ export function NavMain() {
                   {foldersData
                     ?.filter((f) => f.team_id === team.id_team)
                     .map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.name}>
-                        <SidebarMenuSubButton asChild>
-                          <span>
-                            <Folder /> {subItem.name}
-                          </span>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                      <Collapsible className="group/subcollapsible">
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuSubButton>
+                            <span>{subItem.name}</span>
+                            <ChevronDown className="ml-auto transition-transform group-data-[state=open]/subcollapsible:rotate-180" />
+                          </SidebarMenuSubButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {listData
+                              ?.filter((list) => list.folder_id === subItem.id_folder)
+                              .map((grandChild) => (
+                                <SidebarMenuSubItem key={grandChild.name}>
+                                  <SidebarMenuSubButton asChild>
+                                    <span>{grandChild.name}</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
                     ))}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
         ))}
+
+        {teamsLoading &&
+          Array.from({ length: 5 }).map((_, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuSkeleton />
+            </SidebarMenuItem>
+          ))}
       </SidebarMenu>
     </SidebarGroup>
   )

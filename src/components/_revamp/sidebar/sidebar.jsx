@@ -13,33 +13,18 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { useQuery } from '@tanstack/react-query'
 import { workspaceService } from '@/service/index.mjs'
+import { useSearchParams } from 'next/navigation'
 
 export default function Sidebar({ children }) {
-  const {
-    data: teamsData,
-    isSuccess: teamsSuccess,
-    isLoading: teamsLoading,
-  } = useQuery({
-    queryFn: workspaceService.getTeams,
-    queryKey: ['workspaceService.getTeams'],
-  })
+  const params = useSearchParams()
 
-  const {
-    data: foldersData,
-    isSuccess: foldersSuccess,
-    isLoading: foldersLoading,
-  } = useQuery({
-    queryFn: workspaceService.getFolders,
-    queryKey: ['workspaceService.getFolders'],
-  })
+  const workspace_id = params.get('workspace_id')
+  const page = params.get('page')
+  const param_id = params.get('param_id')
 
-  const {
-    data: listData,
-    isSuccess: listSuccess,
-    isLoading: listLoading,
-  } = useQuery({
-    queryFn: workspaceService.getList,
-    queryKey: ['workspaceService.getList'],
+  const { data, isLoading, isSuccess } = useQuery({
+    queryKey: ['workspaceService.getPageInfo', { workspace_id, page, param_id }],
+    queryFn: workspaceService.getPageInfo,
   })
 
   return (
@@ -52,13 +37,20 @@ export default function Sidebar({ children }) {
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Building Your Application</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
+                {data?.path?.map((path, index) => (
+                  <>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink
+                        href={`/dashboard?workspace_id=${workspace_id}&page=${path.page}&param_id=${path.id}`}
+                      >
+                        {path.name}
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    {index + 1 < data.path.length && (
+                      <BreadcrumbSeparator className="hidden md:block" />
+                    )}
+                  </>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

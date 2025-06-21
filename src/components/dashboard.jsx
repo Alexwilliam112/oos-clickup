@@ -9,15 +9,19 @@ import { Overview } from './tabs/overview'
 import { Board } from './tabs/board'
 import { ListView } from './tabs/list'
 import { CalendarView } from './tabs/calendar'
+import { useSearchParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { workspaceService } from '@/service/index.mjs'
 
 export function Dashboard() {
+  const params = useSearchParams()
+
   const [title, setTitle] = useState('Team Space')
   const [subtitle, setSubtitle] = useState('Placeholder for subtitle')
   const [path, setPath] = useState([])
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
     const fetchPageInfo = async () => {
       const workspaceId = params.get('workspace_id')
       const page = params.get('page')

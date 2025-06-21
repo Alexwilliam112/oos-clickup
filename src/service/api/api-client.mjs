@@ -35,6 +35,8 @@ apiClient.interceptors.request.use(function (request) {
   const params = new URLSearchParams(window.location.search) || ''
 
   request.params.workspace_id = params.get('workspace_id')
+  request.params.page = params.get('page')
+  request.params.param_id = params.get('param_id')
 
   return request
 })
