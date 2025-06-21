@@ -1,3 +1,5 @@
+'use client'
+
 const { apiClient } = require('../api/api-client.mjs')
 
 const notificationService = {
