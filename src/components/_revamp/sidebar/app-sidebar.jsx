@@ -14,8 +14,8 @@ import {
   SquareTerminal,
 } from 'lucide-react'
 
-import { NavMain } from '@/components/nav-main'
-import { NavProjects } from '@/components/nav-projects'
+import { NavMain } from './nav-main'
+import { NavProjects } from './nav-projects'
 // import { NavUser } from '@/components/nav-user'
 // import { TeamSwitcher } from '@/components/team-switcher'
 import {
@@ -24,7 +24,9 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar'
+import { Team } from './team'
 
 // This is sample data.
 const data = {
@@ -152,9 +154,19 @@ const data = {
 }
 
 export function AppSidebar({ ...props }) {
+  const { open } = useSidebar()
+
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader></SidebarHeader>
+      <SidebarHeader>
+        <div className="flex w-full justify-center border bg-white rounded-md py-1 shadow">
+          <img
+            src={open ? '/officeless_brand.png' : '/officeless_logo.png'}
+            alt="officeless-logo"
+            className="w-[80%] h-full object-contain"
+          />
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
