@@ -50,6 +50,7 @@ export function TaskCreateModal({
   const [folder, setFolder] = useState(null);
   const [product, setProduct] = useState(null);
   const [team, setTeam] = useState(null);
+  const [customFields, setCustomFields] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
     from: null,
@@ -366,6 +367,7 @@ export function TaskCreateModal({
                   )}
                 />
               </div>
+
               <div className="flex-1">
                 <label className="block text-sm font-medium">Task Type</label>
                 <Controller
@@ -375,12 +377,34 @@ export function TaskCreateModal({
                     <div>
                       <SingleSelectTag
                         value={field.value}
-                        onChange={(value) => {
-                          field.onChange({
+                        onChange={async (value) => {
+                          const selectedTaskType = {
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          });
+                          };
+                          field.onChange(selectedTaskType);
+
+                          // Fetch custom fields based on task type
+                          try {
+                            const response = await fetch(
+                              `${baseUrl}/task/custom-fields?task_type_id=${selectedTaskType.id}`
+                            );
+                            if (!response.ok) {
+                              throw new Error("Failed to fetch custom fields.");
+                            }
+                            const data = await response.json();
+                            console.log(
+                              "Custom fields fetched successfully:",
+                              data
+                            );
+                            setCustomFields(data.data || []);
+                          } catch (error) {
+                            console.error(
+                              "Error fetching custom fields:",
+                              error
+                            );
+                          }
                         }}
                         options={indexTaskType}
                         placeholder="Select task type"
