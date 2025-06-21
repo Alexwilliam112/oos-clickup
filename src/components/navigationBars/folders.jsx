@@ -52,11 +52,22 @@ export function Folders({
                 >
                   <Avatar className="h-7 w-7 bg-blue-500 text-white">
                     <AvatarFallback className="bg-purple-700 text-xs">
-                      {/* {team.name ? team.name.charAt(0).toUpperCase() : "?"} */}
                       {team.name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span>{team.name || "Unnamed Team"}</span>
+                </a>
+              </div>
+              {/* Default List */}
+              <div className="ml-4 mt-2 flex items-center gap-2">
+                <Inbox className="h-4 w-4 text-muted-foreground" />
+                <a
+                  href="#"
+                  className="text-sm truncate line-clamp-1 font-medium"
+                  title="Default List"
+                  onClick={() => navigateTo("default_list", team.id_team)} // Navigate to default list
+                >
+                  Team List
                 </a>
               </div>
               <CollapsibleContent>
