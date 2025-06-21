@@ -21,6 +21,7 @@ export default function CustomFields({
   // Renderer for each field type
   const renderField = (field) => {
     const { field_type, field_name, id_field, options, is_mandatory } = field;
+    const fieldName = `customFields.${field_name}`;
 
     switch (field_type) {
       case "text":
@@ -30,21 +31,23 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div>
                   <input
                     type="text"
                     className={`w-full border rounded-md px-3 py-2 ${
-                      errors[id_field] ? "border-red-500" : "border-gray-300"
+                      errors.customFields?.[field_name]
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
                     {...field}
                   />
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -60,20 +63,22 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div>
                   <textarea
                     className={`w-full border rounded-md px-3 py-2 ${
-                      errors[id_field] ? "border-red-500" : "border-gray-300"
+                      errors.customFields?.[field_name]
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
                     {...field}
                   />
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -89,14 +94,16 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div>
                   <input
                     type="number"
                     className={`w-full border rounded-md px-3 py-2 ${
-                      errors[id_field] ? "border-red-500" : "border-gray-300"
+                      errors.customFields?.[field_name]
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
                     value={field.value || ""}
@@ -106,9 +113,9 @@ export default function CustomFields({
                       )
                     }
                   />
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -124,7 +131,7 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div>
@@ -140,12 +147,14 @@ export default function CustomFields({
                     }))}
                     placeholder={`Select ${field_name.toLowerCase()}`}
                     className={
-                      errors[id_field] ? "border-red-500" : "border-gray-300"
+                      errors.customFields?.[field_name]
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }
                   />
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -161,7 +170,7 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div>
@@ -175,12 +184,14 @@ export default function CustomFields({
                     }))}
                     placeholder={`Add ${field_name.toLowerCase()}`}
                     className={
-                      errors[id_field] ? "border-red-500" : "border-gray-300"
+                      errors.customFields?.[field_name]
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }
                   />
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -196,7 +207,7 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div className="space-y-2">
@@ -215,7 +226,9 @@ export default function CustomFields({
                           field.onChange(updatedValues);
                         }}
                         className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                          errors[id_field] ? "border-red-500" : ""
+                          errors.customFields?.[field_name]
+                            ? "border-red-500"
+                            : ""
                         }`}
                       />
                       <label
@@ -226,9 +239,9 @@ export default function CustomFields({
                       </label>
                     </div>
                   ))}
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
@@ -244,7 +257,7 @@ export default function CustomFields({
               {field_name}
             </label>
             <Controller
-              name={id_field}
+              name={fieldName}
               control={control}
               render={({ field }) => (
                 <div className="space-y-2">
@@ -257,7 +270,9 @@ export default function CustomFields({
                         checked={field.value === opt.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         className={`h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                          errors[id_field] ? "border-red-500" : ""
+                          errors.customFields?.[field_name]
+                            ? "border-red-500"
+                            : ""
                         }`}
                       />
                       <label
@@ -268,9 +283,9 @@ export default function CustomFields({
                       </label>
                     </div>
                   ))}
-                  {errors[id_field] && (
+                  {errors.customFields?.[field_name] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors[id_field].message}
+                      {errors.customFields[field_name].message}
                     </p>
                   )}
                 </div>
