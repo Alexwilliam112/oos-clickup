@@ -25,43 +25,41 @@ export default function RootLayout({ children }) {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const userId = useUserStore((state) => state.user_id)
-  console.log(userId, "::::");
   const setUserId = useUserStore((state) => state.setUserId)
-  console.log(setUserId, "MMM");
   const [isReady, setIsReady] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
   useEffect(() => {
-    const checkUser = async () => {
-      if (userId) {
-        // Hapus token dari URL
-        const url = new URL(window.location.href)
-        url.searchParams.delete('token')
-        window.history.replaceState({}, '', url.toString())
-        setIsReady(true)
-        return
-      }
-      try {
-        const res = await authService.getUser({ token })
-      console.log(res, "USERID");
-        if (!res || !res.user_id) {
-          throw new Error('Invalid token')
-        }
-        setUserId(res.user_id);
-        if (!token) {
+    if (userId) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token')
+      window.history.replaceState({}, '', url.toString())
+      setIsReady(true)
+      return
+    } else {
+      const checkUser = async () => {
+        try {
+          if (!token && !userId) {
+            setIsUnauthorized(true)
+            return
+          }
+          const res = await authService.getUser({ token })
+          if (!res || !res.user_id) {
+            throw new Error('Invalid token')
+          }
+          setUserId(res.user_id);
+          const url = new URL(window.location.href)
+          url.searchParams.delete('token')
+          window.history.replaceState({}, '', url.toString())
+          setIsReady(true)
+        } catch (err) {
+          console.error('Unauthorized:', err)
           setIsUnauthorized(true)
-          return
+          setIsReady(true);
         }
-        const url = new URL(window.location.href)
-        url.searchParams.delete('token')
-        window.history.replaceState({}, '', url.toString())
-        setIsReady(true)
-      } catch (err) {
-        console.error('Unauthorized:', err)
-        setIsUnauthorized(true)
       }
-    }
 
-    checkUser()
+      checkUser()
+    }
   }, [token, userId])
 
   return (
@@ -72,19 +70,20 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QueryClient>
-          {!isReady ? 
+          {
+          !isReady && !isUnauthorized ? 
             <div className="flex flex-col items-center justify-center min-h-screen text-gray-600">
               <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mb-4"></div>
               <p className="text-sm">Loading, please wait...</p>
             </div>
             :
-            userId ?
+            userId ? 
             <SidebarProvider>
               <SidebarNav />
               <div className="w-full h-full">{children}</div>
             </SidebarProvider> 
-            : 
-            <UnauthorizedPage />
+            :
+            <UnauthorizedPage /> 
           }
         </QueryClient>
       </body>
