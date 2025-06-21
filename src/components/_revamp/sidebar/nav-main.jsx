@@ -17,12 +17,8 @@ import {
 } from '@/components/ui/sidebar'
 import { useQuery } from '@tanstack/react-query'
 import { workspaceService } from '@/service'
-import { useEffect } from 'react'
-import Link from 'next/link'
 import { Users } from 'lucide-react'
-import { Folder } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { ChevronDown } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FolderOpen } from 'lucide-react'
 import { Circle } from 'lucide-react'
 
