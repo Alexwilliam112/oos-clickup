@@ -347,32 +347,137 @@ export function TaskDetailModalV2({
 
     // Close modal    fetchTasks();
     onClose();
-  };
-
-  // Handle comment input changes
+  };  // Handle comment input changes
   const handleCommentChange = (e) => {
     const value = e.target.value;
-    setNewComment(value);
-
-    // Check for @ mentions
-    const atIndex = value.lastIndexOf("@");
-    if (atIndex !== -1 && atIndex === value.length - 1) {
-      setShowMemberList(true);
-      setMentionPosition(atIndex);
-    } else if (showMemberList && value[value.lastIndexOf("@") + 1] === " ") {
+    setNewComment(value);    // Extract all @mentions from the text and find matching members
+    // Improved regex to match @mentions more reliably
+    const mentions = value.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+    const taggedUserIds = [];
+    
+    // Also check for exact member name matches in the text
+    workspaceMembers.forEach(member => {
+      const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
+      if (memberMentionPattern.test(value) && !taggedUserIds.includes(member.id)) {
+        taggedUserIds.push(member.id);
+      }
+    });
+    
+    // Also process the regex matches
+    mentions.forEach(mention => {
+      const username = mention.slice(1).trim(); // Remove @ and trim whitespace
+      const member = workspaceMembers.find(m => 
+        m.name.toLowerCase() === username.toLowerCase()
+      );
+      if (member && !taggedUserIds.includes(member.id)) {
+        taggedUserIds.push(member.id);
+      }
+    });
+    
+    // Only update tagged users if they actually exist in the text
+    setTaggedUsers(taggedUserIds);// Check for active @ mentions (show dropdown)
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      
+      // Simple rule: only show dropdown if we're actively typing a mention
+      // (@ followed by word characters, no spaces, and cursor is right after the typing)
+      const isActiveMention = /^[\w]*$/.test(textAfterAt) && 
+                              cursorPos === lastAtIndex + 1 + textAfterAt.length;
+      
+      if (isActiveMention) {
+        setShowMemberList(true);
+        setMentionPosition(lastAtIndex);
+      } else {
+        setShowMemberList(false);
+      }
+    } else {
       setShowMemberList(false);
     }
+  };  // Handle member selection for tagging
+  const handleMemberSelect = (member) => {
+    const textarea = document.querySelector('textarea[placeholder*="comment"]');
+    if (!textarea) return;
+    
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = newComment.substring(0, cursorPos);
+    const textAfterCursor = newComment.substring(cursorPos);
+    
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex === -1) return;
+    
+    // Get the text after @ that we're replacing
+    const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+    const beforeMention = textBeforeCursor.substring(0, lastAtIndex);
+    
+    // Create new value with the mention
+    const newValue = `${beforeMention}@${member.name} ${textAfterCursor}`;
+    
+    // Calculate new cursor position (after @MemberName and the space)
+    const newCursorPos = beforeMention.length + member.name.length + 2; // +2 for @ and space
+    
+    // Update state
+    setNewComment(newValue);
+    setShowMemberList(false);    // Immediately update tagged users after selecting a member
+    const mentions = newValue.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+    const updatedTaggedUserIds = [];
+    
+    // Also check for exact member name matches in the text
+    workspaceMembers.forEach(member => {
+      const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
+      if (memberMentionPattern.test(newValue) && !updatedTaggedUserIds.includes(member.id)) {
+        updatedTaggedUserIds.push(member.id);
+      }
+    });
+    
+    // Also process the regex matches
+    mentions.forEach(mention => {
+      const username = mention.slice(1).trim(); // Remove @ and trim whitespace
+      const foundMember = workspaceMembers.find(m => 
+        m.name.toLowerCase() === username.toLowerCase()
+      );
+      if (foundMember && !updatedTaggedUserIds.includes(foundMember.id)) {
+        updatedTaggedUserIds.push(foundMember.id);
+      }
+    });
+    
+    setTaggedUsers(updatedTaggedUserIds);
+    
+    // Use requestAnimationFrame for better timing
+    requestAnimationFrame(() => {
+      // Make sure textarea is focused and cursor is positioned correctly
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      
+      // Trigger input event to ensure React state is synchronized  
+      const event = new Event('input', { bubbles: true });
+      textarea.dispatchEvent(event);
+    });
   };
 
-  // Handle member selection for tagging
-  const handleMemberSelect = (member) => {
-    const beforeMention = newComment.substring(0, mentionPosition);
-    const afterMention = newComment.substring(mentionPosition + 1);
-    const newValue = `${beforeMention}@${member.name} ${afterMention}`;
-
-    setNewComment(newValue);
-    setTaggedUsers([...taggedUsers, member.id]);
-    setShowMemberList(false);
+  // Filter members based on current search
+  const getFilteredMembers = () => {
+    if (!showMemberList) return [];
+    
+    const textarea = document.querySelector('textarea');
+    if (!textarea) return workspaceMembers;
+    
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = newComment.substring(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    
+    if (lastAtIndex === -1) return workspaceMembers;
+    
+    const searchTerm = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
+    
+    if (searchTerm === "") return workspaceMembers;
+    
+    return workspaceMembers.filter(member =>
+      member.name.toLowerCase().includes(searchTerm)
+    );
   };
 
   const handleCommentSubmit = async () => {
@@ -963,9 +1068,7 @@ export function TaskDetailModalV2({
                       placeholder="Write a comment... Use @ to mention teammates"
                       className="w-full p-3 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                       rows="3"
-                    />
-
-                    {/* Member Mention Dropdown */}
+                    />                    {/* Member Mention Dropdown */}
                     {showMemberList && (
                       <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-auto z-50 mb-2">
                         <div className="p-2 border-b border-gray-100">
@@ -973,30 +1076,36 @@ export function TaskDetailModalV2({
                             Mention Teammate
                           </span>
                         </div>
-                        {workspaceMembers.map((member) => (
-                          <div
-                            key={member.id}
-                            onClick={() => handleMemberSelect(member)}
-                            className="p-3 hover:bg-blue-50 cursor-pointer flex items-center space-x-3 transition-colors"
-                          >
+                        {getFilteredMembers().length > 0 ? (
+                          getFilteredMembers().map((member) => (
                             <div
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm"
-                              style={{
-                                backgroundColor: member.color || "#6366f1",
-                              }}
+                              key={member.id}
+                              onClick={() => handleMemberSelect(member)}
+                              className="p-3 hover:bg-blue-50 cursor-pointer flex items-center space-x-3 transition-colors"
                             >
-                              {member.name.charAt(0).toUpperCase()}
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm"
+                                style={{
+                                  backgroundColor: member.color || "#6366f1",
+                                }}
+                              >
+                                {member.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm font-medium text-gray-900 block truncate">
+                                  {member.name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  @{member.name.toLowerCase().replace(/\s+/g, "")}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium text-gray-900 block truncate">
-                                {member.name}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                @{member.name.toLowerCase().replace(/\s+/g, "")}
-                              </span>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 text-center text-gray-500 text-sm">
+                            No members found
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                   </div>
@@ -1024,12 +1133,10 @@ export function TaskDetailModalV2({
                     </svg>
                     <span>Post</span>
                   </button>
-                </div>
-
-                {/* Tagged Users Preview */}
+                </div>                {/* Tagged Users Preview */}
                 {taggedUsers.length > 0 && (
-                  <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center space-x-2">
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
                       <svg
                         className="w-4 h-4 text-blue-500"
                         fill="none"
@@ -1044,9 +1151,68 @@ export function TaskDetailModalV2({
                         />
                       </svg>
                       <span className="text-xs font-medium text-blue-700">
-                        Mentioning:{" "}
-                        {taggedUsers.map((id) => getUserName(id)).join(", ")}
+                        Mentioning:
                       </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {taggedUsers.map((userId, index) => {
+                        const member = workspaceMembers.find(m => m.id === userId);
+                        if (!member) return null;
+                        
+                        return (
+                          <div
+                            key={index}
+                            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                          >
+                            <div
+                              className="w-4 h-4 rounded-full flex items-center justify-center text-white text-xs mr-2"
+                              style={{
+                                backgroundColor: member.color || "#6366f1",
+                              }}
+                            >
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>@{member.name}</span>                            <button
+                              type="button"
+                              onClick={() => {
+                                // Remove this user from mentions in the text
+                                const mentionText = `@${member.name}`;
+                                const updatedComment = newComment.replace(new RegExp(mentionText + '(?:\\s|$)', 'g'), '');
+                                const trimmedComment = updatedComment.trim();
+                                setNewComment(trimmedComment);                                // Re-parse mentions after removal to update tagged users
+                                const mentions = trimmedComment.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+                                const updatedTaggedUserIds = [];
+                                
+                                // Also check for exact member name matches in the text
+                                workspaceMembers.forEach(member => {
+                                  const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
+                                  if (memberMentionPattern.test(trimmedComment) && !updatedTaggedUserIds.includes(member.id)) {
+                                    updatedTaggedUserIds.push(member.id);
+                                  }
+                                });
+                                
+                                // Also process the regex matches
+                                mentions.forEach(mention => {
+                                  const username = mention.slice(1).trim();
+                                  const foundMember = workspaceMembers.find(m => 
+                                    m.name.toLowerCase() === username.toLowerCase()
+                                  );
+                                  if (foundMember && !updatedTaggedUserIds.includes(foundMember.id)) {
+                                    updatedTaggedUserIds.push(foundMember.id);
+                                  }
+                                });
+                                
+                                setTaggedUsers(updatedTaggedUserIds);
+                              }}
+                              className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
