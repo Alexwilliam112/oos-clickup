@@ -168,7 +168,7 @@ export function AppSidebar({ ...props }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>{/* <NavUser user={data.user} /> */}</SidebarFooter>

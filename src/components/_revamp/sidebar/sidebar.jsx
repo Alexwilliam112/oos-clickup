@@ -1,3 +1,5 @@
+'use client'
+
 import { AppSidebar } from './app-sidebar'
 import {
   Breadcrumb,

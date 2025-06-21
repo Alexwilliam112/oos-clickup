@@ -24,8 +24,24 @@ const apiClientV2 = axios.create({
   },
 })
 
+apiClient.interceptors.request.use(function (request) {
+  console.log('Request', request.params)
+
+  if (typeof window === 'undefined') {
+    return request
+  }
+
+  const params = new URLSearchParams(window.location.search) || ''
+
+  request.params.workspace_id = params.get('workspace_id')
+
+  return request
+})
+
 apiClientV2.interceptors.response.use(function (response) {
   const { data, error, message } = response.data
+
+  console.log('Response', response.data)
 
   if (error) return Promise.reject(message)
 
