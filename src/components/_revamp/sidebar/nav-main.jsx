@@ -21,11 +21,15 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
 import { Folder } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
+import { FolderOpen } from 'lucide-react'
+import { Circle } from 'lucide-react'
 
 export function NavMain() {
   const router = useRouter()
+  const params = useSearchParams()
+
   const { setOpen, setOpenMobile } = useSidebar()
 
   const {
@@ -56,7 +60,6 @@ export function NavMain() {
   })
 
   const navigateTo = (page, param_id) => {
-    const params = new URLSearchParams(window.location.search)
     const workspace_id = params.get('workspace_id')
 
     if (workspace_id) {
@@ -84,30 +87,49 @@ export function NavMain() {
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={team.name}>
                   <Users />
-                  <span onClick={() => navigateTo('team', team.id_team)}>{team.name}</span>
+                  <span
+                    onClick={() => navigateTo('team', team.id_team)}
+                    className="hover:text-blue-500 hover:cursor-pointer"
+                  >
+                    {team.name}
+                  </span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {foldersData
-                    ?.filter((f) => f.team_id === team.id_team)
-                    .map((subItem) => (
-                      <Collapsible className="group/subcollapsible" key={subItem.name}>
+                    ?.filter((folder) => folder.team_id === team.id_team)
+                    .map((folder) => (
+                      <Collapsible className="group/subcollapsible" key={folder.name}>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuSubButton>
-                            <span>{subItem.name}</span>
-                            <ChevronDown className="ml-auto transition-transform group-data-[state=open]/subcollapsible:rotate-180" />
+                            <FolderOpen />
+                            <span
+                              onClick={() => navigateTo('folder', folder.id_folder)}
+                              className="hover:text-blue-500 hover:cursor-pointer"
+                            >
+                              {folder.name}
+                            </span>
+                            <ChevronRight className="ml-auto transition-transform group-data-[state=open]/subcollapsible:rotate-90" />
                           </SidebarMenuSubButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub>
                             {listData
-                              ?.filter((list) => list.folder_id === subItem.id_folder)
-                              .map((grandChild) => (
-                                <SidebarMenuSubItem key={grandChild.name}>
+                              ?.filter((list) => list.folder_id === folder.id_folder)
+                              .map((list) => (
+                                <SidebarMenuSubItem key={list.name}>
                                   <SidebarMenuSubButton asChild>
-                                    <span>{grandChild.name}</span>
+                                    <span>
+                                      <Circle />{' '}
+                                      <span
+                                        onClick={() => navigateTo('list', list.id_list)}
+                                        className="hover:text-blue-500 hover:cursor-pointer"
+                                      >
+                                        {list.name}
+                                      </span>
+                                    </span>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               ))}

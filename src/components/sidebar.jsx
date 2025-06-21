@@ -1,4 +1,5 @@
 'use client'
+
 import * as React from 'react'
 import { Inbox, Megaphone, Plus } from 'lucide-react'
 import { Folders } from '@/components/navigationBars/folders'
@@ -17,8 +18,10 @@ import {
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/modals/general.jsx'
 import { ErrorModal } from '@/components/utils/errorModal'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export function SidebarNav() {
+  const params = useSearchParams()
   const [searchQuery, setSearchQuery] = React.useState('')
   const [teams, setTeams] = React.useState([])
   const [folders, setFolders] = React.useState([])
@@ -38,7 +41,6 @@ export function SidebarNav() {
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
   const fetchTeams = React.useCallback(() => {
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (workspaceId) {
@@ -74,7 +76,6 @@ export function SidebarNav() {
       return
     }
 
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (!workspaceId) {
@@ -112,7 +113,6 @@ export function SidebarNav() {
   }
 
   const fetchFolders = React.useCallback(() => {
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (workspaceId) {
@@ -143,7 +143,6 @@ export function SidebarNav() {
   }, [])
 
   const fetchLists = React.useCallback(() => {
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (workspaceId) {
@@ -179,7 +178,6 @@ export function SidebarNav() {
       return
     }
 
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (!workspaceId) {
@@ -223,7 +221,6 @@ export function SidebarNav() {
       return
     }
 
-    const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
 
     if (!workspaceId) {
