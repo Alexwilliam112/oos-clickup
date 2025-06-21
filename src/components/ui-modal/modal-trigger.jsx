@@ -68,12 +68,13 @@ export function DetailModalTrigger({
   task,
   fetchTasks,
   selectData,
+  initialValues,
   isOpen,
   setIsOpen,
 }) {
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
-  
+
   return (
     <>
       {trigger ? (
@@ -86,8 +87,7 @@ export function DetailModalTrigger({
         <Button variant={buttonVariant} onClick={handleOpen}>
           {buttonText}
         </Button>
-      )}
-
+      )}{" "}
       <TaskDetailModalV2
         fetchTasks={fetchTasks}
         isOpen={isOpen}
@@ -97,6 +97,7 @@ export function DetailModalTrigger({
         showSidebar={showSidebar}
         sidebarContent={sidebarContent}
         selectData={selectData}
+        initialValues={initialValues}
         task={task}
       >
         {children}

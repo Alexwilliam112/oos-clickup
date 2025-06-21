@@ -13,9 +13,15 @@ import {
   TableRow,
   TableHead,
 } from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export function ListView() {
   const [tasks, setTasks] = useState([]);
@@ -46,27 +52,27 @@ export function ListView() {
   const page = params.get("page");
   const paramId = params.get("param_id");
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.name.toLowerCase().includes(search.toLowerCase()) ||
-      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false);
+      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
+        false) ||
+      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
+        false);
 
-    const matchesStatus = statusFilter !== "all"
-      ? task.status_id?.id === statusFilter
-      : true;
+    const matchesStatus =
+      statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
 
-    const matchesAssignee = assigneeFilter !== "all"
-      ? task.assignee_ids?.some(a => a.id === assigneeFilter)
-      : true;
+    const matchesAssignee =
+      assigneeFilter !== "all"
+        ? task.assignee_ids?.some((a) => a.id === assigneeFilter)
+        : true;
 
-    const matchesPriority = priorityFilter !== "all"
-      ? task.priority_id?.id === priorityFilter
-      : true;
+    const matchesPriority =
+      priorityFilter !== "all" ? task.priority_id?.id === priorityFilter : true;
 
-    const matchesTeam = teamFilter !== "all"
-      ? task.team_id?.id === teamFilter
-      : true;
+    const matchesTeam =
+      teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
 
     return (
       matchesSearch &&
@@ -288,7 +294,7 @@ export function ListView() {
     }
   }, [workspaceId]);
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
@@ -319,6 +325,7 @@ export function ListView() {
       </React.Fragment>
     ));
 
+  console.log(tasks);
   return (
     <>
       <div className="min-w-[50px] p-2 flex justify-left">
@@ -363,7 +370,7 @@ export function ListView() {
           type="text"
           placeholder="Search tasks..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="grow-1 h-10"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -372,7 +379,7 @@ export function ListView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            {indexStatus.map(status => (
+            {indexStatus.map((status) => (
               <SelectItem key={status.id_record} value={status.id_record}>
                 {status.name}
               </SelectItem>
@@ -385,7 +392,7 @@ export function ListView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Assignees</SelectItem>
-            {indexMember.map(member => (
+            {indexMember.map((member) => (
               <SelectItem key={member.id} value={member.id}>
                 {member.name}
               </SelectItem>
@@ -398,7 +405,7 @@ export function ListView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
-            {indexPriority.map(priority => (
+            {indexPriority.map((priority) => (
               <SelectItem key={priority.id_record} value={priority.id_record}>
                 {priority.name}
               </SelectItem>
@@ -411,7 +418,7 @@ export function ListView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Teams</SelectItem>
-            {indexTeam.map(team => (
+            {indexTeam.map((team) => (
               <SelectItem key={team.id_record} value={team.id_record}>
                 {team.name}
               </SelectItem>
@@ -435,17 +442,39 @@ export function ListView() {
                 >
                   Task Name
                 </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Created</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Task Type</TableHead>
-                <TableHead className="p-2 min-w-[150px] bg-muted">Assignee</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Start Date</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Due Date</TableHead>
-                <TableHead className="p-2 min-w-[100px] bg-muted">Priority</TableHead>
-                <TableHead className="p-2 min-w-[130px] bg-muted">Status</TableHead>
-                <TableHead className="p-2 min-w-[160px] bg-muted">Lists</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Product</TableHead>
-                <TableHead className="p-2 min-w-[190px] bg-muted">Team</TableHead>
-                <TableHead className="p-2 min-w-[100px] text-right bg-muted">Actions</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">
+                  Created
+                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">
+                  Task Type
+                </TableHead>
+                <TableHead className="p-2 min-w-[150px] bg-muted">
+                  Assignee
+                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">
+                  Start Date
+                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">
+                  Due Date
+                </TableHead>
+                <TableHead className="p-2 min-w-[100px] bg-muted">
+                  Priority
+                </TableHead>
+                <TableHead className="p-2 min-w-[130px] bg-muted">
+                  Status
+                </TableHead>
+                <TableHead className="p-2 min-w-[160px] bg-muted">
+                  Lists
+                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">
+                  Product
+                </TableHead>
+                <TableHead className="p-2 min-w-[190px] bg-muted">
+                  Team
+                </TableHead>
+                <TableHead className="p-2 min-w-[100px] text-right bg-muted">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

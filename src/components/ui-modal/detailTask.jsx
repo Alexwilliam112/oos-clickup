@@ -1,16 +1,115 @@
 "use client";
 import { useEffect, useState, lazy, Suspense, useRef, use } from "react";
-import { X } from "lucide-react";
+import { X, Plus, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
 import DynamicFileAttachments from "../ui/dynamicAttachments";
+import { TaskCreateModal } from "./createTask";
 const EditorJS = lazy(() => import("@editorjs/editorjs"));
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+
+// Simple Sub-task Item Component
+const SubTaskItem = ({ subTask, onSubTaskClick, level = 0 }) => {
+  const getStatusColor = (status) => {
+    if (!status || !status.color) return "#6B7280";
+    return status.color;
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "";
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  return (
+    <div
+      className={`${level > 0 ? "ml-4 border-l-2 border-gray-200 pl-3" : ""}`}
+    >
+      <div
+        onClick={() => onSubTaskClick(subTask)}
+        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-all duration-200 group"
+      >
+        {/* Status indicator */}
+        <div
+          className="w-3 h-3 rounded-full border-2 border-white shadow-sm flex-shrink-0"
+          style={{ backgroundColor: getStatusColor(subTask.status_id) }}
+        />
+
+        {/* Task content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-gray-900 truncate block group-hover:text-blue-600 transition-colors">
+                {subTask.name}
+              </span>
+              {/* Metadata */}
+              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                {subTask.assignee_ids && (
+                  <span className="inline-flex items-center">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mr-1">
+                      <span className="text-white text-xs font-medium">
+                        {subTask.assignee_ids.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                    {subTask.assignee_ids.name}
+                  </span>
+                )}
+                {subTask.date_end && (
+                  <>
+                    {subTask.assignee_ids && <span>•</span>}
+                    <span className="inline-flex items-center">
+                      <svg
+                        className="w-3 h-3 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      {formatDate(subTask.date_end)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Arrow icon */}
+            <ChevronRight
+              size={16}
+              className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Render nested sub-tasks recursively */}
+      {subTask.children && subTask.children.length > 0 && (
+        <div className="mt-1 space-y-1">
+          {subTask.children.map((childTask) => (
+            <SubTaskItem
+              key={childTask.id_task}
+              subTask={childTask}
+              onSubTaskClick={onSubTaskClick}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export function TaskDetailModalV2({
   isOpen,
@@ -24,6 +123,7 @@ export function TaskDetailModalV2({
   selectData,
   fetchTasks,
   task,
+  initialValues,
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
@@ -56,7 +156,6 @@ export function TaskDetailModalV2({
     to: null,
   });
   const [description, setDescription] = useState("");
-
   // Comment section state
   const [comments, setComments] = useState([]);
   const [workspaceMembers, setWorkspaceMembers] = useState([]);
@@ -64,6 +163,13 @@ export function TaskDetailModalV2({
   const [taggedUsers, setTaggedUsers] = useState([]);
   const [showMemberList, setShowMemberList] = useState(false);
   const [mentionPosition, setMentionPosition] = useState(0);
+
+  // Sub-tasks state
+  const [subTasks, setSubTasks] = useState([]);
+  const [selectedSubTask, setSelectedSubTask] = useState(null);
+  const [isSubTaskModalOpen, setIsSubTaskModalOpen] = useState(false);
+  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] =
+    useState(false);
 
   const {
     control,
@@ -97,6 +203,8 @@ export function TaskDetailModalV2({
       setValue("status", task.status_id || null);
       setDescription(task.description || "");
       setAttachments(task.attachments || []);
+      // Set sub-tasks from task.children
+      setSubTasks(task.children || []);
     }
   }, [task]);
 
@@ -137,9 +245,9 @@ export function TaskDetailModalV2({
     }
   };
 
-  // Fetch comments when task is loaded
   useEffect(() => {
     if (task && isOpen) {
+      console.log(task);
       fetchComments();
       fetchWorkspaceMembers();
     }
@@ -347,47 +455,58 @@ export function TaskDetailModalV2({
 
     // Close modal    fetchTasks();
     onClose();
-  };  // Handle comment input changes
+  };
+
   const handleCommentChange = (e) => {
     const value = e.target.value;
-    setNewComment(value);    // Extract all @mentions from the text and find matching members
+    setNewComment(value); // Extract all @mentions from the text and find matching members
     // Improved regex to match @mentions more reliably
     const mentions = value.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
     const taggedUserIds = [];
-    
+
     // Also check for exact member name matches in the text
-    workspaceMembers.forEach(member => {
-      const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
-      if (memberMentionPattern.test(value) && !taggedUserIds.includes(member.id)) {
+    workspaceMembers.forEach((member) => {
+      const memberMentionPattern = new RegExp(
+        `@${member.name.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&"
+        )}(?=\\s|$|[^\\w\\s])`,
+        "gi"
+      );
+      if (
+        memberMentionPattern.test(value) &&
+        !taggedUserIds.includes(member.id)
+      ) {
         taggedUserIds.push(member.id);
       }
     });
-    
+
     // Also process the regex matches
-    mentions.forEach(mention => {
+    mentions.forEach((mention) => {
       const username = mention.slice(1).trim(); // Remove @ and trim whitespace
-      const member = workspaceMembers.find(m => 
-        m.name.toLowerCase() === username.toLowerCase()
+      const member = workspaceMembers.find(
+        (m) => m.name.toLowerCase() === username.toLowerCase()
       );
       if (member && !taggedUserIds.includes(member.id)) {
         taggedUserIds.push(member.id);
       }
     });
-    
+
     // Only update tagged users if they actually exist in the text
-    setTaggedUsers(taggedUserIds);// Check for active @ mentions (show dropdown)
+    setTaggedUsers(taggedUserIds); // Check for active @ mentions (show dropdown)
     const cursorPos = e.target.selectionStart;
     const textBeforeCursor = value.substring(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
-    
+
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      
+
       // Simple rule: only show dropdown if we're actively typing a mention
       // (@ followed by word characters, no spaces, and cursor is right after the typing)
-      const isActiveMention = /^[\w]*$/.test(textAfterAt) && 
-                              cursorPos === lastAtIndex + 1 + textAfterAt.length;
-      
+      const isActiveMention =
+        /^[\w]*$/.test(textAfterAt) &&
+        cursorPos === lastAtIndex + 1 + textAfterAt.length;
+
       if (isActiveMention) {
         setShowMemberList(true);
         setMentionPosition(lastAtIndex);
@@ -397,63 +516,73 @@ export function TaskDetailModalV2({
     } else {
       setShowMemberList(false);
     }
-  };  // Handle member selection for tagging
+  };
+
   const handleMemberSelect = (member) => {
     const textarea = document.querySelector('textarea[placeholder*="comment"]');
     if (!textarea) return;
-    
+
     const cursorPos = textarea.selectionStart;
     const textBeforeCursor = newComment.substring(0, cursorPos);
     const textAfterCursor = newComment.substring(cursorPos);
-    
+
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
     if (lastAtIndex === -1) return;
-    
+
     // Get the text after @ that we're replacing
     const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
     const beforeMention = textBeforeCursor.substring(0, lastAtIndex);
-    
+
     // Create new value with the mention
     const newValue = `${beforeMention}@${member.name} ${textAfterCursor}`;
-    
+
     // Calculate new cursor position (after @MemberName and the space)
     const newCursorPos = beforeMention.length + member.name.length + 2; // +2 for @ and space
-    
+
     // Update state
     setNewComment(newValue);
-    setShowMemberList(false);    // Immediately update tagged users after selecting a member
+    setShowMemberList(false); // Immediately update tagged users after selecting a member
     const mentions = newValue.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
     const updatedTaggedUserIds = [];
-    
+
     // Also check for exact member name matches in the text
-    workspaceMembers.forEach(member => {
-      const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
-      if (memberMentionPattern.test(newValue) && !updatedTaggedUserIds.includes(member.id)) {
+    workspaceMembers.forEach((member) => {
+      const memberMentionPattern = new RegExp(
+        `@${member.name.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&"
+        )}(?=\\s|$|[^\\w\\s])`,
+        "gi"
+      );
+      if (
+        memberMentionPattern.test(newValue) &&
+        !updatedTaggedUserIds.includes(member.id)
+      ) {
         updatedTaggedUserIds.push(member.id);
       }
     });
-    
+
     // Also process the regex matches
-    mentions.forEach(mention => {
+    mentions.forEach((mention) => {
       const username = mention.slice(1).trim(); // Remove @ and trim whitespace
-      const foundMember = workspaceMembers.find(m => 
-        m.name.toLowerCase() === username.toLowerCase()
+      const foundMember = workspaceMembers.find(
+        (m) => m.name.toLowerCase() === username.toLowerCase()
       );
       if (foundMember && !updatedTaggedUserIds.includes(foundMember.id)) {
         updatedTaggedUserIds.push(foundMember.id);
       }
     });
-    
+
     setTaggedUsers(updatedTaggedUserIds);
-    
+
     // Use requestAnimationFrame for better timing
     requestAnimationFrame(() => {
       // Make sure textarea is focused and cursor is positioned correctly
       textarea.focus();
       textarea.setSelectionRange(newCursorPos, newCursorPos);
-      
-      // Trigger input event to ensure React state is synchronized  
-      const event = new Event('input', { bubbles: true });
+
+      // Trigger input event to ensure React state is synchronized
+      const event = new Event("input", { bubbles: true });
       textarea.dispatchEvent(event);
     });
   };
@@ -461,21 +590,23 @@ export function TaskDetailModalV2({
   // Filter members based on current search
   const getFilteredMembers = () => {
     if (!showMemberList) return [];
-    
-    const textarea = document.querySelector('textarea');
+
+    const textarea = document.querySelector("textarea");
     if (!textarea) return workspaceMembers;
-    
+
     const cursorPos = textarea.selectionStart;
     const textBeforeCursor = newComment.substring(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
-    
+
     if (lastAtIndex === -1) return workspaceMembers;
-    
-    const searchTerm = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
-    
+
+    const searchTerm = textBeforeCursor
+      .substring(lastAtIndex + 1)
+      .toLowerCase();
+
     if (searchTerm === "") return workspaceMembers;
-    
-    return workspaceMembers.filter(member =>
+
+    return workspaceMembers.filter((member) =>
       member.name.toLowerCase().includes(searchTerm)
     );
   };
@@ -515,6 +646,23 @@ export function TaskDetailModalV2({
 
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp).toLocaleString();
+  };
+  // Sub-task handlers
+  const handleSubTaskClick = (subTask) => {
+    setSelectedSubTask(subTask);
+    setIsSubTaskModalOpen(true);
+  };
+
+  const handleCreateSubTask = () => {
+    setIsCreateSubTaskModalOpen(true);
+  };
+
+  const handleSubTaskCreated = () => {
+    // Refresh the task data to get updated sub-tasks
+    if (fetchTasks) {
+      fetchTasks();
+    }
+    setIsCreateSubTaskModalOpen(false);
   };
 
   const getUserName = (userId) => {
@@ -556,27 +704,111 @@ export function TaskDetailModalV2({
           >
             <X size={18} />
           </button>
-        </div>
-
+        </div>{" "}
         {/* Modal Content */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-row flex-1 overflow-hidden relative"
+          className="flex flex-col lg:flex-row flex-1 overflow-hidden relative"
         >
+          {" "}
           {/* Sidebar */}
           {showSidebar && (
-            <div className=" flex-1 overflow-auto p-4 space-y-4 mb-10">
-              <div className="w-1 bg-gray-100 cursor-col-resize" />
-              <div
-                className="overflow-auto border-l"
-                style={{ width: sidebarWidth }}
-              >
-                <div className="p-4">
-                  <h3 className="text-lg font-medium mb-4">Sub-Tasks</h3>
-                  {sidebarContent || (
-                    <div className="text-gray-500">List of sub tasks</div>
-                  )}
+            <div className="flex-1 lg:max-w-sm xl:max-w-md overflow-auto border-r border-gray-200 bg-gray-50">
+              <div className="p-3 md:p-4 border-b border-gray-200 bg-white">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg
+                        className="w-3 h-3 md:w-4 md:h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 00-2 2m-3 7h3m0 0h3m-3 0v3m0-3V9"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0">
+                      Sub-Tasks
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="inline-flex items-center px-2 md:px-3 py-1 md:py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      {subTasks.length} task{subTasks.length !== 1 ? "s" : ""}
+                    </span>
+                    <Button
+                      type="button"
+                      onClick={handleCreateSubTask}
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-md text-xs font-medium flex items-center gap-1 md:gap-1.5 shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <Plus size={12} className="md:hidden" />
+                      <Plus size={14} className="hidden md:block" />
+                      <span className="hidden md:inline">Add Sub-task</span>
+                      <span className="md:hidden">Add</span>
+                    </Button>
+                  </div>
                 </div>
+              </div>{" "}
+              <div className="p-3 md:p-4 space-y-2 md:space-y-3">
+                {subTasks.length === 0 ? (
+                  <div className="text-center py-6 md:py-8">
+                    <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-inner">
+                      <svg
+                        className="w-6 h-6 md:w-8 md:h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 00-2 2"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="text-gray-600 text-sm font-medium mb-2">
+                      No sub-tasks yet
+                    </h4>
+                    <p className="text-gray-400 text-xs mb-3 md:mb-4 px-2 md:px-4">
+                      Break down this task into smaller, manageable pieces
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={handleCreateSubTask}
+                      size="sm"
+                      variant="outline"
+                      className="border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all duration-200 text-xs md:text-sm px-3 py-1.5"
+                    >
+                      <Plus size={12} className="mr-1 md:hidden" />
+                      <Plus size={14} className="mr-1.5 hidden md:block" />
+                      <span className="hidden md:inline">
+                        Create First Sub-task
+                      </span>
+                      <span className="md:hidden">Create First</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1 md:space-y-2">
+                    {subTasks.map((subTask) => (
+                      <div
+                        key={subTask.id_task}
+                        className="bg-white rounded-md md:rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-sm"
+                      >
+                        <SubTaskItem
+                          subTask={subTask}
+                          onSubTaskClick={handleSubTaskClick}
+                          level={0}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1068,7 +1300,8 @@ export function TaskDetailModalV2({
                       placeholder="Write a comment... Use @ to mention teammates"
                       className="w-full p-3 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                       rows="3"
-                    />                    {/* Member Mention Dropdown */}
+                    />{" "}
+                    {/* Member Mention Dropdown */}
                     {showMemberList && (
                       <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-auto z-50 mb-2">
                         <div className="p-2 border-b border-gray-100">
@@ -1096,7 +1329,10 @@ export function TaskDetailModalV2({
                                   {member.name}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  @{member.name.toLowerCase().replace(/\s+/g, "")}
+                                  @
+                                  {member.name
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "")}
                                 </span>
                               </div>
                             </div>
@@ -1133,7 +1369,8 @@ export function TaskDetailModalV2({
                     </svg>
                     <span>Post</span>
                   </button>
-                </div>                {/* Tagged Users Preview */}
+                </div>{" "}
+                {/* Tagged Users Preview */}
                 {taggedUsers.length > 0 && (
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center space-x-2 mb-2">
@@ -1156,9 +1393,11 @@ export function TaskDetailModalV2({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {taggedUsers.map((userId, index) => {
-                        const member = workspaceMembers.find(m => m.id === userId);
+                        const member = workspaceMembers.find(
+                          (m) => m.id === userId
+                        );
                         if (!member) return null;
-                        
+
                         return (
                           <div
                             key={index}
@@ -1172,42 +1411,73 @@ export function TaskDetailModalV2({
                             >
                               {member.name.charAt(0).toUpperCase()}
                             </div>
-                            <span>@{member.name}</span>                            <button
+                            <span>@{member.name}</span>{" "}
+                            <button
                               type="button"
                               onClick={() => {
                                 // Remove this user from mentions in the text
                                 const mentionText = `@${member.name}`;
-                                const updatedComment = newComment.replace(new RegExp(mentionText + '(?:\\s|$)', 'g'), '');
+                                const updatedComment = newComment.replace(
+                                  new RegExp(mentionText + "(?:\\s|$)", "g"),
+                                  ""
+                                );
                                 const trimmedComment = updatedComment.trim();
-                                setNewComment(trimmedComment);                                // Re-parse mentions after removal to update tagged users
-                                const mentions = trimmedComment.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+                                setNewComment(trimmedComment); // Re-parse mentions after removal to update tagged users
+                                const mentions =
+                                  trimmedComment.match(
+                                    /@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g
+                                  ) || [];
                                 const updatedTaggedUserIds = [];
-                                
+
                                 // Also check for exact member name matches in the text
-                                workspaceMembers.forEach(member => {
-                                  const memberMentionPattern = new RegExp(`@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`, 'gi');
-                                  if (memberMentionPattern.test(trimmedComment) && !updatedTaggedUserIds.includes(member.id)) {
+                                workspaceMembers.forEach((member) => {
+                                  const memberMentionPattern = new RegExp(
+                                    `@${member.name.replace(
+                                      /[.*+?^${}()|[\]\\]/g,
+                                      "\\$&"
+                                    )}(?=\\s|$|[^\\w\\s])`,
+                                    "gi"
+                                  );
+                                  if (
+                                    memberMentionPattern.test(trimmedComment) &&
+                                    !updatedTaggedUserIds.includes(member.id)
+                                  ) {
                                     updatedTaggedUserIds.push(member.id);
                                   }
                                 });
-                                
+
                                 // Also process the regex matches
-                                mentions.forEach(mention => {
+                                mentions.forEach((mention) => {
                                   const username = mention.slice(1).trim();
-                                  const foundMember = workspaceMembers.find(m => 
-                                    m.name.toLowerCase() === username.toLowerCase()
+                                  const foundMember = workspaceMembers.find(
+                                    (m) =>
+                                      m.name.toLowerCase() ===
+                                      username.toLowerCase()
                                   );
-                                  if (foundMember && !updatedTaggedUserIds.includes(foundMember.id)) {
+                                  if (
+                                    foundMember &&
+                                    !updatedTaggedUserIds.includes(
+                                      foundMember.id
+                                    )
+                                  ) {
                                     updatedTaggedUserIds.push(foundMember.id);
                                   }
                                 });
-                                
+
                                 setTaggedUsers(updatedTaggedUserIds);
                               }}
                               className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
                             >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              <svg
+                                className="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </button>
                           </div>
@@ -1231,8 +1501,44 @@ export function TaskDetailModalV2({
             >
               SAVE
             </Button>
-          </div>
-        </form>
+          </div>{" "}
+        </form>{" "}
+        {/* Sub-task Detail Modal */}
+        {selectedSubTask && (
+          <TaskDetailModalV2
+            isOpen={isSubTaskModalOpen}
+            onClose={() => {
+              setIsSubTaskModalOpen(false);
+              setSelectedSubTask(null);
+            }}
+            title={`Sub-task: ${selectedSubTask.name}`}
+            subtitle={`Parent: ${task?.name}`}
+            task={selectedSubTask}
+            selectData={selectData}
+            initialValues={initialValues}
+            fetchTasks={fetchTasks}
+            parentTaskId={selectedSubTask.parent_task_id}
+            showSidebar={true}
+            width="calc(85vw - 36px)"
+            height="calc(85vh - 36px)"
+          />
+        )}
+        {/* Create Sub-task Modal */}
+        <TaskCreateModal
+          isOpen={isCreateSubTaskModalOpen}
+          onClose={() => setIsCreateSubTaskModalOpen(false)}
+          title="Create Sub-task"
+          subtitle={`Parent: ${task?.name}`}
+          parentTaskId={task?.id_task}
+          selectData={selectData}
+          initialValues={initialValues}
+          fetchTasks={() => {
+            handleSubTaskCreated();
+            if (fetchTasks) fetchTasks();
+          }}
+          width="calc(80vw - 36px)"
+          height="calc(80vh - 36px)"
+        />
       </div>
     </div>
   );

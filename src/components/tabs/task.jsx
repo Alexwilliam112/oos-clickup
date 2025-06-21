@@ -129,7 +129,7 @@ export default function Task({
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-          </button>
+          </button>{" "}
           <DetailModalTrigger
             trigger={
               <span className="text-blue-500 hover:underline">{task.name}</span>
@@ -139,6 +139,7 @@ export default function Task({
             showSidebar={true}
             task={task}
             selectData={selectData}
+            initialValues={initialValues}
             modalSubtitle={task.created_at}
             sidebarContent={<p>Sidebar content here</p>}
             isOpen={isOpenDetail}
