@@ -10,6 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import { useQuery } from '@tanstack/react-query'
 import { masterService } from '@/service/index.mjs'
@@ -68,7 +70,7 @@ export function NavMain() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {/* {item.items?.map((subItem) => (
+                  {foldersData?.filter(f => f.).map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild>
                         <a href={subItem.url}>
@@ -76,7 +78,7 @@ export function NavMain() {
                         </a>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
-                  ))} */}
+                  ))}
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>
