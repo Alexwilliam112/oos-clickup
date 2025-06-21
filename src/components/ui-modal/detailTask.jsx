@@ -57,6 +57,14 @@ export function TaskDetailModalV2({
   });
   const [description, setDescription] = useState("");
 
+  // Comment section state
+  const [comments, setComments] = useState([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [taggedUsers, setTaggedUsers] = useState([]);
+  const [showMemberList, setShowMemberList] = useState(false);
+  const [mentionPosition, setMentionPosition] = useState(0);
+
   const {
     control,
     handleSubmit,
@@ -72,7 +80,6 @@ export function TaskDetailModalV2({
       lists: [],
     },
   });
-
   useEffect(() => {
     if (task) {
       setValue("taskName", task.name || "");
@@ -92,6 +99,51 @@ export function TaskDetailModalV2({
       setAttachments(task.attachments || []);
     }
   }, [task]);
+
+  // Fetch comments for the task
+  const fetchComments = async () => {
+    if (!task) return;
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    try {
+      const response = await fetch(
+        `${baseUrl}/comment/index?task_id=${task.id_task}`
+      );
+      const data = await response.json();
+      if (!data.error) {
+        setComments(data.data.sort((a, b) => a.created_at - b.created_at));
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  };
+
+  // Fetch workspace members for tagging
+  const fetchWorkspaceMembers = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    try {
+      const response = await fetch(
+        `${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`
+      );
+      const data = await response.json();
+      if (!data.error) {
+        setWorkspaceMembers(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching workspace members:", error);
+    }
+  };
+
+  // Fetch comments when task is loaded
+  useEffect(() => {
+    if (task && isOpen) {
+      fetchComments();
+      fetchWorkspaceMembers();
+    }
+  }, [task, isOpen]);
 
   const editorRef = useRef(null);
   useEffect(() => {
@@ -231,23 +283,6 @@ export function TaskDetailModalV2({
       ? await editorRef.current.save()
       : {};
 
-    // const taskData = {
-    //   name: taskName,
-    //   task_type_id: taskType,
-    //   assignee_ids: assignee,
-    //   date_start: new Date(selectedRange.from).getTime(),
-    //   date_end: new Date(selectedRange.to).getTime(),
-    //   folder_id: folder,
-    //   priority_id: priority,
-    //   status_id: status,
-    //   list_ids: lists,
-    //   product_id: product,
-    //   team_id: team,
-    //   description: descriptionData,
-    //   attachments: attachments,
-    //   parent_task_id: parentTaskId,
-    // };
-
     const taskData = {
       name: values.taskName,
       task_type_id: values.taskType,
@@ -310,10 +345,76 @@ export function TaskDetailModalV2({
         console.error("Error creating task:", error);
       });
 
-    // Close modal
-
-    fetchTasks();
+    // Close modal    fetchTasks();
     onClose();
+  };
+
+  // Handle comment input changes
+  const handleCommentChange = (e) => {
+    const value = e.target.value;
+    setNewComment(value);
+
+    // Check for @ mentions
+    const atIndex = value.lastIndexOf("@");
+    if (atIndex !== -1 && atIndex === value.length - 1) {
+      setShowMemberList(true);
+      setMentionPosition(atIndex);
+    } else if (showMemberList && value[value.lastIndexOf("@") + 1] === " ") {
+      setShowMemberList(false);
+    }
+  };
+
+  // Handle member selection for tagging
+  const handleMemberSelect = (member) => {
+    const beforeMention = newComment.substring(0, mentionPosition);
+    const afterMention = newComment.substring(mentionPosition + 1);
+    const newValue = `${beforeMention}@${member.name} ${afterMention}`;
+
+    setNewComment(newValue);
+    setTaggedUsers([...taggedUsers, member.id]);
+    setShowMemberList(false);
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim()) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    try {
+      const response = await fetch(
+        `${baseUrl}/comment/create?workspace_id=${workspaceId}&task_id=${task.id_task}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: newComment,
+            user_id: 178566, // You'll need to get this from your auth context
+            tagged_user_ids: taggedUsers,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (!data.error) {
+        setNewComment("");
+        setTaggedUsers([]);
+        fetchComments(); // Refresh comments
+      }
+    } catch (error) {
+      console.error("Error creating comment:", error);
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const getUserName = (userId) => {
+    const member = workspaceMembers.find((m) => m.id === userId);
+    return member ? member.name : `User ${userId}`;
   };
 
   return (
@@ -374,7 +475,6 @@ export function TaskDetailModalV2({
               </div>
             </div>
           )}
-
           {/* Main Content */}
           <div className="flex-3 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}
@@ -705,31 +805,263 @@ export function TaskDetailModalV2({
               setAttachments={setAttachments}
               attachments={attachments}
             />
-          </div>
-
-          {/* Sidebar */}
+          </div>{" "}
+          {/* Right Sidebar - Activity/Comments Section */}
           {showSidebar && (
-            <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
-              <div className="w-1 bg-gray-100 cursor-col-resize" />
-              <div
-                className="overflow-auto border-l"
-                style={{ width: sidebarWidth }}
-              >
-                <div className="p-4">
-                  <h3 className="text-lg font-medium mb-4">Activity</h3>
-                  {sidebarContent || (
-                    <div className="text-gray-500">No activity to display</div>
-                  )}
+            <div className="w-96 bg-gray-50 border-l border-gray-200 flex flex-col">
+              {/* Header */}
+              <div className="px-6 py-4 bg-white border-b border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-2.319-.34l-5.487 2.01a.5.5 0 01-.643-.643l2.01-5.487c-.2-.72-.34-1.478-.34-2.319 0-4.418 3.582-8 8-8s8 3.582 8 8z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Activity
+                    </h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      {comments.length} comment
+                      {comments.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                 </div>
+              </div>{" "}
+              {/* Comments Feed */}
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                {comments.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-inner">
+                      <svg
+                        className="w-10 h-10 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="text-gray-600 text-sm font-medium mb-2">
+                      No comments yet
+                    </h4>
+                    <p className="text-gray-400 text-xs">
+                      Start the conversation below
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {comments.map((comment, index) => (
+                      <div key={comment.id} className="relative">
+                        {/* Timeline line */}
+                        {index < comments.length - 1 && (
+                          <div className="absolute left-5 top-14 w-0.5 h-12 bg-gradient-to-b from-gray-300 to-gray-200"></div>
+                        )}
+
+                        <div className="flex space-x-4">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0 relative">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+                              <span className="text-white text-sm font-bold">
+                                {getUserName(comment.created_by)
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </span>
+                            </div>
+                            {/* Online indicator */}
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                          </div>
+
+                          {/* Comment Content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Comment Header */}
+                            <div className="flex items-center space-x-3 mb-3">
+                              <span className="text-sm font-semibold text-gray-900">
+                                {getUserName(comment.created_by)}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs text-gray-500 font-medium">
+                                  {formatTimestamp(comment.created_at)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Comment Body */}
+                            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                {comment.content}
+                              </p>
+
+                              {/* Tagged Users */}
+                              {comment.tagged_user_ids.length > 0 && (
+                                <div className="mt-4 pt-3 border-t border-gray-100">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <svg
+                                      className="w-3 h-3 text-blue-500"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    <span className="text-xs font-medium text-gray-600">
+                                      Mentioned:
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {comment.tagged_user_ids.map(
+                                      (userId, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                        >
+                                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
+                                          @{getUserName(userId)}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>{" "}
+              {/* Add Comment Section */}
+              <div className="border-t border-gray-200 bg-white px-6 py-4 space-y-3 relative">
+                {/* Comment Input with Button */}
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1 relative">
+                    <textarea
+                      value={newComment}
+                      onChange={handleCommentChange}
+                      placeholder="Write a comment... Use @ to mention teammates"
+                      className="w-full p-3 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+                      rows="3"
+                    />
+
+                    {/* Member Mention Dropdown */}
+                    {showMemberList && (
+                      <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-auto z-50 mb-2">
+                        <div className="p-2 border-b border-gray-100">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Mention Teammate
+                          </span>
+                        </div>
+                        {workspaceMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            onClick={() => handleMemberSelect(member)}
+                            className="p-3 hover:bg-blue-50 cursor-pointer flex items-center space-x-3 transition-colors"
+                          >
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm"
+                              style={{
+                                backgroundColor: member.color || "#6366f1",
+                              }}
+                            >
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium text-gray-900 block truncate">
+                                {member.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                @{member.name.toLowerCase().replace(/\s+/g, "")}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Post Comment Button */}
+                  <button
+                    type="button"
+                    onClick={handleCommentSubmit}
+                    disabled={!newComment.trim()}
+                    className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 flex-shrink-0"
+                    style={{ height: "fit-content" }}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
+                    </svg>
+                    <span>Post</span>
+                  </button>
+                </div>
+
+                {/* Tagged Users Preview */}
+                {taggedUsers.length > 0 && (
+                  <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-2">
+                      <svg
+                        className="w-4 h-4 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      <span className="text-xs font-medium text-blue-700">
+                        Mentioning:{" "}
+                        {taggedUsers.map((id) => getUserName(id)).join(", ")}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
-
-          {/* Submit Button */}
-          <div className="absolute bottom-4 right-4">
+          {/* Submit Button - positioned to avoid sidebar overlap */}
+          <div
+            className={`absolute bottom-4 ${
+              showSidebar ? "right-[400px]" : "right-4"
+            }`}
+          >
             <Button
               type="submit"
-              className="bg-blue-500 text-white px-6 py-2 rounded-md"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg"
             >
               SAVE
             </Button>
