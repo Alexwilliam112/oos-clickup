@@ -80,8 +80,6 @@ export default function Task({
     startColor - level * multiplier
   }, ${startColor - level * multiplier}, ${transparency})`;
 
-  console.log(task);
-
   return (
     <>
       <TableRow style={{ backgroundColor: rowBg }}>

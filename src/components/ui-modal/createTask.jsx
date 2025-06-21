@@ -73,10 +73,6 @@ export function TaskCreateModal({
   });
 
   const watchForm = watch();
-  useEffect(() => {
-    console.log(watchForm);
-    console.log(errors);
-  }, [watchForm, errors]);
 
   useEffect(() => {
     setValue("lists", initialValues.lists);
@@ -245,8 +241,6 @@ export function TaskCreateModal({
       attachments: attachments,
       parent_task_id: parentTaskId,
     };
-
-    console.log("Task Created:", taskData);
 
     reset();
 

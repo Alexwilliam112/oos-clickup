@@ -76,7 +76,7 @@ export function TaskDetailModalV2({
   useEffect(() => {
     if (task) {
       setValue("taskName", task.name || "");
-      setValue("assignee", task.assignee_id || null);
+      setValue("assignee", task.assignee_ids || null);
       setValue("lists", task.list_ids || []);
       setValue("folder", task.folder_id || null);
       setValue("product", task.product_id || null);
@@ -226,35 +226,45 @@ export function TaskDetailModalV2({
     setAttachments([...attachments, ...e.target.files]);
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-
-    // Collect Editor.js data
+  const onSubmit = async (values) => {
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
       : {};
 
-    // Collect task data
+    // const taskData = {
+    //   name: taskName,
+    //   task_type_id: taskType,
+    //   assignee_ids: assignee,
+    //   date_start: new Date(selectedRange.from).getTime(),
+    //   date_end: new Date(selectedRange.to).getTime(),
+    //   folder_id: folder,
+    //   priority_id: priority,
+    //   status_id: status,
+    //   list_ids: lists,
+    //   product_id: product,
+    //   team_id: team,
+    //   description: descriptionData,
+    //   attachments: attachments,
+    //   parent_task_id: parentTaskId,
+    // };
+
     const taskData = {
-      name: taskName,
-      task_type_id: taskType,
-      assignee_id: assignee,
-      date_start: new Date(selectedRange.from).getTime(),
-      date_end: new Date(selectedRange.to).getTime(),
-      folder_id: folder,
-      priority_id: priority,
-      status_id: status,
-      list_ids: lists,
-      product_id: product,
-      team_id: team,
+      name: values.taskName,
+      task_type_id: values.taskType,
+      assignee_ids: values.assignee,
+      date_start: new Date(values.selectedRange.from).getTime(),
+      date_end: new Date(values.selectedRange.to).getTime(),
+      folder_id: values.folder,
+      priority_id: values.priority,
+      status_id: values.status,
+      list_ids: values.lists,
+      product_id: values.product,
+      team_id: values.team,
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
     };
 
-    console.log("Task Created:", taskData);
-
-    // Reset form fields
     setTaskName("");
     setTaskType(null);
     setAssignee(null);
@@ -274,13 +284,16 @@ export function TaskDetailModalV2({
     const page = params.get("page");
     const paramId = params.get("param_id");
 
-    fetch(`${baseUrl}/task/create?workspace_id=${workspaceId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(taskData),
-    })
+    fetch(
+      `${baseUrl}/task/update?workspace_id=${workspaceId}&task_id=${task.id_task}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+      }
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to create task.");
@@ -747,7 +760,6 @@ const formSchema = z.object({
   assignee: z.object({
     id: z.string().min(1, "Assignee is required"),
     name: z.string(),
-    color: z.string(),
   }),
   selectedRange: z.object({
     from: z.date(),
@@ -772,7 +784,6 @@ const formSchema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
-      color: z.string(),
     })
   ),
   description: z.string().optional(),
