@@ -255,7 +255,7 @@ export function TaskCreateModal({
     const page = params.get("page");
     const paramId = params.get("param_id");
 
-    fetch(`${baseUrl}/task/create?workspace_id=${workspaceId}`, {
+    fetch(`${baseUrl}/task/create?workspace_id=${workspaceId}&page=${page}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
