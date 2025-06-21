@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Plus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,9 +15,15 @@ import {
   DetailModalTrigger,
   CreateModalTrigger,
 } from "@/components/ui-modal/modal-trigger";
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
@@ -68,27 +72,27 @@ export function Board() {
   const page = params.get("page");
   const paramId = params.get("param_id");
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.name.toLowerCase().includes(search.toLowerCase()) ||
-      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false);
+      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
+        false) ||
+      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
+        false);
 
-    const matchesStatus = statusFilter !== "all"
-      ? task.status_id?.id === statusFilter
-      : true;
+    const matchesStatus =
+      statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
 
-    const matchesAssignee = assigneeFilter !== "all"
-      ? task.assignee_ids?.some(a => a.id === assigneeFilter)
-      : true;
+    const matchesAssignee =
+      assigneeFilter !== "all"
+        ? task.assignee_ids?.some((a) => a.id === assigneeFilter)
+        : true;
 
-    const matchesPriority = priorityFilter !== "all"
-      ? task.priority_id?.id === priorityFilter
-      : true;
+    const matchesPriority =
+      priorityFilter !== "all" ? task.priority_id?.id === priorityFilter : true;
 
-    const matchesTeam = teamFilter !== "all"
-      ? task.team_id?.id === teamFilter
-      : true;
+    const matchesTeam =
+      teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
 
     return (
       matchesSearch &&
@@ -368,7 +372,7 @@ export function Board() {
           type="text"
           placeholder="Search tasks..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="grow-1 h-10"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -377,7 +381,7 @@ export function Board() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            {indexStatus.map(status => (
+            {indexStatus.map((status) => (
               <SelectItem key={status.id_record} value={status.id_record}>
                 {status.name}
               </SelectItem>
@@ -390,7 +394,7 @@ export function Board() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Assignees</SelectItem>
-            {indexMember.map(member => (
+            {indexMember.map((member) => (
               <SelectItem key={member.id} value={member.id}>
                 {member.name}
               </SelectItem>
@@ -403,7 +407,7 @@ export function Board() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Priorities</SelectItem>
-            {indexPriority.map(priority => (
+            {indexPriority.map((priority) => (
               <SelectItem key={priority.id_record} value={priority.id_record}>
                 {priority.name}
               </SelectItem>
@@ -416,7 +420,7 @@ export function Board() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Teams</SelectItem>
-            {indexTeam.map(team => (
+            {indexTeam.map((team) => (
               <SelectItem key={team.id_record} value={team.id_record}>
                 {team.name}
               </SelectItem>
@@ -448,8 +452,9 @@ export function Board() {
                     <span className="text-sm font-medium">{status.name}</span>
                     <Badge variant="secondary" className="bg-white/20 text-xs">
                       {
-                        tasks.filter((task) => task.status_id.id === status.id_record)
-                          .length
+                        tasks.filter(
+                          (task) => task.status_id.id === status.id_record
+                        ).length
                       }
                     </Badge>
                   </div>
@@ -556,7 +561,9 @@ export function Board() {
                                   className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
                                   style={{
                                     backgroundColor: task.product_id.color,
-                                    color: getContrastColor(task.product_id.color),
+                                    color: getContrastColor(
+                                      task.product_id.color
+                                    ),
                                   }}
                                 >
                                   {task.product_id.name}
@@ -578,7 +585,9 @@ export function Board() {
                                   className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
                                   style={{
                                     backgroundColor: task.priority_id.color,
-                                    color: getContrastColor(task.priority_id.color),
+                                    color: getContrastColor(
+                                      task.priority_id.color
+                                    ),
                                   }}
                                 >
                                   {task.priority_id.name}
@@ -608,38 +617,49 @@ export function Board() {
                                     <line x1="3" y1="10" x2="21" y2="10" />
                                   </svg>
                                   <span className="text-black font-medium">
-                                    {new Date(task.date_start).toLocaleDateString()} -{" "}
-                                    {new Date(task.date_end).toLocaleDateString()}
+                                    {new Date(
+                                      task.date_start
+                                    ).toLocaleDateString()}{" "}
+                                    -{" "}
+                                    {new Date(
+                                      task.date_end
+                                    ).toLocaleDateString()}
                                   </span>
                                 </div>
 
                                 {/* ASSIGNEES */}
                                 <div className="flex items-center gap-1 ml-auto">
-                                  {task.assignee_ids?.map((assignee, idx) => {
-                                    const initials = assignee.name
+                                  {(() => {
+                                    // Extract the name and id from the object
+                                    const { name, id } = task.assignee_ids;
+
+                                    // Generate initials from the name
+                                    const initials = name
                                       .split(" ")
                                       .map((word) => word.charAt(0))
                                       .slice(0, 2)
                                       .join("");
 
                                     return (
-                                      <Tooltip key={idx}>
+                                      <Tooltip key={id}>
                                         <TooltipTrigger asChild>
                                           <div
                                             className="relative border rounded-full border-gray-700"
                                             style={{
-                                              marginLeft: idx === 0 ? "0" : "-13%", // Overlap by 15%
+                                              marginLeft:
+                                                idx === 0 ? "0" : "-13%", // Overlap by 15%
                                             }}
                                           >
                                             <Avatar>
                                               <AvatarImage
                                                 src={assignee.avatar}
-                                                alt={assignee.name}
+                                                alt={name}
                                               />
                                               <AvatarFallback
                                                 style={{
                                                   backgroundColor: "#F5B1FF",
-                                                  color: getContrastColor("#F5B1FF"),
+                                                  color:
+                                                    getContrastColor("#F5B1FF"),
                                                   cursor: "pointer",
                                                 }}
                                               >
@@ -649,11 +669,11 @@ export function Board() {
                                           </div>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          <span>{assignee.name}</span>
+                                          <span>{name}</span>
                                         </TooltipContent>
                                       </Tooltip>
                                     );
-                                  })}
+                                  })()}
                                 </div>
                               </div>
                             </div>
@@ -676,7 +696,9 @@ export function Board() {
                         modalSubtitle={task.created_at}
                         sidebarContent={<p>Sidebar content here</p>}
                         isOpen={openDetailTaskId === task.id_task}
-                        setIsOpen={(open) => setOpenDetailTaskId(open ? task.id_task : null)}
+                        setIsOpen={(open) =>
+                          setOpenDetailTaskId(open ? task.id_task : null)
+                        }
                       >
                         <p>Modal content here</p>
                       </DetailModalTrigger>
