@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 
-const BASE_URL = 'https://api-oos.jojonomic.com/27414'
+const BASE_URL = process.env.BASE_URL
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

@@ -448,6 +448,22 @@ export function TaskDetailModalV2({
           throw new Error(data.message || "Failed to create task.");
         }
         console.log("Task created successfully:", data);
+        const task = data?.data;
+        setValue("taskName", task.name || "");
+        setValue("assignee", task.assignee_ids || null);
+        setValue("lists", task.list_ids || []);
+        setValue("folder", task.folder_id || null);
+        setValue("product", task.product_id || null);
+        setValue("team", task.team_id || null);
+        setValue("selectedRange", {
+          from: new Date(task.date_start),
+          to: new Date(task.date_end),
+        });
+        setValue("taskType", task.task_type_id || null);
+        setValue("priority", task.priority_id || null);
+        setValue("status", task.status_id || null);
+        setDescription(task.description || "");
+        setAttachments(task.attachments || []);
       })
       .catch((error) => {
         console.error("Error creating task:", error);

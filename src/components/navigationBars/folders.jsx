@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ChevronDown, Plus, Inbox } from "lucide-react";
+import { ChevronRight, Plus, Inbox } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -40,8 +40,9 @@ export function Folders({
             <Collapsible className="w-full" defaultOpen>
               <div className="flex items-center py-1">
                 <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer">
-                    <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" />
+                  <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer data-[state=open]:rotate-90">
+                    {/* <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" /> */}
+                    <ChevronRight className="h-4 w-4 flex-shrink-0 transition-transform"/>
                   </div>
                 </CollapsibleTrigger>
                 <a
@@ -60,14 +61,14 @@ export function Folders({
               </div>
               {/* Default List */}
               <div className="ml-4 mt-2 flex items-center gap-2">
-                <Inbox className="h-4 w-4 text-muted-foreground" />
+                {/* <Inbox className="h-4 w-4 text-muted-foreground" /> */}
                 <a
                   href="#"
                   className="text-sm truncate line-clamp-1 font-medium"
                   title="Default List"
                   onClick={() => navigateTo("default_list", team.id_team)} // Navigate to default list
                 >
-                  Team List
+                  {/* Team List */}
                 </a>
               </div>
               <CollapsibleContent>
@@ -97,8 +98,9 @@ export function Folders({
                           <Collapsible className="w-full" defaultOpen>
                             <div className="flex items-center py-1">
                               <CollapsibleTrigger asChild>
-                                <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer">
-                                  <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" />
+                                <div className="flex items-center justify-center mr-2 h-4 w-4 cursor-pointer data-[state=open]:rotate-90">
+                                  {/* <ChevronDown className="h-4 w-4 flex-shrink-0 transition-transform" /> */}
+                                  <ChevronRight className="h-4 w-4 flex-shrink-0 transition-transform"/>
                                 </div>
                               </CollapsibleTrigger>
                               <a

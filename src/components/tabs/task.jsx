@@ -83,7 +83,7 @@ export default function Task({
   return (
     <>
       <TableRow style={{ backgroundColor: rowBg }}>
-        <TableCell
+        {/* <TableCell
           className="p-2 min-w-[50px]"
           style={{
             position: isOpenCreate ? "static" : "sticky",
@@ -108,18 +108,35 @@ export default function Task({
             isOpen={isOpenCreate}
             setIsOpen={setIsOpenCreate}
           />
-        </TableCell>
+        </TableCell> */}
 
         <TableCell
           className="p-2 min-w-[255px]"
           style={{
             paddingLeft: `${level * 20}px`,
-            position: isOpenDetail ? "static" : "sticky",
-            left: 50,
-            zIndex: isOpenDetail ? undefined : 10,
+            position: isOpenDetail || isOpenCreate ? "static" : "sticky",
+            // left: 50,
+            zIndex: isOpenDetail || isOpenCreate ? undefined : 10,
             backgroundColor: rowBg,
           }}
         >
+          <CreateModalTrigger
+          trigger={
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Plus className="h-4 w-4" />
+            </Button>
+          }
+          modalTitle="Create Task"
+          parentTaskId={task.id_task}
+          fetchTasks={fetchTasks}
+          modalSubtitle={""}
+          initialValues={initialValues}
+          selectData={selectData}
+          sidebarContent={<p></p>}
+          isOpen={isOpenCreate}
+          setIsOpen={setIsOpenCreate}
+          />
+          
           <button
             className="text-muted-foreground hover:text-foreground transition mr-2"
             onClick={toggleExpand}
