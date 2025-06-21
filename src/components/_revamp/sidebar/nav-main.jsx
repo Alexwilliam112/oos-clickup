@@ -93,7 +93,7 @@ export function NavMain() {
                   {foldersData
                     ?.filter((f) => f.team_id === team.id_team)
                     .map((subItem) => (
-                      <Collapsible className="group/subcollapsible">
+                      <Collapsible className="group/subcollapsible" key={subItem.name}>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuSubButton>
                             <span>{subItem.name}</span>
