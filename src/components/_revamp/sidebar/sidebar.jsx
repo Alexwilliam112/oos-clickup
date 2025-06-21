@@ -14,6 +14,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { useQuery } from '@tanstack/react-query'
 import { workspaceService } from '@/service/index.mjs'
 import { useSearchParams } from 'next/navigation'
+import { Fragment } from 'react'
 
 export default function Sidebar({ children }) {
   const params = useSearchParams()
@@ -38,7 +39,7 @@ export default function Sidebar({ children }) {
             <Breadcrumb>
               <BreadcrumbList>
                 {data?.path?.map((path, index) => (
-                  <>
+                  <Fragment key={index}>
                     <BreadcrumbItem className="hidden md:block">
                       <BreadcrumbLink
                         href={`/dashboard?workspace_id=${workspace_id}&page=${path.page}&param_id=${path.id}`}
@@ -49,7 +50,7 @@ export default function Sidebar({ children }) {
                     {index + 1 < data.path.length && (
                       <BreadcrumbSeparator className="hidden md:block" />
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </BreadcrumbList>
             </Breadcrumb>
