@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
@@ -24,6 +25,11 @@ import { Circle } from 'lucide-react'
 import { Plus } from 'lucide-react'
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/modals/general.jsx'
 import { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Inbox } from 'lucide-react'
+
+const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
 export function NavMain() {
   const router = useRouter()
@@ -34,6 +40,13 @@ export function NavMain() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false)
+
+  const [newListName, setNewListName] = useState('')
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newTeamName, setNewTeamName] = useState('')
+
+  const [currentFolderId, setCurrentFolderId] = useState(null)
+  const [currentTeamId, setCurrentTeamId] = useState(null)
 
   const handleAddTeam = () => {
     if (!newTeamName) {
@@ -69,7 +82,7 @@ export function NavMain() {
         }
         setNewTeamName('') // Clear the input field
         setIsTeamModalOpen(false) // Close the modal
-        fetchTeams() // Refetch the teams to update the UI
+        refetchTeams() // Refetch the teams to update the UI
       })
       .catch((error) => {
         console.error('Error creating team:', error)
@@ -112,7 +125,7 @@ export function NavMain() {
         }
         setNewFolderName('') // Clear the input field
         setIsFolderModalOpen(false) // Close the modal
-        fetchFolders() // Refetch the folders to update the UI
+        refetchFolders()
       })
       .catch((error) => {
         console.error('Error creating folder:', error)
@@ -155,7 +168,7 @@ export function NavMain() {
         }
         setNewListName('') // Clear the input field
         setIsModalOpen(false) // Close the modal
-        fetchLists() // Refetch the lists to update the UI
+        refetchLists() // Refetch the lists to update the UI
       })
       .catch((error) => {
         console.error('Error creating list:', error)
@@ -196,6 +209,7 @@ export function NavMain() {
     data: teamsData,
     isSuccess: teamsSuccess,
     isLoading: teamsLoading,
+    refetch: refetchTeams,
   } = useQuery({
     queryFn: workspaceService.getTeams,
     queryKey: ['workspaceService.getTeams'],
@@ -205,6 +219,7 @@ export function NavMain() {
     data: foldersData,
     isSuccess: foldersSuccess,
     isLoading: foldersLoading,
+    refetch: refetchFolders,
   } = useQuery({
     queryFn: workspaceService.getFolders,
     queryKey: ['workspaceService.getFolders'],
@@ -214,6 +229,7 @@ export function NavMain() {
     data: listData,
     isSuccess: listSuccess,
     isLoading: listLoading,
+    refetch: refetchLists,
   } = useQuery({
     queryFn: workspaceService.getList,
     queryKey: ['workspaceService.getList'],
@@ -235,6 +251,9 @@ export function NavMain() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Teams</SidebarGroupLabel>
+      <SidebarGroupAction tooltip="Add team" onClick={openTeamModal}>
+        <Plus /> <span className="sr-only">Add team</span>
+      </SidebarGroupAction>
       <SidebarMenu>
         {teamsData?.map((team) => (
           <Collapsible
@@ -258,7 +277,19 @@ export function NavMain() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  <SidebarMenuSubButton className="hover:cursor-pointer text-muted-foreground">
+                  <SidebarMenuSubButton
+                    className="hover:cursor-pointer hover:text-blue-500"
+                    onClick={() => navigateTo('default_list', team.id_team)}
+                  >
+                    <Inbox />
+
+                    <span>Team list</span>
+                  </SidebarMenuSubButton>
+
+                  <SidebarMenuSubButton
+                    className="hover:cursor-pointer text-muted-foreground"
+                    onClick={() => openFolderModal(team.id_team)}
+                  >
                     <Plus />
                     Add folder
                   </SidebarMenuSubButton>
@@ -280,13 +311,20 @@ export function NavMain() {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub>
+                            <SidebarMenuSubButton
+                              className="hover:cursor-pointer text-muted-foreground"
+                              onClick={() => openModal(folder.id_folder)}
+                            >
+                              <Plus />
+                              Add list
+                            </SidebarMenuSubButton>
                             {listData
                               ?.filter((list) => list.folder_id === folder.id_folder)
                               .map((list) => (
                                 <SidebarMenuSubItem key={list.name}>
                                   <SidebarMenuSubButton asChild>
                                     <span>
-                                      <Circle />{' '}
+                                      <Inbox />{' '}
                                       <span
                                         onClick={() => navigateTo('list', list.id_list)}
                                         className="hover:text-blue-500 hover:cursor-pointer"

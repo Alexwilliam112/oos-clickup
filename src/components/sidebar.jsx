@@ -30,13 +30,13 @@ export function SidebarNav() {
   const [loadingLists, setLoadingLists] = React.useState(true)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
-  const [newListName, setNewListName] = React.useState('')
-  const [currentFolderId, setCurrentFolderId] = React.useState(null)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isFolderModalOpen, setIsFolderModalOpen] = React.useState(false)
   const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false)
-  const [newFolderName, setNewFolderName] = React.useState('')
+  const [currentFolderId, setCurrentFolderId] = React.useState(null)
   const [currentTeamId, setCurrentTeamId] = React.useState(null)
+  const [newListName, setNewListName] = React.useState('')
+  const [newFolderName, setNewFolderName] = React.useState('')
   const [newTeamName, setNewTeamName] = React.useState('')
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
