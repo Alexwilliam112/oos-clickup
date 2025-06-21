@@ -133,42 +133,47 @@ export function TaskCreateModal({
       )
       .min(1, "Please select at least one list for this task"),
     description: z.string().optional(),
-    ...customFields.reduce((schema, field) => {
-      let fieldValidation;
 
-      switch (field.field_type) {
-        case "text":
-        case "text-area":
-        case "single-select":
-        case "radio":
-          fieldValidation = z
-            .string()
-            .min(1, `${field.field_name} is required`);
-          break;
+    customFields: z.object(
+      customFields.reduce((schema, field) => {
+        let fieldValidation;
 
-        case "number":
-          fieldValidation = z
-            .number()
-            .min(0, `${field.field_name} is required`);
-          break;
+        // Determine validation based on field type
+        switch (field.field_type) {
+          case "text":
+          case "text-area":
+          case "single-select":
+          case "radio":
+            fieldValidation = z
+              .string()
+              .min(1, `${field.field_name} is required`);
+            break;
 
-        case "multiple-select":
-        case "checkbox":
-          fieldValidation = z
-            .array(z.string())
-            .min(1, `${field.field_name} is required`);
-          break;
+          case "number":
+            fieldValidation = z
+              .number()
+              .min(0, `${field.field_name} is required`);
+            break;
 
-        default:
-          fieldValidation = z.any();
-      }
+          case "multiple-select":
+          case "checkbox":
+            fieldValidation = z
+              .array(z.string())
+              .min(1, `${field.field_name} is required`);
+            break;
 
-      schema[field.id_field] = field.is_mandatory
-        ? fieldValidation
-        : fieldValidation.optional();
+          default:
+            fieldValidation = z.any(); // Default to any type if field type is unknown
+        }
 
-      return schema;
-    }, {}),
+        // Apply conditional validation based on is_mandatory
+        schema[field.field_name] = field.is_mandatory
+          ? fieldValidation // Required validation
+          : fieldValidation.optional(); // Optional validation
+
+        return schema;
+      }, {})
+    ),
   });
 
   const {
@@ -330,11 +335,8 @@ export function TaskCreateModal({
 
   if (!isVisible) return null;
 
-  const handleFileUpload = (e) => {
-    setAttachments([...attachments, ...e.target.files]);
-  };
-
   const onSubmit = async (values) => {
+    console.log(values);
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
       : {};
@@ -355,6 +357,7 @@ export function TaskCreateModal({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
+      custom_fields: values.customFields
     };
 
     reset();
@@ -744,7 +747,7 @@ export function TaskCreateModal({
                   )}
                 />
               </div>
-              
+
               <div className="flex-1">
                 <label className="block text-sm font-medium">Lists</label>
                 <Controller
