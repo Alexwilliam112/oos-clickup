@@ -336,7 +336,6 @@ export function TaskCreateModal({
   if (!isVisible) return null;
 
   const onSubmit = async (values) => {
-    console.log(values);
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
       : {};
