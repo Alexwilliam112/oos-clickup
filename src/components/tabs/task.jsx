@@ -1,34 +1,28 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from "lucide-react";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  DetailModalTrigger,
-  CreateModalTrigger,
-} from "@/components/ui-modal/modal-trigger";
-import { TableRow, TableCell } from "@/components/ui/table";
+import React, { useState, useEffect } from 'react'
+import { ChevronRight, ChevronDown, MoreHorizontal, Plus } from 'lucide-react'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { DetailModalTrigger, CreateModalTrigger } from '@/components/ui-modal/modal-trigger'
+import { TableRow, TableCell } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
-  const color = hexColor.replace("#", "");
+  const color = hexColor.replace('#', '')
 
   // Convert to RGB
-  const r = parseInt(color.substring(0, 2), 16);
-  const g = parseInt(color.substring(2, 4), 16);
-  const b = parseInt(color.substring(4, 6), 16);
+  const r = parseInt(color.substring(0, 2), 16)
+  const g = parseInt(color.substring(2, 4), 16)
+  const b = parseInt(color.substring(4, 6), 16)
 
   // Calculate brightness
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
 
   // Return black for light backgrounds, white for dark backgrounds
-  return brightness > 128 ? "#000000" : "#FFFFFF";
+  return brightness > 128 ? '#000000' : '#FFFFFF'
 }
 
 export default function Task({
@@ -41,48 +35,46 @@ export default function Task({
   setTasks,
   tasks,
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isOpenCreate, setIsOpenCreate] = useState(false);
-  const [isOpenDetail, setIsOpenDetail] = useState(false);
-  const [taskId, setTaskId] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isOpenCreate, setIsOpenCreate] = useState(false)
+  const [isOpenDetail, setIsOpenDetail] = useState(false)
+  const [taskId, setTaskId] = useState(null)
 
   useEffect(() => {
     // Set as expanded only on the first load
     if (!isExpanded) {
-      setIsExpanded(true);
+      setIsExpanded(true)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     // Set the taskId to the current task's id_task
-    setTaskId(task.id_task);
-  }, [task]);
+    setTaskId(task.id_task)
+  }, [task])
 
   const toggleExpand = (task) => {
-    setIsExpanded(!isExpanded);
-    setTasks([...tasks]);
-  };
+    setIsExpanded(!isExpanded)
+    setTasks([...tasks])
+  }
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
 
-  const multiplier = 5; // Adjust this value to control the color change speed
-  const startColor = 255; // Starting color value (white)
-  const transparency = 1; // Adjust this value to control the transparency level
-  const rowBg = `rgba(${startColor - level * multiplier}, ${
-    startColor - level * multiplier
-  }, ${startColor - level * multiplier}, ${transparency})`;
+  const multiplier = 5 // Adjust this value to control the color change speed
+  const startColor = 255 // Starting color value (white)
+  const transparency = 1 // Adjust this value to control the transparency level
+  const rowBg = level % 2 === 1 ? 'bg-muted/50' : ''
 
   return (
     <>
-      <TableRow style={{ backgroundColor: rowBg }}>
+      <TableRow className={cn(rowBg)}>
         {/* <TableCell
           className="p-2 min-w-[50px]"
           style={{
@@ -114,29 +106,28 @@ export default function Task({
           className="p-2 min-w-[255px]"
           style={{
             paddingLeft: `${level * 20}px`,
-            position: isOpenDetail || isOpenCreate ? "static" : "sticky",
+            position: isOpenDetail || isOpenCreate ? 'static' : 'sticky',
             // left: 50,
             zIndex: isOpenDetail || isOpenCreate ? undefined : 10,
             backgroundColor: rowBg,
           }}
         >
           <CreateModalTrigger
-          trigger={
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <Plus className="h-4 w-4" />
-            </Button>
-          }
-          modalTitle="Create Task"
-          parentTaskId={task.id_task}
-          fetchTasks={fetchTasks}
-          modalSubtitle={""}
-          initialValues={initialValues}
-          selectData={selectData}
-          sidebarContent={<p></p>}
-          isOpen={isOpenCreate}
-          setIsOpen={setIsOpenCreate}
+            trigger={
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Plus className="h-4 w-4" />
+              </Button>
+            }
+            modalTitle="Create Task"
+            parentTaskId={task.id_task}
+            fetchTasks={fetchTasks}
+            modalSubtitle={''}
+            initialValues={initialValues}
+            selectData={selectData}
+            sidebarContent={<p></p>}
+            isOpen={isOpenCreate}
+            setIsOpen={setIsOpenCreate}
           />
-          
           <button
             className="text-muted-foreground hover:text-foreground transition mr-2"
             onClick={toggleExpand}
@@ -146,11 +137,9 @@ export default function Task({
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-          </button>{" "}
+          </button>{' '}
           <DetailModalTrigger
-            trigger={
-              <span className="text-blue-500 hover:underline">{task.name}</span>
-            }
+            trigger={<span className="text-blue-500 hover:underline">{task.name}</span>}
             modalTitle="Task Details"
             fetchTasks={fetchTasks}
             showSidebar={true}
@@ -166,9 +155,7 @@ export default function Task({
           </DetailModalTrigger>
         </TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">
-          {formatDate(task.created_at)}
-        </TableCell>
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.created_at)}</TableCell>
 
         <TableCell className="p-2 min-w-[120px]">
           <span
@@ -187,22 +174,19 @@ export default function Task({
             <TooltipTrigger asChild>
               <div>
                 <Avatar>
-                  <AvatarImage
-                    src={task.assignee_ids?.avatar}
-                    alt={task.assignee_ids?.name}
-                  />
+                  <AvatarImage src={task.assignee_ids?.avatar} alt={task.assignee_ids?.name} />
                   <AvatarFallback
                     style={{
-                      backgroundColor: "#F5B1FF",
-                      color: getContrastColor("#F5B1FF"),
-                      cursor: "pointer",
+                      backgroundColor: '#F5B1FF',
+                      color: getContrastColor('#F5B1FF'),
+                      cursor: 'pointer',
                     }}
                   >
                     {task.assignee_ids?.name
-                      .split(" ")
+                      .split(' ')
                       .map((word) => word.charAt(0))
                       .slice(0, 2)
-                      .join("")}
+                      .join('')}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -213,13 +197,9 @@ export default function Task({
           </Tooltip>
         </TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">
-          {formatDate(task.date_start)}
-        </TableCell>
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_start)}</TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">
-          {formatDate(task.date_end)}
-        </TableCell>
+        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_end)}</TableCell>
 
         <TableCell className="p-2 min-w-[100px]">
           <span
@@ -251,8 +231,8 @@ export default function Task({
               key={idx}
               className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
               style={{
-                backgroundColor: "#B1D9FF",
-                color: getContrastColor("#B1D9FF"),
+                backgroundColor: '#B1D9FF',
+                color: getContrastColor('#B1D9FF'),
               }}
             >
               {list.name}
@@ -276,8 +256,8 @@ export default function Task({
           <span
             className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm"
             style={{
-              backgroundColor: "#B1D9FF",
-              color: getContrastColor("#B1D9FF"),
+              backgroundColor: '#B1D9FF',
+              color: getContrastColor('#B1D9FF'),
             }}
           >
             {task.team_id.name.toUpperCase()}
@@ -290,9 +270,7 @@ export default function Task({
           </Button>
         </TableCell>
       </TableRow>
-      {isExpanded &&
-        task.children?.length > 0 &&
-        renderTasks(task.children, level + 1)}
+      {isExpanded && task.children?.length > 0 && renderTasks(task.children, level + 1)}
     </>
-  );
+  )
 }
