@@ -365,6 +365,8 @@ export function Board() {
     }
   };
 
+  console.log(filteredTasks);
+
   return (
     <>
       <div className="flex gap-2 my-4">
@@ -499,7 +501,7 @@ export function Board() {
                 <div className="flex flex-1 flex-col gap-3 p-2">
                   {filteredTasks
                     .filter((task) => task.status_id.id === status.id_record)
-                    .map((task) => (
+                    .map((task, idx) => (
                       <DetailModalTrigger
                         key={task.id_task}
                         trigger={
@@ -631,7 +633,8 @@ export function Board() {
                                 <div className="flex items-center gap-1 ml-auto">
                                   {(() => {
                                     // Extract the name and id from the object
-                                    const { name, id } = task.assignee_ids;
+                                    const { name = "", id = "" } =
+                                      task?.assignee_ids;
 
                                     // Generate initials from the name
                                     const initials = name
@@ -651,10 +654,6 @@ export function Board() {
                                             }}
                                           >
                                             <Avatar>
-                                              <AvatarImage
-                                                src={assignee.avatar}
-                                                alt={name}
-                                              />
                                               <AvatarFallback
                                                 style={{
                                                   backgroundColor: "#F5B1FF",
