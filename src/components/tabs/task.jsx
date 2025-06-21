@@ -76,7 +76,11 @@ export default function Task({
   const multiplier = 5; // Adjust this value to control the color change speed
   const startColor = 255; // Starting color value (white)
   const transparency = 1; // Adjust this value to control the transparency level
-  const rowBg = `rgba(${startColor - level * multiplier}, ${startColor - level * multiplier}, ${startColor - level * multiplier}, ${transparency})`;
+  const rowBg = `rgba(${startColor - level * multiplier}, ${
+    startColor - level * multiplier
+  }, ${startColor - level * multiplier}, ${transparency})`;
+
+  console.log(task);
 
   return (
     <>
@@ -130,9 +134,7 @@ export default function Task({
           </button>
           <DetailModalTrigger
             trigger={
-              <span className="text-blue-500 hover:underline">
-                {task.name}
-              </span>
+              <span className="text-blue-500 hover:underline">{task.name}</span>
             }
             modalTitle="Task Details"
             fetchTasks={fetchTasks}
@@ -148,7 +150,9 @@ export default function Task({
           </DetailModalTrigger>
         </TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">{formatDate(task.created_at)}</TableCell>
+        <TableCell className="p-2 min-w-[120px]">
+          {formatDate(task.created_at)}
+        </TableCell>
 
         <TableCell className="p-2 min-w-[120px]">
           <span
@@ -163,44 +167,43 @@ export default function Task({
         </TableCell>
 
         <TableCell className="p-2 min-w-[150px] gap-1 flex flex-wrap">
-          {task.assignee_ids?.map((assignee, idx) => {
-            const initials = assignee.name
-              .split(" ")
-              .map((word) => word.charAt(0))
-              .slice(0, 2)
-              .join("");
-            return (
-              <Tooltip key={idx}>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Avatar>
-                      <AvatarImage
-                        src={assignee.avatar}
-                        alt={assignee.name}
-                      />
-                      <AvatarFallback
-                        style={{
-                          backgroundColor: "#F5B1FF",
-                          color: getContrastColor("#F5B1FF"),
-                          cursor: "pointer",
-                        }}
-                      >
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <span>{assignee.name}</span>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Avatar>
+                  <AvatarImage
+                    src={task.assignee_ids?.avatar}
+                    alt={task.assignee_ids?.name}
+                  />
+                  <AvatarFallback
+                    style={{
+                      backgroundColor: "#F5B1FF",
+                      color: getContrastColor("#F5B1FF"),
+                      cursor: "pointer",
+                    }}
+                  >
+                    {task.assignee_ids?.name
+                      .split(" ")
+                      .map((word) => word.charAt(0))
+                      .slice(0, 2)
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <span>{task.assignee_ids?.name}</span>
+            </TooltipContent>
+          </Tooltip>
         </TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_start)}</TableCell>
+        <TableCell className="p-2 min-w-[120px]">
+          {formatDate(task.date_start)}
+        </TableCell>
 
-        <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_end)}</TableCell>
+        <TableCell className="p-2 min-w-[120px]">
+          {formatDate(task.date_end)}
+        </TableCell>
 
         <TableCell className="p-2 min-w-[100px]">
           <span
@@ -271,7 +274,9 @@ export default function Task({
           </Button>
         </TableCell>
       </TableRow>
-      {isExpanded && task.children?.length > 0 && renderTasks(task.children, level + 1)}
+      {isExpanded &&
+        task.children?.length > 0 &&
+        renderTasks(task.children, level + 1)}
     </>
   );
 }
