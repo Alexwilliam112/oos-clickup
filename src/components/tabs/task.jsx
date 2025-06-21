@@ -144,6 +144,8 @@ export default function Task({
             fetchTasks={fetchTasks}
             showSidebar={true}
             task={task}
+            tasks={tasks}
+            setTasks={setTasks}
             selectData={selectData}
             initialValues={initialValues}
             modalSubtitle={task.created_at}

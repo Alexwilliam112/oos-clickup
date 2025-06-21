@@ -25,7 +25,9 @@ export function TaskDetailModalV2({
   sidebarWidth = 420,
   parentTaskId,
   sidebarContent,
+  setTasks,
   selectData,
+  tasks,
   fetchTasks,
   task,
   initialValues,
@@ -244,11 +246,29 @@ export function TaskDetailModalV2({
     }
   };
 
+  //Fetch custom field template
+  const fetchCustomFields = async () => {
+    try {
+      const response = await fetch(
+        `${baseUrl}/task/custom-fields?task_type_id=${task.task_type_id.id}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch custom fields.");
+      }
+      const data = await response.json();
+      console.log("Custom fields fetched successfully:", data);
+      setCustomFields(data.data || []);
+    } catch (error) {
+      console.error("Error fetching custom fields:", error);
+    }
+  };
+
   useEffect(() => {
     if (task && isOpen) {
       console.log(task);
       fetchComments();
       fetchWorkspaceMembers();
+      fetchCustomFields();
     }
   }, [task, isOpen]);
 
@@ -381,10 +401,6 @@ export function TaskDetailModalV2({
 
   if (!isVisible) return null;
 
-  const handleFileUpload = (e) => {
-    setAttachments([...attachments, ...e.target.files]);
-  };
-
   const onSubmit = async (values) => {
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
@@ -405,6 +421,7 @@ export function TaskDetailModalV2({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
+      custom_fields: values.customFields,
     };
 
     setTaskName("");
@@ -446,7 +463,6 @@ export function TaskDetailModalV2({
         if (data.error) {
           throw new Error(data.message || "Failed to create task.");
         }
-        console.log("Task created successfully:", data);
         const task = data?.data;
         setValue("taskName", task.name || "");
         setValue("assignee", task.assignee_ids || null);
@@ -463,12 +479,22 @@ export function TaskDetailModalV2({
         setValue("status", task.status_id || null);
         setDescription(task.description || "");
         setAttachments(task.attachments || []);
+        fetchTasks();
+
+        // const newTasks = (tasks) => {
+        //   console.log("===============================", tasks)
+        //   const updatedTasks = tasks.map((t) =>
+        //     t.id_task === task.id_task ? task : t
+        //   );
+        //   return [...updatedTasks];
+        // }
+        // setTasks(newTasks(tasks));
       })
       .catch((error) => {
         console.error("Error creating task:", error);
       });
 
-    // Close modal    fetchTasks();
+    // Close modal
     onClose();
   };
 
@@ -1168,6 +1194,8 @@ export function TaskDetailModalV2({
               control={control}
               errors={errors}
               watch={watch}
+              setValue={setValue}
+              currentValues={task.custom_fields || {}}
             />
 
             {/* Description */}
