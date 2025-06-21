@@ -171,7 +171,7 @@ export function Dashboard() {
             Board
           </TabsTrigger>
 
-          <TabsTrigger value="calendar" className="gap-2">
+          {/* <TabsTrigger value="calendar" className="gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4"
@@ -186,7 +186,7 @@ export function Dashboard() {
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
             Calendar
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview">
