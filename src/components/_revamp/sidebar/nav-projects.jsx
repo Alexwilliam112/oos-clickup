@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Bell } from 'lucide-react'
 import Link from 'next/link'
+import { ListTodo } from 'lucide-react'
 
 export function NavProjects() {
   return (
@@ -20,7 +21,7 @@ export function NavProjects() {
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip="My Tasks">
             <Link href="/notifications">
-              <Bell />
+              <ListTodo />
               <span>My Tasks</span>
             </Link>
           </SidebarMenuButton>
