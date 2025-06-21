@@ -13,6 +13,7 @@ const EditorJS = lazy(() => import("@editorjs/editorjs"));
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import CustomFields from "./customFields";
 
 export function TaskCreateModal({
   isOpen,
@@ -51,10 +52,123 @@ export function TaskCreateModal({
   const [product, setProduct] = useState(null);
   const [team, setTeam] = useState(null);
   const [customFields, setCustomFields] = useState([]);
+  const [customFieldValues, setCustomFieldValues] = useState([]);
+
   const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
     from: null,
     to: null,
+  });
+
+  const formSchema = z.object({
+    taskName: z.string().min(1, "Task name is required and cannot be empty"),
+    taskType: z.object(
+      {
+        id: z.string().min(1, "Task type selection is required"),
+        name: z.string().min(1, "Task type name is required"),
+        color: z.string().min(1, "Task type color is required"),
+      },
+      { required_error: "Please select a task type" }
+    ),
+    priority: z.object(
+      {
+        id: z.string().min(1, "Priority selection is required"),
+        name: z.string().min(1, "Priority name is required"),
+        color: z.string().min(1, "Priority color is required"),
+      },
+      { required_error: "Please select a priority level" }
+    ),
+    status: z.object(
+      {
+        id: z.string().min(1, "Status selection is required"),
+        name: z.string().min(1, "Status name is required"),
+        color: z.string().min(1, "Status color is required"),
+      },
+      { required_error: "Please select a task status" }
+    ),
+    assignee: z.object(
+      {
+        id: z.string().min(1, "Assignee selection is required"),
+        name: z.string().min(1, "Assignee name is required"),
+      },
+      { required_error: "Please assign this task to someone" }
+    ),
+    selectedRange: z.object(
+      {
+        from: z.date({ required_error: "Start date is required" }),
+        to: z.date({ required_error: "End date is required" }),
+      },
+      { required_error: "Please select a date range for this task" }
+    ),
+    product: z.object(
+      {
+        id: z.string().min(1, "Product selection is required"),
+        name: z.string().min(1, "Product name is required"),
+        color: z.string().min(1, "Product color is required"),
+      },
+      { required_error: "Please select a product" }
+    ),
+    team: z.object(
+      {
+        id: z.string().min(1, "Team selection is required"),
+        name: z.string().min(1, "Team name is required"),
+        color: z.string().min(1, "Team color is required"),
+      },
+      { required_error: "Please select a team" }
+    ),
+    folder: z.object(
+      {
+        id: z.string().min(1, "Folder selection is required"),
+        name: z.string().min(1, "Folder name is required"),
+        color: z.string().min(1, "Folder color is required"),
+      },
+      { required_error: "Please select a folder to organize this task" }
+    ),
+    lists: z
+      .array(
+        z.object({
+          id: z.string().min(1, "List ID is required"),
+          name: z.string().min(1, "List name is required"),
+        })
+      )
+      .min(1, "Please select at least one list for this task"),
+    description: z.string().optional(),
+    ...customFields.reduce((schema, field) => {
+      let fieldValidation;
+
+      switch (field.field_type) {
+        case "text":
+        case "text-area":
+        case "single-select":
+        case "radio":
+          fieldValidation = z
+            .string()
+            .min(1, `${field.field_name} is required`);
+          break;
+
+        case "number":
+          fieldValidation = z
+            .number()
+            .min(0, `${field.field_name} is required`);
+          break;
+
+        case "multiple-select":
+        case "checkbox":
+          fieldValidation = z
+            .array(z.string())
+            .min(1, `${field.field_name} is required`);
+          break;
+
+        default:
+          fieldValidation = z.any();
+      }
+
+      schema[field.id_field] = field.is_mandatory
+        ? fieldValidation
+        : fieldValidation.optional();
+
+      return schema;
+    }, {}),
   });
 
   const {
@@ -452,6 +566,7 @@ export function TaskCreateModal({
                   )}
                 />
               </div>
+
               <div className="flex-1">
                 <label className="block text-sm font-medium">Status</label>
                 <Controller
@@ -629,6 +744,7 @@ export function TaskCreateModal({
                   )}
                 />
               </div>
+              
               <div className="flex-1">
                 <label className="block text-sm font-medium">Lists</label>
                 <Controller
@@ -653,6 +769,16 @@ export function TaskCreateModal({
                 />
               </div>
             </div>
+
+            {/* Custom Fields */}
+            <CustomFields
+              customFields={customFields}
+              setCustomFieldValues={setCustomFieldValues}
+              customFieldValues={customFieldValues}
+              control={control}
+              errors={errors}
+              watch={watch}
+            />
 
             {/* Description */}
             <div>
@@ -700,78 +826,3 @@ export function TaskCreateModal({
     </div>
   );
 }
-
-const formSchema = z.object({
-  taskName: z.string().min(1, "Task name is required and cannot be empty"),
-  taskType: z.object(
-    {
-      id: z.string().min(1, "Task type selection is required"),
-      name: z.string().min(1, "Task type name is required"),
-      color: z.string().min(1, "Task type color is required"),
-    },
-    { required_error: "Please select a task type" }
-  ),
-  priority: z.object(
-    {
-      id: z.string().min(1, "Priority selection is required"),
-      name: z.string().min(1, "Priority name is required"),
-      color: z.string().min(1, "Priority color is required"),
-    },
-    { required_error: "Please select a priority level" }
-  ),
-  status: z.object(
-    {
-      id: z.string().min(1, "Status selection is required"),
-      name: z.string().min(1, "Status name is required"),
-      color: z.string().min(1, "Status color is required"),
-    },
-    { required_error: "Please select a task status" }
-  ),
-  assignee: z.object(
-    {
-      id: z.string().min(1, "Assignee selection is required"),
-      name: z.string().min(1, "Assignee name is required"),
-    },
-    { required_error: "Please assign this task to someone" }
-  ),
-  selectedRange: z.object(
-    {
-      from: z.date({ required_error: "Start date is required" }),
-      to: z.date({ required_error: "End date is required" }),
-    },
-    { required_error: "Please select a date range for this task" }
-  ),
-  product: z.object(
-    {
-      id: z.string().min(1, "Product selection is required"),
-      name: z.string().min(1, "Product name is required"),
-      color: z.string().min(1, "Product color is required"),
-    },
-    { required_error: "Please select a product" }
-  ),
-  team: z.object(
-    {
-      id: z.string().min(1, "Team selection is required"),
-      name: z.string().min(1, "Team name is required"),
-      color: z.string().min(1, "Team color is required"),
-    },
-    { required_error: "Please select a team" }
-  ),
-  folder: z.object(
-    {
-      id: z.string().min(1, "Folder selection is required"),
-      name: z.string().min(1, "Folder name is required"),
-      color: z.string().min(1, "Folder color is required"),
-    },
-    { required_error: "Please select a folder to organize this task" }
-  ),
-  lists: z
-    .array(
-      z.object({
-        id: z.string().min(1, "List ID is required"),
-        name: z.string().min(1, "List name is required"),
-      })
-    )
-    .min(1, "Please select at least one list for this task"),
-  description: z.string().optional(),
-});
