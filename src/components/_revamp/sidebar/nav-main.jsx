@@ -267,7 +267,7 @@ export function NavMain() {
                   <Users />
                   <span
                     onClick={() => navigateTo('team', team.id_team)}
-                    className="hover:text-blue-500 hover:cursor-pointer"
+                    className="hover:text-blue-500 hover:cursor-pointer line-clamp-1"
                   >
                     {team.name}
                   </span>
