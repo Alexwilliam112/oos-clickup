@@ -18,6 +18,8 @@ import {
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { masterService, taskService, workspaceService } from '@/service/index.mjs'
+import { generateChildren } from '@/lib/utils'
+import { Skeleton } from '../ui/skeleton'
 
 export function ListView() {
   const params = useSearchParams()
@@ -162,7 +164,7 @@ export function ListView() {
   })
 
   const filteredTasks = filterTasksByName(
-    tasksData || [],
+    generateChildren(tasksData || []),
     search,
     statusFilter,
     assigneeFilter,
@@ -231,31 +233,30 @@ export function ListView() {
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
-      <React.Fragment key={task.id_task}>
-        <Task
-          level={level}
-          task={task}
-          fetchTasks={fetchTasks}
-          renderTasks={renderTasks}
-          tasks={tasks}
-          setTasks={setTasks}
-          initialValues={{
-            team,
-            folder,
-            lists,
-          }}
-          selectData={{
-            indexTaskType,
-            indexStatus,
-            indexPriority,
-            indexProduct,
-            indexMember,
-            indexTeam,
-            indexFolder,
-            indexList,
-          }}
-        />
-      </React.Fragment>
+      <Task
+        key={task.id_task}
+        level={level}
+        task={task}
+        fetchTasks={fetchTasks}
+        renderTasks={renderTasks}
+        tasks={tasks}
+        setTasks={setTasks}
+        initialValues={{
+          team,
+          folder,
+          lists,
+        }}
+        selectData={{
+          indexTaskType,
+          indexStatus,
+          indexPriority,
+          indexProduct,
+          indexMember,
+          indexTeam,
+          indexFolder,
+          indexList,
+        }}
+      />
     ))
 
   return (
@@ -359,66 +360,70 @@ export function ListView() {
         </Select>
       </div>
 
-      <div className="flex">
-        <ScrollArea type="always" className="w-1 flex-1">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {/* <TableHead
+      <div className="flex flex-1 w-full h-full">
+        {tasksLoading ? (
+          <Skeleton className="w-full h-full" />
+        ) : (
+          <ScrollArea type="always" className="w-1 flex-1">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {/* <TableHead
                   className="p-2 min-w-[50px] bg-muted"
                   style={{ position: "sticky", left: 0, zIndex: 30 }}
                 ></TableHead> */}
-                <TableHead
-                  className="p-2 min-w-[255px] bg-muted "
-                  // style={{ position: "sticky", left: 50, zIndex: 30 }}
-                >
-                  Task Name
-                </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Created</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Task Type</TableHead>
-                <TableHead className="p-2 min-w-[150px] bg-muted">Assignee</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Start Date</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Due Date</TableHead>
-                <TableHead className="p-2 min-w-[100px] bg-muted">Priority</TableHead>
-                <TableHead className="p-2 min-w-[130px] bg-muted">Status</TableHead>
-                <TableHead className="p-2 min-w-[160px] bg-muted">Lists</TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">Product</TableHead>
-                <TableHead className="p-2 min-w-[190px] bg-muted">Team</TableHead>
-                <TableHead className="p-2 min-w-[100px] text-right bg-muted">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTasks.map((task, idx) => (
-                <React.Fragment key={task.id_task}>
-                  <Task
-                    level={idx}
-                    task={task}
-                    fetchTasks={fetchTasks}
-                    renderTasks={renderTasks}
-                    tasks={tasks}
-                    setTasks={setTasks}
-                    initialValues={{
-                      team,
-                      folder,
-                      lists,
-                    }}
-                    selectData={{
-                      indexTaskType,
-                      indexStatus,
-                      indexPriority,
-                      indexProduct,
-                      indexMember,
-                      indexTeam,
-                      indexFolder,
-                      indexList,
-                    }}
-                  />
-                </React.Fragment>
-              ))}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" className="w-full" />
-        </ScrollArea>
+                  <TableHead
+                    className="p-2 min-w-[255px] bg-muted "
+                    // style={{ position: "sticky", left: 50, zIndex: 30 }}
+                  >
+                    Task Name
+                  </TableHead>
+                  <TableHead className="p-2 min-w-[120px] bg-muted">Created</TableHead>
+                  <TableHead className="p-2 min-w-[120px] bg-muted">Task Type</TableHead>
+                  <TableHead className="p-2 min-w-[150px] bg-muted">Assignee</TableHead>
+                  <TableHead className="p-2 min-w-[120px] bg-muted">Start Date</TableHead>
+                  <TableHead className="p-2 min-w-[120px] bg-muted">Due Date</TableHead>
+                  <TableHead className="p-2 min-w-[100px] bg-muted">Priority</TableHead>
+                  <TableHead className="p-2 min-w-[130px] bg-muted">Status</TableHead>
+                  <TableHead className="p-2 min-w-[160px] bg-muted">Lists</TableHead>
+                  <TableHead className="p-2 min-w-[120px] bg-muted">Product</TableHead>
+                  <TableHead className="p-2 min-w-[190px] bg-muted">Team</TableHead>
+                  <TableHead className="p-2 min-w-[100px] text-right bg-muted">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTasks.map((task, idx) => (
+                  <React.Fragment key={task.id_task}>
+                    <Task
+                      level={idx}
+                      task={task}
+                      fetchTasks={fetchTasks}
+                      renderTasks={renderTasks}
+                      tasks={tasks}
+                      setTasks={setTasks}
+                      initialValues={{
+                        team,
+                        folder,
+                        lists,
+                      }}
+                      selectData={{
+                        indexTaskType,
+                        indexStatus,
+                        indexPriority,
+                        indexProduct,
+                        indexMember,
+                        indexTeam,
+                        indexFolder,
+                        indexList,
+                      }}
+                    />
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+            <ScrollBar orientation="horizontal" className="w-full" />
+          </ScrollArea>
+        )}
       </div>
     </>
   )
