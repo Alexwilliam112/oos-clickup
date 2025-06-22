@@ -1,15 +1,13 @@
 'use client'
+
 import './globals.css'
 import { useState, useEffect } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import QueryClient from './query-client'
-import { SidebarNav } from '@/components/sidebar'
-import { SidebarProvider } from '@/components/ui/sidebar'
 import { useUserStore } from '@/store/user/userStore'
 import UnauthorizedPage from '@/components/unauthorized/UnauthorizedPage'
 import { authService } from '@/service/auth/auth-me.mjs'
-import { useQuery } from '@tanstack/react-query'
 import Sidebar from '@/components/_revamp/sidebar/sidebar'
 
 const geistSans = Geist({
@@ -24,16 +22,30 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const token = searchParams.get('token')
+
   const userId = useUserStore((state) => state.user_id)
   const setUserId = useUserStore((state) => state.setUserId)
+
   const [isReady, setIsReady] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
+
   useEffect(() => {
+    const removeSearchParam = (paramToRemove) => {
+      // Get current query object
+      const { pathname, query } = router
+
+      // Create new query object without the parameter
+      const newQuery = { ...query }
+      delete newQuery[paramToRemove]
+
+      // Replace URL without adding to history
+      router.replace({ pathname, query: newQuery }, undefined, { shallow: true })
+    }
+
     if (userId) {
-      const url = new URL(window.location.href)
-      url.searchParams.delete('token')
-      window.history.replaceState({}, '', url.toString())
+      removeSearchParam('token')
       setIsReady(true)
       return
     } else {
@@ -48,9 +60,7 @@ export default function RootLayout({ children }) {
             throw new Error('Invalid token')
           }
           setUserId(res.user_id)
-          const url = new URL(window.location.href)
-          url.searchParams.delete('token')
-          window.history.replaceState({}, '', url.toString())
+          removeSearchParam('token')
           setIsReady(true)
         } catch (err) {
           console.error('Unauthorized:', err)
