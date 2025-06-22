@@ -1,54 +1,18 @@
-"use client";
+'use client'
 
-import React, { useEffect, useState } from "react";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListFilter } from "lucide-react";
-import { Overview } from "./tabs/overview";
-import { Board } from "./tabs/board";
-import { ListView } from "./tabs/list";
-import { CalendarView } from "./tabs/calendar";
-import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { workspaceService } from "@/service/index.mjs";
+import React from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ListFilter } from 'lucide-react'
+import { Overview } from './tabs/overview'
+import { Board } from './tabs/board'
+import { ListView } from './tabs/list'
+import { CalendarView } from './tabs/calendar'
+import { useSearchParams } from 'next/navigation'
 
 export function Dashboard() {
-  const params = useSearchParams();
+  const params = useSearchParams()
 
-  const [title, setTitle] = useState("Team Space");
-  const [subtitle, setSubtitle] = useState("Placeholder for subtitle");
-  const [path, setPath] = useState([]);
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-
-  const workspaceId = params.get("workspace_id");
-  const page = params.get("page");
-  const paramId = params.get("param_id");
-
-  useEffect(() => {
-    const fetchPageInfo = async () => {
-      if (workspaceId && page && paramId) {
-        try {
-          const response = await fetch(
-            `${baseUrl}/page-info?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-          );
-          const data = await response.json();
-
-          if (data.code === 200 && !data.error) {
-            setTitle(data.data.title || "Page Title");
-            setSubtitle(data.data.subtitle || "Path to Page");
-            setPath(data.data.path || "Placeholder for path");
-          } else {
-            console.error("Failed to fetch page info:", data.message);
-          }
-        } catch (error) {
-          console.error("Error fetching page info:", error);
-        }
-      }
-    };
-
-    fetchPageInfo();
-  }, []);
+  const page = params.get('page')
 
   return (
     <Tabs defaultValue="list" className="h-full w-full p-4">
@@ -58,7 +22,7 @@ export function Dashboard() {
           List
         </TabsTrigger>
 
-        {page == "my_tasks" ? (
+        {page == 'my_tasks' ? (
           <></>
         ) : (
           <TabsTrigger value="overview" className="gap-2">
@@ -118,7 +82,7 @@ export function Dashboard() {
           </TabsTrigger>
         )}
 
-        {page == "my_tasks" ? (
+        {page == 'my_tasks' ? (
           <></>
         ) : (
           <TabsTrigger value="info" className="gap-2">
@@ -175,49 +139,5 @@ export function Dashboard() {
         <CalendarView />
       </TabsContent>
     </Tabs>
-    // <SidebarInset>
-    //   <header className="flex h-20 items-center border-b px-4 gap-2">
-    //     <SidebarTrigger />
-    //     <div className="flex items-center gap-4">
-    //       <Avatar className="h-9 w-9 bg-white-500 text-white">
-    //         <AvatarFallback className="bg-purple-700 text-sm">
-    //           {title.slice(0, 2).toUpperCase()}
-    //         </AvatarFallback>
-    //       </Avatar>
-    //       <div className="flex flex-col">
-    //         <div className="flex items-center gap-2">
-    //           <h1 className="text-base sm:text-lg font-medium">{title}</h1>
-    //         </div>
-    //         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-    //           {path.map((item, index) => {
-    //             const params = new URLSearchParams(window.location.search);
-    //             const workspaceId = params.get("workspace_id");
-    //             if (index === path.length - 1) {
-    //               return (
-    //                 <a
-    //                   href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
-    //                   className="text-muted-foreground hover:text-blue-500"
-    //                   key={index}
-    //                 >
-    //                   {item.name}
-    //                 </a>
-    //               );
-    //             } else {
-    //               return (
-    //                 <a
-    //                   href={`/dashboard?workspace_id=${workspaceId}&page=${item.page}&param_id=${item.id}`}
-    //                   className="text-muted-foreground hover:text-blue-500"
-    //                   key={index}
-    //                 >
-    //                   {item.name} /
-    //                 </a>
-    //               );
-    //             }
-    //           })}
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </header>
-    // </SidebarInset>
-  );
+  )
 }
