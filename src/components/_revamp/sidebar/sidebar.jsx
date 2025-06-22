@@ -17,6 +17,7 @@ import { useSearchParams } from 'next/navigation'
 import { Fragment } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import Link from 'next/link'
 
 export default function Sidebar({ children }) {
   const params = useSearchParams()
@@ -73,11 +74,11 @@ export default function Sidebar({ children }) {
                             {path.name}
                           </BreadcrumbPage>
                         ) : (
-                          <BreadcrumbLink
+                          <Link
                             href={`/dashboard?workspace_id=${workspace_id}&page=${path.page}&param_id=${path.id}`}
                           >
                             {path.name}
-                          </BreadcrumbLink>
+                          </Link>
                         )}
                       </BreadcrumbItem>
                       {index + 1 < data.path.length && (
