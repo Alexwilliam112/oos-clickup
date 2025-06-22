@@ -260,45 +260,39 @@ export function ListView() {
     ))
 
   return (
-    <>
-      <div className="min-w-[50px] p-2 flex justify-left">
-        <CreateModalTrigger
-          trigger={
-            <Button
-              variant="outline"
-              size="sm"
-              className="cursor-pointer h-8 w-18 border border-green-500 text-green-600 font-medium rounded-md hover:bg-green-500 hover:text-white transition-colors"
-            >
-              ADD
-              <Plus className="h-4 w-4" />
-            </Button>
-          }
-          modalTitle="Create Task"
-          parentTaskId={'0'}
-          modalSubtitle={''}
-          sidebarContent={<p></p>}
-          fetchTasks={fetchTasks}
-          initialValues={{
-            team,
-            folder,
-            lists,
-          }}
-          selectData={{
-            indexTaskType,
-            indexStatus,
-            indexPriority,
-            indexProduct,
-            indexMember,
-            indexTeam,
-            indexFolder,
-            indexList,
-          }}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />
-      </div>
+    <div className="w-full h-full flex flex-col gap-3">
+      <CreateModalTrigger
+        trigger={
+          <Button variant="outline" size="sm">
+            <Plus />
+            Add
+          </Button>
+        }
+        modalTitle="Create Task"
+        parentTaskId={'0'}
+        modalSubtitle={''}
+        sidebarContent={<p></p>}
+        fetchTasks={fetchTasks}
+        initialValues={{
+          team,
+          folder,
+          lists,
+        }}
+        selectData={{
+          indexTaskType,
+          indexStatus,
+          indexPriority,
+          indexProduct,
+          indexMember,
+          indexTeam,
+          indexFolder,
+          indexList,
+        }}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
 
-      <div className="flex gap-2 py-4">
+      <div className="flex gap-2 ">
         <Input
           type="text"
           placeholder="Search tasks..."
@@ -364,7 +358,7 @@ export function ListView() {
         {tasksLoading ? (
           <Skeleton className="w-full h-full" />
         ) : (
-          <ScrollArea type="always" className="w-1 flex-1">
+          <ScrollArea type="always" className="w-1 flex-1 border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -393,31 +387,30 @@ export function ListView() {
               </TableHeader>
               <TableBody>
                 {filteredTasks.map((task, idx) => (
-                  <React.Fragment key={task.id_task}>
-                    <Task
-                      level={idx}
-                      task={task}
-                      fetchTasks={fetchTasks}
-                      renderTasks={renderTasks}
-                      tasks={tasks}
-                      setTasks={setTasks}
-                      initialValues={{
-                        team,
-                        folder,
-                        lists,
-                      }}
-                      selectData={{
-                        indexTaskType,
-                        indexStatus,
-                        indexPriority,
-                        indexProduct,
-                        indexMember,
-                        indexTeam,
-                        indexFolder,
-                        indexList,
-                      }}
-                    />
-                  </React.Fragment>
+                  <Task
+                    key={task.id_task}
+                    level={idx}
+                    task={task}
+                    fetchTasks={fetchTasks}
+                    renderTasks={renderTasks}
+                    tasks={tasks}
+                    setTasks={setTasks}
+                    initialValues={{
+                      team,
+                      folder,
+                      lists,
+                    }}
+                    selectData={{
+                      indexTaskType,
+                      indexStatus,
+                      indexPriority,
+                      indexProduct,
+                      indexMember,
+                      indexTeam,
+                      indexFolder,
+                      indexList,
+                    }}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -425,6 +418,6 @@ export function ListView() {
           </ScrollArea>
         )}
       </div>
-    </>
+    </div>
   )
 }

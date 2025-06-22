@@ -256,7 +256,7 @@ export default function Task({
 
         <TableCell className="p-2 min-w-[190px]">
           <span
-            className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm"
+            className="text-xs px-2 py-1.5 border border-muted-foreground/20 rounded-sm text-nowrap"
             style={{
               backgroundColor: '#B1D9FF',
               color: getContrastColor('#B1D9FF'),

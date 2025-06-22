@@ -8,6 +8,8 @@ import { Board } from './tabs/board'
 import { ListView } from './tabs/list'
 import { CalendarView } from './tabs/calendar'
 import { useSearchParams } from 'next/navigation'
+import { SquareKanban } from 'lucide-react'
+import { List } from 'lucide-react'
 
 export function Dashboard() {
   const params = useSearchParams()
@@ -16,92 +18,30 @@ export function Dashboard() {
 
   return (
     <Tabs defaultValue="list" className="h-full w-full p-4">
-      <TabsList>
+      <TabsList className="w-full">
         <TabsTrigger value="list" className="gap-2">
-          <ListFilter className="h-4 w-4" />
+          <List className="h-4 w-4" />
           List
         </TabsTrigger>
 
-        {page == 'my_tasks' ? (
+        {/* {page === 'my_tasks' ? (
           <></>
         ) : (
           <TabsTrigger value="overview" className="gap-2">
-            <svg className="h-4 w-4" viewBox="0 0 24 24">
-              <rect
-                width="20"
-                height="20"
-                x="2"
-                y="2"
-                rx="2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <rect
-                width="8"
-                height="8"
-                x="4"
-                y="4"
-                rx="1"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <rect
-                width="8"
-                height="8"
-                x="4"
-                y="12"
-                rx="1"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <rect
-                width="8"
-                height="8"
-                x="12"
-                y="4"
-                rx="1"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <rect
-                width="8"
-                height="8"
-                x="12"
-                y="12"
-                rx="1"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
             Overview
           </TabsTrigger>
         )}
 
-        {page == 'my_tasks' ? (
+        {page === 'my_tasks' ? (
           <></>
         ) : (
           <TabsTrigger value="info" className="gap-2">
             General Info
           </TabsTrigger>
-        )}
+        )} */}
 
         <TabsTrigger value="board" className="gap-2">
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <rect x="2" y="3" width="6" height="18" rx="1" />
-            <rect x="9" y="3" width="6" height="10" rx="1" />
-            <rect x="16" y="3" width="6" height="14" rx="1" />
-          </svg>
+          <SquareKanban />
           Board
         </TabsTrigger>
 
