@@ -1,38 +1,41 @@
-'use client'
+"use client";
 
-import { useEffect, useState, lazy, Suspense, useRef, use } from 'react'
-import { X, Plus, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { DateRangePicker } from '@/components/ui/dateRangePicker.jsx'
-import { SingleSelectTag, MultipleSelectTags } from '@/components/ui/tag-input'
-import DynamicFileAttachments from '../ui/dynamicAttachments'
-import { TaskCreateModal } from './createTask'
-const EditorJS = lazy(() => import('@editorjs/editorjs'))
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import SubTaskItem from './sub-task-item'
+import { useEffect, useState, lazy, Suspense, useRef, use } from "react";
+import { X, Plus, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "@/components/ui/dateRangePicker.jsx";
+import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
+import DynamicFileAttachments from "../ui/dynamicAttachments";
+import { TaskCreateModal } from "./createTask";
+const EditorJS = lazy(() => import("@editorjs/editorjs"));
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import SubTaskItem from "./sub-task-item";
+import CustomFields from "./customFields";
 
 export function TaskDetailModalV2({
   isOpen,
   onClose,
-  title = 'Task View',
+  title = "Task View",
   subtitle,
   showSidebar = true,
   sidebarWidth = 420,
   parentTaskId,
   sidebarContent,
+  setTasks,
   selectData,
+  tasks,
   fetchTasks,
   task,
   initialValues,
-  width = 'calc(90vw - 36px)', // Reduced by 10%
-  height = 'calc(90vh - 36px)', // Reduced by 10%
+  width = "calc(90vw - 36px)", // Reduced by 10%
+  height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
+  const [isVisible, setIsVisible] = useState(false);
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
   const {
     indexTaskType,
     indexStatus,
@@ -42,39 +45,132 @@ export function TaskDetailModalV2({
     indexTeam,
     indexFolder,
     indexList,
-  } = selectData
+  } = selectData;
 
-  const EDITOR_JS_ID = `editorjs-${task.id_task}`
+  const EDITOR_JS_ID = `editorjs-${task.id_task}`;
+
+  const [customFields, setCustomFields] = useState([]);
+  const [customFieldValues, setCustomFieldValues] = useState([]);
 
   // Task fields state
-  const [taskName, setTaskName] = useState('')
-  const [taskType, setTaskType] = useState(null)
-  const [assignee, setAssignee] = useState(null)
-  const [priority, setPriority] = useState('')
-  const [status, setStatus] = useState(null)
-  const [lists, setLists] = useState([])
-  const [folder, setFolder] = useState(null)
-  const [product, setProduct] = useState(null)
-  const [team, setTeam] = useState(null)
-  const [attachments, setAttachments] = useState([])
+  const [taskName, setTaskName] = useState("");
+  const [taskType, setTaskType] = useState(null);
+  const [assignee, setAssignee] = useState(null);
+  const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState(null);
+  const [lists, setLists] = useState([]);
+  const [folder, setFolder] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [team, setTeam] = useState(null);
+  const [attachments, setAttachments] = useState([]);
   const [selectedRange, setSelectedRange] = useState({
     from: null,
     to: null,
-  })
-  const [description, setDescription] = useState('')
+  });
+  const [description, setDescription] = useState("");
   // Comment section state
-  const [comments, setComments] = useState([])
-  const [workspaceMembers, setWorkspaceMembers] = useState([])
-  const [newComment, setNewComment] = useState('')
-  const [taggedUsers, setTaggedUsers] = useState([])
-  const [showMemberList, setShowMemberList] = useState(false)
-  const [mentionPosition, setMentionPosition] = useState(0)
+  const [comments, setComments] = useState([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [taggedUsers, setTaggedUsers] = useState([]);
+  const [showMemberList, setShowMemberList] = useState(false);
+  const [mentionPosition, setMentionPosition] = useState(0);
 
   // Sub-tasks state
-  const [subTasks, setSubTasks] = useState([])
-  const [selectedSubTask, setSelectedSubTask] = useState(null)
-  const [isSubTaskModalOpen, setIsSubTaskModalOpen] = useState(false)
-  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] = useState(false)
+  const [subTasks, setSubTasks] = useState([]);
+  const [selectedSubTask, setSelectedSubTask] = useState(null);
+  const [isSubTaskModalOpen, setIsSubTaskModalOpen] = useState(false);
+  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] =
+    useState(false);
+
+  const formSchema = z.object({
+    taskName: z.string().min(1, "Task name is required"),
+    taskType: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    priority: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    status: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    assignee: z.object({
+      id: z.string().min(1, "Assignee is required"),
+      name: z.string(),
+    }),
+    selectedRange: z.object({
+      from: z.date(),
+      to: z.date(),
+    }),
+    product: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    team: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    folder: z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      color: z.string(),
+    }),
+    lists: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+      })
+    ),
+    description: z.string().optional(),
+    customFields: z.object(
+      customFields.reduce((schema, field) => {
+        let fieldValidation;
+
+        // Determine validation based on field type
+        switch (field.field_type) {
+          case "text":
+          case "text-area":
+          case "single-select":
+          case "radio":
+            fieldValidation = z
+              .string()
+              .min(1, `${field.field_name} is required`);
+            break;
+
+          case "number":
+            fieldValidation = z
+              .number()
+              .min(0, `${field.field_name} is required`);
+            break;
+
+          case "multiple-select":
+          case "checkbox":
+            fieldValidation = z
+              .array(z.string())
+              .min(1, `${field.field_name} is required`);
+            break;
+
+          default:
+            fieldValidation = z.any(); // Default to any type if field type is unknown
+        }
+
+        // Apply conditional validation based on is_mandatory
+        schema[field.field_name] = field.is_mandatory
+          ? fieldValidation // Required validation
+          : fieldValidation.optional(); // Optional validation
+
+        return schema;
+      }, {})
+    ),
+  });
 
   const {
     control,
@@ -86,84 +182,106 @@ export function TaskDetailModalV2({
   } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      taskName: '',
+      taskName: "",
       assignee: null,
       lists: [],
     },
-  })
+  });
   useEffect(() => {
     if (task) {
-      setValue('taskName', task.name || '')
-      setValue('assignee', task.assignee_ids || null)
-      setValue('lists', task.list_ids || [])
-      setValue('folder', task.folder_id || null)
-      setValue('product', task.product_id || null)
-      setValue('team', task.team_id || null)
-      setValue('selectedRange', {
+      setValue("taskName", task.name || "");
+      setValue("assignee", task.assignee_ids || null);
+      setValue("lists", task.list_ids || []);
+      setValue("folder", task.folder_id || null);
+      setValue("product", task.product_id || null);
+      setValue("team", task.team_id || null);
+      setValue("selectedRange", {
         from: new Date(task.date_start),
         to: new Date(task.date_end),
-      })
-      setValue('taskType', task.task_type_id || null)
-      setValue('priority', task.priority_id || null)
-      setValue('status', task.status_id || null)
-      setDescription(task.description || '')
-      setAttachments(task.attachments || [])
+      });
+      setValue("taskType", task.task_type_id || null);
+      setValue("priority", task.priority_id || null);
+      setValue("status", task.status_id || null);
+      setDescription(task.description || "");
+      setAttachments(task.attachments || []);
       // Set sub-tasks from task.children
-      setSubTasks(task.children || [])
+      setSubTasks(task.children || []);
     }
-  }, [task])
+  }, [task]);
 
   // Fetch comments for the task
   const fetchComments = async () => {
-    if (!task) return
-    const params = new URLSearchParams(window.location.search)
-    const workspaceId = params.get('workspace_id')
+    if (!task) return;
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
 
     try {
-      const response = await fetch(`${baseUrl}/comment/index?task_id=${task.id_task}`)
-      const data = await response.json()
+      const response = await fetch(
+        `${baseUrl}/comment/index?task_id=${task.id_task}`
+      );
+      const data = await response.json();
       if (!data.error) {
-        setComments(data.data.sort((a, b) => a.created_at - b.created_at))
+        setComments(data.data.sort((a, b) => a.created_at - b.created_at));
       }
     } catch (error) {
-      console.error('Error fetching comments:', error)
+      console.error("Error fetching comments:", error);
     }
-  }
+  };
 
   // Fetch workspace members for tagging
   const fetchWorkspaceMembers = async () => {
-    const params = new URLSearchParams(window.location.search)
-    const workspaceId = params.get('workspace_id')
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
 
     try {
-      const response = await fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
-      const data = await response.json()
+      const response = await fetch(
+        `${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`
+      );
+      const data = await response.json();
       if (!data.error) {
-        setWorkspaceMembers(data.data)
+        setWorkspaceMembers(data.data);
       }
     } catch (error) {
-      console.error('Error fetching workspace members:', error)
+      console.error("Error fetching workspace members:", error);
     }
-  }
+  };
+
+  //Fetch custom field template
+  const fetchCustomFields = async () => {
+    try {
+      const response = await fetch(
+        `${baseUrl}/task/custom-fields?task_type_id=${task.task_type_id.id}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch custom fields.");
+      }
+      const data = await response.json();
+      console.log("Custom fields fetched successfully:", data);
+      setCustomFields(data.data || []);
+    } catch (error) {
+      console.error("Error fetching custom fields:", error);
+    }
+  };
 
   useEffect(() => {
     if (task && isOpen) {
-      console.log(task)
-      fetchComments()
-      fetchWorkspaceMembers()
+      console.log(task);
+      fetchComments();
+      fetchWorkspaceMembers();
+      fetchCustomFields();
     }
-  }, [task, isOpen])
+  }, [task, isOpen]);
 
-  const editorRef = useRef(null)
+  const editorRef = useRef(null);
   useEffect(() => {
     async function initEditor() {
-      const editorElement = document.getElementById(EDITOR_JS_ID)
+      const editorElement = document.getElementById(EDITOR_JS_ID);
       if (!editorElement) {
-        console.error('EditorJS element is missing')
-        return
+        console.error("EditorJS element is missing");
+        return;
       }
 
-      const EditorJSModule = (await import('@editorjs/editorjs')).default
+      const EditorJSModule = (await import("@editorjs/editorjs")).default;
       const [
         Header,
         List,
@@ -177,32 +295,32 @@ export function TaskDetailModalV2({
         TextVariantTune,
         Checklist,
       ] = await Promise.all([
-        import('@editorjs/header').then((m) => m.default),
-        import('@editorjs/list').then((m) => m.default),
-        import('@editorjs/table').then((m) => m.default),
-        import('@editorjs/quote').then((m) => m.default),
-        import('@editorjs/embed').then((m) => m.default),
-        import('@editorjs/simple-image').then((m) => m.default),
-        import('@editorjs/marker').then((m) => m.default),
-        import('@editorjs/inline-code').then((m) => m.default),
-        import('editorjs-text-color-plugin').then((m) => m.default),
-        import('@editorjs/text-variant-tune').then((m) => m.default),
-        import('@editorjs/checklist').then((m) => m.default),
-      ])
+        import("@editorjs/header").then((m) => m.default),
+        import("@editorjs/list").then((m) => m.default),
+        import("@editorjs/table").then((m) => m.default),
+        import("@editorjs/quote").then((m) => m.default),
+        import("@editorjs/embed").then((m) => m.default),
+        import("@editorjs/simple-image").then((m) => m.default),
+        import("@editorjs/marker").then((m) => m.default),
+        import("@editorjs/inline-code").then((m) => m.default),
+        import("editorjs-text-color-plugin").then((m) => m.default),
+        import("@editorjs/text-variant-tune").then((m) => m.default),
+        import("@editorjs/checklist").then((m) => m.default),
+      ]);
 
       const editor = new EditorJSModule({
         holder: EDITOR_JS_ID,
-        placeholder: 'Write something...',
+        placeholder: "Write something...",
         tools: {
           header: {
             class: Header,
             inlineToolbar: true,
             config: {
-              placeholder: 'Enter a header',
+              placeholder: "Enter a header",
               levels: [1, 2, 3, 4],
               defaultLevel: 1,
             },
-            tunes: ['textVariantTune'],
+            tunes: ["textVariantTune"],
           },
           list: { class: List, inlineToolbar: true },
           table: { class: Table, inlineToolbar: true },
@@ -216,71 +334,77 @@ export function TaskDetailModalV2({
             },
           },
           image: { class: SimpleImage, inlineToolbar: true },
-          marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
-          inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
+          marker: { class: Marker, shortcut: "CMD+SHIFT+M" },
+          inlineCode: { class: InlineCode, shortcut: "CMD+SHIFT+C" },
           textVariantTune: {
             class: TextVariantTune,
             config: {
-              types: ['primary', 'secondary', 'info', 'success', 'warning', 'danger'],
+              types: [
+                "primary",
+                "secondary",
+                "info",
+                "success",
+                "warning",
+                "danger",
+              ],
             },
           },
         },
         data: task.description || { blocks: [] },
-      })
+      });
 
-      editorRef.current = editor
+      editorRef.current = editor;
     }
 
     if (isOpen) {
-      setIsVisible(true)
-      document.body.style.overflow = 'hidden'
+      setIsVisible(true);
+      document.body.style.overflow = "hidden";
 
       setTimeout(() => {
         if (!editorRef.current) {
-          initEditor()
+          initEditor();
         }
-      }, 0) // Ensure DOM is rendered before initializing
+      }, 0); // Ensure DOM is rendered before initializing
     } else {
       setTimeout(() => {
-        setIsVisible(false)
+        setIsVisible(false);
         if (editorRef.current) {
-          editorRef.current.destroy()
-          editorRef.current = null
+          editorRef.current.destroy();
+          editorRef.current = null;
         }
-        document.body.style.overflow = ''
-      }, 300) // Match modal close animation duration
+        document.body.style.overflow = "";
+      }, 300); // Match modal close animation duration
     }
 
     return () => {
       if (editorRef.current) {
-        editorRef.current.destroy()
-        editorRef.current = null
+        editorRef.current.destroy();
+        editorRef.current = null;
       }
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === "Escape" && isOpen) {
+        onClose();
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
-  const getBorderColor = (fieldName) => (errors[fieldName] ? 'border-red-500' : 'border-gray-300')
+  const getBorderColor = (fieldName) =>
+    errors[fieldName] ? "border-red-500" : "border-gray-300";
 
-  if (!isVisible) return null
-
-  const handleFileUpload = (e) => {
-    setAttachments([...attachments, ...e.target.files])
-  }
+  if (!isVisible) return null;
 
   const onSubmit = async (values) => {
-    const descriptionData = editorRef.current ? await editorRef.current.save() : {}
+    const descriptionData = editorRef.current
+      ? await editorRef.current.save()
+      : {};
 
     const taskData = {
       name: values.taskName,
@@ -297,218 +421,250 @@ export function TaskDetailModalV2({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
-    }
+      custom_fields: values.customFields,
+    };
 
-    setTaskName('')
-    setTaskType(null)
-    setAssignee(null)
-    setSelectedRange({ from: null, to: null })
-    setPriority(null)
-    setStatus(null)
-    setLists([])
-    setFolder(null)
-    setProduct(null)
-    setTeam(null)
-    setAttachments([])
+    setTaskName("");
+    setTaskType(null);
+    setAssignee(null);
+    setSelectedRange({ from: null, to: null });
+    setPriority(null);
+    setStatus(null);
+    setLists([]);
+    setFolder(null);
+    setProduct(null);
+    setTeam(null);
+    setAttachments([]);
 
-    reset()
+    reset();
 
-    const params = new URLSearchParams(window.location.search)
-    const workspaceId = params.get('workspace_id')
-    const page = params.get('page')
-    const paramId = params.get('param_id')
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+    const page = params.get("page");
+    const paramId = params.get("param_id");
 
-    fetch(`${baseUrl}/task/update?workspace_id=${workspaceId}&task_id=${task.id_task}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(taskData),
-    })
+    fetch(
+      `${baseUrl}/task/update?workspace_id=${workspaceId}&task_id=${task.id_task}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+      }
+    )
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to create task.')
+          throw new Error("Failed to create task.");
         }
-        return response.json()
+        return response.json();
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || 'Failed to create task.')
+          throw new Error(data.message || "Failed to create task.");
         }
-        console.log('Task created successfully:', data)
-        const task = data?.data
-        setValue('taskName', task.name || '')
-        setValue('assignee', task.assignee_ids || null)
-        setValue('lists', task.list_ids || [])
-        setValue('folder', task.folder_id || null)
-        setValue('product', task.product_id || null)
-        setValue('team', task.team_id || null)
-        setValue('selectedRange', {
+        const task = data?.data;
+        setValue("taskName", task.name || "");
+        setValue("assignee", task.assignee_ids || null);
+        setValue("lists", task.list_ids || []);
+        setValue("folder", task.folder_id || null);
+        setValue("product", task.product_id || null);
+        setValue("team", task.team_id || null);
+        setValue("selectedRange", {
           from: new Date(task.date_start),
           to: new Date(task.date_end),
-        })
-        setValue('taskType', task.task_type_id || null)
-        setValue('priority', task.priority_id || null)
-        setValue('status', task.status_id || null)
-        setDescription(task.description || '')
-        setAttachments(task.attachments || [])
+        });
+        setValue("taskType", task.task_type_id || null);
+        setValue("priority", task.priority_id || null);
+        setValue("status", task.status_id || null);
+        setDescription(task.description || "");
+        setAttachments(task.attachments || []);
+        fetchTasks();
+
+        // const newTasks = (tasks) => {
+        //   console.log("===============================", tasks)
+        //   const updatedTasks = tasks.map((t) =>
+        //     t.id_task === task.id_task ? task : t
+        //   );
+        //   return [...updatedTasks];
+        // }
+        // setTasks(newTasks(tasks));
       })
       .catch((error) => {
-        console.error('Error creating task:', error)
-      })
+        console.error("Error creating task:", error);
+      });
 
-    // Close modal    fetchTasks();
-    onClose()
-  }
+    // Close modal
+    onClose();
+  };
 
   const handleCommentChange = (e) => {
-    const value = e.target.value
-    setNewComment(value) // Extract all @mentions from the text and find matching members
+    const value = e.target.value;
+    setNewComment(value); // Extract all @mentions from the text and find matching members
     // Improved regex to match @mentions more reliably
-    const mentions = value.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || []
-    const taggedUserIds = []
+    const mentions = value.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+    const taggedUserIds = [];
 
     // Also check for exact member name matches in the text
     workspaceMembers.forEach((member) => {
       const memberMentionPattern = new RegExp(
-        `@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`,
-        'gi'
-      )
-      if (memberMentionPattern.test(value) && !taggedUserIds.includes(member.id)) {
-        taggedUserIds.push(member.id)
+        `@${member.name.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&"
+        )}(?=\\s|$|[^\\w\\s])`,
+        "gi"
+      );
+      if (
+        memberMentionPattern.test(value) &&
+        !taggedUserIds.includes(member.id)
+      ) {
+        taggedUserIds.push(member.id);
       }
-    })
+    });
 
     // Also process the regex matches
     mentions.forEach((mention) => {
-      const username = mention.slice(1).trim() // Remove @ and trim whitespace
-      const member = workspaceMembers.find((m) => m.name.toLowerCase() === username.toLowerCase())
+      const username = mention.slice(1).trim(); // Remove @ and trim whitespace
+      const member = workspaceMembers.find(
+        (m) => m.name.toLowerCase() === username.toLowerCase()
+      );
       if (member && !taggedUserIds.includes(member.id)) {
-        taggedUserIds.push(member.id)
+        taggedUserIds.push(member.id);
       }
-    })
+    });
 
     // Only update tagged users if they actually exist in the text
-    setTaggedUsers(taggedUserIds) // Check for active @ mentions (show dropdown)
-    const cursorPos = e.target.selectionStart
-    const textBeforeCursor = value.substring(0, cursorPos)
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+    setTaggedUsers(taggedUserIds); // Check for active @ mentions (show dropdown)
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
     if (lastAtIndex !== -1) {
-      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
 
       // Simple rule: only show dropdown if we're actively typing a mention
       // (@ followed by word characters, no spaces, and cursor is right after the typing)
       const isActiveMention =
-        /^[\w]*$/.test(textAfterAt) && cursorPos === lastAtIndex + 1 + textAfterAt.length
+        /^[\w]*$/.test(textAfterAt) &&
+        cursorPos === lastAtIndex + 1 + textAfterAt.length;
 
       if (isActiveMention) {
-        setShowMemberList(true)
-        setMentionPosition(lastAtIndex)
+        setShowMemberList(true);
+        setMentionPosition(lastAtIndex);
       } else {
-        setShowMemberList(false)
+        setShowMemberList(false);
       }
     } else {
-      setShowMemberList(false)
+      setShowMemberList(false);
     }
-  }
+  };
 
   const handleMemberSelect = (member) => {
-    const textarea = document.querySelector('textarea[placeholder*="comment"]')
-    if (!textarea) return
+    const textarea = document.querySelector('textarea[placeholder*="comment"]');
+    if (!textarea) return;
 
-    const cursorPos = textarea.selectionStart
-    const textBeforeCursor = newComment.substring(0, cursorPos)
-    const textAfterCursor = newComment.substring(cursorPos)
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = newComment.substring(0, cursorPos);
+    const textAfterCursor = newComment.substring(cursorPos);
 
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
-    if (lastAtIndex === -1) return
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
+    if (lastAtIndex === -1) return;
 
     // Get the text after @ that we're replacing
-    const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
-    const beforeMention = textBeforeCursor.substring(0, lastAtIndex)
+    const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+    const beforeMention = textBeforeCursor.substring(0, lastAtIndex);
 
     // Create new value with the mention
-    const newValue = `${beforeMention}@${member.name} ${textAfterCursor}`
+    const newValue = `${beforeMention}@${member.name} ${textAfterCursor}`;
 
     // Calculate new cursor position (after @MemberName and the space)
-    const newCursorPos = beforeMention.length + member.name.length + 2 // +2 for @ and space
+    const newCursorPos = beforeMention.length + member.name.length + 2; // +2 for @ and space
 
     // Update state
-    setNewComment(newValue)
-    setShowMemberList(false) // Immediately update tagged users after selecting a member
-    const mentions = newValue.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || []
-    const updatedTaggedUserIds = []
+    setNewComment(newValue);
+    setShowMemberList(false); // Immediately update tagged users after selecting a member
+    const mentions = newValue.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || [];
+    const updatedTaggedUserIds = [];
 
     // Also check for exact member name matches in the text
     workspaceMembers.forEach((member) => {
       const memberMentionPattern = new RegExp(
-        `@${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=\\s|$|[^\\w\\s])`,
-        'gi'
-      )
-      if (memberMentionPattern.test(newValue) && !updatedTaggedUserIds.includes(member.id)) {
-        updatedTaggedUserIds.push(member.id)
+        `@${member.name.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&"
+        )}(?=\\s|$|[^\\w\\s])`,
+        "gi"
+      );
+      if (
+        memberMentionPattern.test(newValue) &&
+        !updatedTaggedUserIds.includes(member.id)
+      ) {
+        updatedTaggedUserIds.push(member.id);
       }
-    })
+    });
 
     // Also process the regex matches
     mentions.forEach((mention) => {
-      const username = mention.slice(1).trim() // Remove @ and trim whitespace
+      const username = mention.slice(1).trim(); // Remove @ and trim whitespace
       const foundMember = workspaceMembers.find(
         (m) => m.name.toLowerCase() === username.toLowerCase()
-      )
+      );
       if (foundMember && !updatedTaggedUserIds.includes(foundMember.id)) {
-        updatedTaggedUserIds.push(foundMember.id)
+        updatedTaggedUserIds.push(foundMember.id);
       }
-    })
+    });
 
-    setTaggedUsers(updatedTaggedUserIds)
+    setTaggedUsers(updatedTaggedUserIds);
 
     // Use requestAnimationFrame for better timing
     requestAnimationFrame(() => {
       // Make sure textarea is focused and cursor is positioned correctly
-      textarea.focus()
-      textarea.setSelectionRange(newCursorPos, newCursorPos)
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
 
       // Trigger input event to ensure React state is synchronized
-      const event = new Event('input', { bubbles: true })
-      textarea.dispatchEvent(event)
-    })
-  }
+      const event = new Event("input", { bubbles: true });
+      textarea.dispatchEvent(event);
+    });
+  };
 
   // Filter members based on current search
   const getFilteredMembers = () => {
-    if (!showMemberList) return []
+    if (!showMemberList) return [];
 
-    const textarea = document.querySelector('textarea')
-    if (!textarea) return workspaceMembers
+    const textarea = document.querySelector("textarea");
+    if (!textarea) return workspaceMembers;
 
-    const cursorPos = textarea.selectionStart
-    const textBeforeCursor = newComment.substring(0, cursorPos)
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = newComment.substring(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
-    if (lastAtIndex === -1) return workspaceMembers
+    if (lastAtIndex === -1) return workspaceMembers;
 
-    const searchTerm = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase()
+    const searchTerm = textBeforeCursor
+      .substring(lastAtIndex + 1)
+      .toLowerCase();
 
-    if (searchTerm === '') return workspaceMembers
+    if (searchTerm === "") return workspaceMembers;
 
-    return workspaceMembers.filter((member) => member.name.toLowerCase().includes(searchTerm))
-  }
+    return workspaceMembers.filter((member) =>
+      member.name.toLowerCase().includes(searchTerm)
+    );
+  };
 
   const handleCommentSubmit = async () => {
-    if (!newComment.trim()) return
+    if (!newComment.trim()) return;
 
-    const params = new URLSearchParams(window.location.search)
-    const workspaceId = params.get('workspace_id')
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
 
     try {
       const response = await fetch(
         `${baseUrl}/comment/create?workspace_id=${workspaceId}&task_id=${task.id_task}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             content: newComment,
@@ -516,63 +672,63 @@ export function TaskDetailModalV2({
             tagged_user_ids: taggedUsers,
           }),
         }
-      )
+      );
 
-      const data = await response.json()
+      const data = await response.json();
       if (!data.error) {
-        setNewComment('')
-        setTaggedUsers([])
-        fetchComments() // Refresh comments
+        setNewComment("");
+        setTaggedUsers([]);
+        fetchComments(); // Refresh comments
       }
     } catch (error) {
-      console.error('Error creating comment:', error)
+      console.error("Error creating comment:", error);
     }
-  }
+  };
 
   const formatTimestamp = (timestamp) => {
-    return new Date(timestamp).toLocaleString()
-  }
+    return new Date(timestamp).toLocaleString();
+  };
   // Sub-task handlers
   const handleSubTaskClick = (subTask) => {
-    setSelectedSubTask(subTask)
-    setIsSubTaskModalOpen(true)
-  }
+    setSelectedSubTask(subTask);
+    setIsSubTaskModalOpen(true);
+  };
 
   const handleCreateSubTask = () => {
-    setIsCreateSubTaskModalOpen(true)
-  }
+    setIsCreateSubTaskModalOpen(true);
+  };
 
   const handleSubTaskCreated = () => {
     // Refresh the task data to get updated sub-tasks
     if (fetchTasks) {
-      fetchTasks()
+      fetchTasks();
     }
-    setIsCreateSubTaskModalOpen(false)
-  }
+    setIsCreateSubTaskModalOpen(false);
+  };
 
   const getUserName = (userId) => {
-    const member = workspaceMembers.find((m) => m.id === userId)
-    return member ? member.name : `User ${userId}`
-  }
+    const member = workspaceMembers.find((m) => m.id === userId);
+    return member ? member.name : `User ${userId}`;
+  };
 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 transition-opacity duration-300',
-        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        "fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 transition-opacity duration-300",
+        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
       onClick={onClose}
     >
       <div
         className={cn(
-          'bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform',
-          isOpen ? 'scale-100' : 'scale-95'
+          "bg-white rounded-lg shadow-xl flex flex-col transition-all duration-300 transform",
+          isOpen ? "scale-100" : "scale-95"
         )}
         style={{
           width,
           height,
-          maxWidth: 'calc(90vw - 36px)', // Reduced by 10%
-          maxHeight: 'calc(90vh - 36px)', // Reduced by 10%
+          maxWidth: "calc(90vw - 36px)", // Reduced by 10%
+          maxHeight: "calc(90vh - 36px)", // Reduced by 10%
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -582,16 +738,20 @@ export function TaskDetailModalV2({
             <h2 className="text-lg font-semibold">{title}</h2>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md hover:bg-gray-100"
+            aria-label="Close"
+          >
             <X size={18} />
           </button>
-        </div>{' '}
+        </div>{" "}
         {/* Modal Content */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col lg:flex-row flex-1 overflow-hidden relative"
         >
-          {' '}
+          {" "}
           {/* Sidebar */}
           {showSidebar && (
             <div className="flex-1 lg:max-w-sm xl:max-w-md overflow-auto border-r border-gray-200 bg-gray-50">
@@ -619,7 +779,7 @@ export function TaskDetailModalV2({
                   </div>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="inline-flex items-center px-2 md:px-3 py-1 md:py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                      {subTasks.length} task{subTasks.length !== 1 ? 's' : ''}
+                      {subTasks.length} task{subTasks.length !== 1 ? "s" : ""}
                     </span>
                     <Button
                       type="button"
@@ -634,7 +794,7 @@ export function TaskDetailModalV2({
                     </Button>
                   </div>
                 </div>
-              </div>{' '}
+              </div>{" "}
               <div className="p-3 md:p-4 space-y-2 md:space-y-3">
                 {subTasks.length === 0 ? (
                   <div className="text-center py-6 md:py-8">
@@ -653,7 +813,9 @@ export function TaskDetailModalV2({
                         />
                       </svg>
                     </div>
-                    <h4 className="text-gray-600 text-sm font-medium mb-2">No sub-tasks yet</h4>
+                    <h4 className="text-gray-600 text-sm font-medium mb-2">
+                      No sub-tasks yet
+                    </h4>
                     <p className="text-gray-400 text-xs mb-3 md:mb-4 px-2 md:px-4">
                       Break down this task into smaller, manageable pieces
                     </p>
@@ -666,7 +828,9 @@ export function TaskDetailModalV2({
                     >
                       <Plus size={12} className="mr-1 md:hidden" />
                       <Plus size={14} className="mr-1.5 hidden md:block" />
-                      <span className="hidden md:inline">Create First Sub-task</span>
+                      <span className="hidden md:inline">
+                        Create First Sub-task
+                      </span>
                       <span className="md:hidden">Create First</span>
                     </Button>
                   </div>
@@ -702,16 +866,19 @@ export function TaskDetailModalV2({
                     <div>
                       <Input
                         {...field}
-                        className={`w-full ${getBorderColor('taskName')}`}
+                        className={`w-full ${getBorderColor("taskName")}`}
                         placeholder="Enter task name"
                       />
                       {errors.taskName && (
-                        <p className="text-red-500 text-xs mt-1">{errors.taskName.message}</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.taskName.message}
+                        </p>
                       )}
                     </div>
                   )}
                 />
               </div>
+
               <div className="flex-1">
                 <label className="block text-sm font-medium">Task Type</label>
                 <Controller
@@ -721,19 +888,43 @@ export function TaskDetailModalV2({
                     <div>
                       <SingleSelectTag
                         value={field.value}
-                        onChange={(value) => {
-                          field.onChange({
+                        onChange={async (value) => {
+                          const selectedTaskType = {
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          })
+                          };
+                          field.onChange(selectedTaskType);
+
+                          // Fetch custom fields based on task type
+                          try {
+                            const response = await fetch(
+                              `${baseUrl}/task/custom-fields?task_type_id=${selectedTaskType.id}`
+                            );
+                            if (!response.ok) {
+                              throw new Error("Failed to fetch custom fields.");
+                            }
+                            const data = await response.json();
+                            console.log(
+                              "Custom fields fetched successfully:",
+                              data
+                            );
+                            setCustomFields(data.data || []);
+                          } catch (error) {
+                            console.error(
+                              "Error fetching custom fields:",
+                              error
+                            );
+                          }
                         }}
                         options={indexTaskType}
                         placeholder="Select task type"
-                        className={getBorderColor('taskType')}
+                        className={getBorderColor("taskType")}
                       />
                       {errors.taskType && (
-                        <p className="text-red-500 text-xs mt-1">Task type is required</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          Task type is required
+                        </p>
                       )}
                     </div>
                   )}
@@ -757,14 +948,16 @@ export function TaskDetailModalV2({
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          })
+                          });
                         }}
                         options={indexPriority}
                         placeholder="Select priority"
-                        className={getBorderColor('priority')}
+                        className={getBorderColor("priority")}
                       />
                       {errors.priority && (
-                        <p className="text-red-500 text-xs mt-1">Priority is required</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          Priority is required
+                        </p>
                       )}
                     </div>
                   )}
@@ -788,14 +981,16 @@ export function TaskDetailModalV2({
                               id: value.id_record,
                               name: value.name,
                               color: value.color,
-                            })
+                            });
                           }}
                           options={indexStatus}
                           placeholder="Select status"
-                          className={getBorderColor('status')}
+                          className={getBorderColor("status")}
                         />
                         {errors.status && (
-                          <p className="text-red-500 text-xs mt-1">Status is required</p>
+                          <p className="text-red-500 text-xs mt-1">
+                            Status is required
+                          </p>
                         )}
                       </div>
                     )}
@@ -809,7 +1004,7 @@ export function TaskDetailModalV2({
                     variant="outline"
                     size="sm"
                     className="h-10 w-10 flex items-center gap-2 px-2 py-2 border border-blue-500 text-blue-500 font-medium rounded-md hover:bg-blue-500 hover:text-white transition-colors"
-                    onClick={() => console.log('Next status triggered')}
+                    onClick={() => console.log("Next status triggered")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -819,7 +1014,11 @@ export function TaskDetailModalV2({
                       stroke="currentColor"
                       strokeWidth="2"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3l14 9-14 9V3z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 3l14 9-14 9V3z"
+                      />
                     </svg>
                   </Button>
                 </div>
@@ -839,10 +1038,12 @@ export function TaskDetailModalV2({
                       onChange={(value) => field.onChange(value)}
                       options={indexMember}
                       placeholder="Add assignee"
-                      className={getBorderColor('assignee')}
+                      className={getBorderColor("assignee")}
                     />
                     {errors.assignee && (
-                      <p className="text-red-500 text-xs mt-1">{errors.assignee.message}</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.assignee.message}
+                      </p>
                     )}
                   </div>
                 )}
@@ -861,10 +1062,12 @@ export function TaskDetailModalV2({
                       value={field.value}
                       onChange={(range) => field.onChange(range)}
                       placeholder="Select a date range"
-                      className={getBorderColor('selectedRange')}
+                      className={getBorderColor("selectedRange")}
                     />
                     {errors.selectedRange && (
-                      <p className="text-red-500 text-xs mt-1">Date range is required</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        Date range is required
+                      </p>
                     )}
                   </div>
                 )}
@@ -887,14 +1090,16 @@ export function TaskDetailModalV2({
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          })
+                          });
                         }}
                         options={indexProduct}
                         placeholder="Select product"
-                        className={getBorderColor('product')}
+                        className={getBorderColor("product")}
                       />
                       {errors.product && (
-                        <p className="text-red-500 text-xs mt-1">Product is required</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          Product is required
+                        </p>
                       )}
                     </div>
                   )}
@@ -914,13 +1119,17 @@ export function TaskDetailModalV2({
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          })
+                          });
                         }}
                         options={indexTeam}
                         placeholder="Select team"
-                        className={getBorderColor('team')}
+                        className={getBorderColor("team")}
                       />
-                      {errors.team && <p className="text-red-500 text-xs mt-1">Team is required</p>}
+                      {errors.team && (
+                        <p className="text-red-500 text-xs mt-1">
+                          Team is required
+                        </p>
+                      )}
                     </div>
                   )}
                 />
@@ -943,14 +1152,16 @@ export function TaskDetailModalV2({
                             id: value.id_record,
                             name: value.name,
                             color: value.color,
-                          })
+                          });
                         }}
                         options={indexFolder}
                         placeholder="Select Folder"
-                        className={getBorderColor('folder')}
+                        className={getBorderColor("folder")}
                       />
                       {errors.folder && (
-                        <p className="text-red-500 text-xs mt-1">Folder is required</p>
+                        <p className="text-red-500 text-xs mt-1">
+                          Folder is required
+                        </p>
                       )}
                     </div>
                   )}
@@ -975,6 +1186,18 @@ export function TaskDetailModalV2({
               </div>
             </div>
 
+            {/* Custom Fields */}
+            <CustomFields
+              customFields={customFields}
+              setCustomFieldValues={setCustomFieldValues}
+              customFieldValues={customFieldValues}
+              control={control}
+              errors={errors}
+              watch={watch}
+              setValue={setValue}
+              currentValues={task.custom_fields || {}}
+            />
+
             {/* Description */}
             <div>
               <label className="block text-sm font-medium">Description</label>
@@ -982,14 +1205,20 @@ export function TaskDetailModalV2({
                 name="description"
                 control={control}
                 render={({ field }) => (
-                  <div id={EDITOR_JS_ID} className="border rounded p-2 text-left"></div>
+                  <div
+                    id={EDITOR_JS_ID}
+                    className="border rounded p-2 text-left"
+                  ></div>
                 )}
               />
             </div>
 
             {/* Attachments */}
-            <DynamicFileAttachments setAttachments={setAttachments} attachments={attachments} />
-          </div>{' '}
+            <DynamicFileAttachments
+              setAttachments={setAttachments}
+              attachments={attachments}
+            />
+          </div>{" "}
           {/* Right Sidebar - Activity/Comments Section */}
           {showSidebar && (
             <div className="w-96 bg-gray-50 border-l border-gray-200 flex flex-col">
@@ -1012,16 +1241,18 @@ export function TaskDetailModalV2({
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Activity</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Activity
+                    </h3>
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                       {comments.length} comment
-                      {comments.length !== 1 ? 's' : ''}
+                      {comments.length !== 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>
-              </div>{' '}
+              </div>{" "}
               {/* Comments Feed */}
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 {comments.length === 0 ? (
@@ -1041,8 +1272,12 @@ export function TaskDetailModalV2({
                         />
                       </svg>
                     </div>
-                    <h4 className="text-gray-600 text-sm font-medium mb-2">No comments yet</h4>
-                    <p className="text-gray-400 text-xs">Start the conversation below</p>
+                    <h4 className="text-gray-600 text-sm font-medium mb-2">
+                      No comments yet
+                    </h4>
+                    <p className="text-gray-400 text-xs">
+                      Start the conversation below
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-8">
@@ -1058,7 +1293,9 @@ export function TaskDetailModalV2({
                           <div className="flex-shrink-0 relative">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
                               <span className="text-white text-sm font-bold">
-                                {getUserName(comment.created_by).charAt(0).toUpperCase()}
+                                {getUserName(comment.created_by)
+                                  .charAt(0)
+                                  .toUpperCase()}
                               </span>
                             </div>
                             {/* Online indicator */}
@@ -1106,15 +1343,17 @@ export function TaskDetailModalV2({
                                     </span>
                                   </div>
                                   <div className="flex flex-wrap gap-2">
-                                    {comment.tagged_user_ids.map((userId, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                                      >
-                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
-                                        @{getUserName(userId)}
-                                      </div>
-                                    ))}
+                                    {comment.tagged_user_ids.map(
+                                      (userId, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                                        >
+                                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></div>
+                                          @{getUserName(userId)}
+                                        </div>
+                                      )
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -1125,7 +1364,7 @@ export function TaskDetailModalV2({
                     ))}
                   </div>
                 )}
-              </div>{' '}
+              </div>{" "}
               {/* Add Comment Section */}
               <div className="border-t border-gray-200 bg-white px-6 py-4 space-y-3 relative">
                 {/* Comment Input with Button */}
@@ -1137,7 +1376,7 @@ export function TaskDetailModalV2({
                       placeholder="Write a comment... Use @ to mention teammates"
                       className="w-full p-3 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                       rows="3"
-                    />{' '}
+                    />{" "}
                     {/* Member Mention Dropdown */}
                     {showMemberList && (
                       <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-auto z-50 mb-2">
@@ -1156,7 +1395,7 @@ export function TaskDetailModalV2({
                               <div
                                 className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm"
                                 style={{
-                                  backgroundColor: member.color || '#6366f1',
+                                  backgroundColor: member.color || "#6366f1",
                                 }}
                               >
                                 {member.name.charAt(0).toUpperCase()}
@@ -1166,7 +1405,10 @@ export function TaskDetailModalV2({
                                   {member.name}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  @{member.name.toLowerCase().replace(/\s+/g, '')}
+                                  @
+                                  {member.name
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "")}
                                 </span>
                               </div>
                             </div>
@@ -1186,9 +1428,14 @@ export function TaskDetailModalV2({
                     onClick={handleCommentSubmit}
                     disabled={!newComment.trim()}
                     className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 flex-shrink-0"
-                    style={{ height: 'fit-content' }}
+                    style={{ height: "fit-content" }}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1198,7 +1445,7 @@ export function TaskDetailModalV2({
                     </svg>
                     <span>Post</span>
                   </button>
-                </div>{' '}
+                </div>{" "}
                 {/* Tagged Users Preview */}
                 {taggedUsers.length > 0 && (
                   <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -1216,12 +1463,16 @@ export function TaskDetailModalV2({
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                         />
                       </svg>
-                      <span className="text-xs font-medium text-blue-700">Mentioning:</span>
+                      <span className="text-xs font-medium text-blue-700">
+                        Mentioning:
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {taggedUsers.map((userId, index) => {
-                        const member = workspaceMembers.find((m) => m.id === userId)
-                        if (!member) return null
+                        const member = workspaceMembers.find(
+                          (m) => m.id === userId
+                        );
+                        if (!member) return null;
 
                         return (
                           <div
@@ -1231,63 +1482,73 @@ export function TaskDetailModalV2({
                             <div
                               className="w-4 h-4 rounded-full flex items-center justify-center text-white text-xs mr-2"
                               style={{
-                                backgroundColor: member.color || '#6366f1',
+                                backgroundColor: member.color || "#6366f1",
                               }}
                             >
                               {member.name.charAt(0).toUpperCase()}
                             </div>
-                            <span>@{member.name}</span>{' '}
+                            <span>@{member.name}</span>{" "}
                             <button
                               type="button"
                               onClick={() => {
                                 // Remove this user from mentions in the text
-                                const mentionText = `@${member.name}`
+                                const mentionText = `@${member.name}`;
                                 const updatedComment = newComment.replace(
-                                  new RegExp(mentionText + '(?:\\s|$)', 'g'),
-                                  ''
-                                )
-                                const trimmedComment = updatedComment.trim()
-                                setNewComment(trimmedComment) // Re-parse mentions after removal to update tagged users
+                                  new RegExp(mentionText + "(?:\\s|$)", "g"),
+                                  ""
+                                );
+                                const trimmedComment = updatedComment.trim();
+                                setNewComment(trimmedComment); // Re-parse mentions after removal to update tagged users
                                 const mentions =
-                                  trimmedComment.match(/@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g) || []
-                                const updatedTaggedUserIds = []
+                                  trimmedComment.match(
+                                    /@\w+(?:\s+\w+)*(?=\s|$|[^\w\s])/g
+                                  ) || [];
+                                const updatedTaggedUserIds = [];
 
                                 // Also check for exact member name matches in the text
                                 workspaceMembers.forEach((member) => {
                                   const memberMentionPattern = new RegExp(
                                     `@${member.name.replace(
                                       /[.*+?^${}()|[\]\\]/g,
-                                      '\\$&'
+                                      "\\$&"
                                     )}(?=\\s|$|[^\\w\\s])`,
-                                    'gi'
-                                  )
+                                    "gi"
+                                  );
                                   if (
                                     memberMentionPattern.test(trimmedComment) &&
                                     !updatedTaggedUserIds.includes(member.id)
                                   ) {
-                                    updatedTaggedUserIds.push(member.id)
+                                    updatedTaggedUserIds.push(member.id);
                                   }
-                                })
+                                });
 
                                 // Also process the regex matches
                                 mentions.forEach((mention) => {
-                                  const username = mention.slice(1).trim()
+                                  const username = mention.slice(1).trim();
                                   const foundMember = workspaceMembers.find(
-                                    (m) => m.name.toLowerCase() === username.toLowerCase()
-                                  )
+                                    (m) =>
+                                      m.name.toLowerCase() ===
+                                      username.toLowerCase()
+                                  );
                                   if (
                                     foundMember &&
-                                    !updatedTaggedUserIds.includes(foundMember.id)
+                                    !updatedTaggedUserIds.includes(
+                                      foundMember.id
+                                    )
                                   ) {
-                                    updatedTaggedUserIds.push(foundMember.id)
+                                    updatedTaggedUserIds.push(foundMember.id);
                                   }
-                                })
+                                });
 
-                                setTaggedUsers(updatedTaggedUserIds)
+                                setTaggedUsers(updatedTaggedUserIds);
                               }}
                               className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
                             >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <svg
+                                className="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
                                 <path
                                   fillRule="evenodd"
                                   d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -1296,7 +1557,7 @@ export function TaskDetailModalV2({
                               </svg>
                             </button>
                           </div>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -1305,19 +1566,26 @@ export function TaskDetailModalV2({
             </div>
           )}
           {/* Submit Button - positioned to avoid sidebar overlap */}
-          <div className={`absolute bottom-4 ${showSidebar ? 'right-[400px]' : 'right-4'}`}>
-            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg">
+          <div
+            className={`absolute bottom-4 ${
+              showSidebar ? "right-[400px]" : "right-4"
+            }`}
+          >
+            <Button
+              type="submit"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg"
+            >
               SAVE
             </Button>
-          </div>{' '}
-        </form>{' '}
+          </div>{" "}
+        </form>{" "}
         {/* Sub-task Detail Modal */}
         {selectedSubTask && (
           <TaskDetailModalV2
             isOpen={isSubTaskModalOpen}
             onClose={() => {
-              setIsSubTaskModalOpen(false)
-              setSelectedSubTask(null)
+              setIsSubTaskModalOpen(false);
+              setSelectedSubTask(null);
             }}
             title={`Sub-task: ${selectedSubTask.name}`}
             subtitle={`Parent: ${task?.name}`}
@@ -1341,62 +1609,13 @@ export function TaskDetailModalV2({
           selectData={selectData}
           initialValues={initialValues}
           fetchTasks={() => {
-            handleSubTaskCreated()
-            if (fetchTasks) fetchTasks()
+            handleSubTaskCreated();
+            if (fetchTasks) fetchTasks();
           }}
           width="calc(80vw - 36px)"
           height="calc(80vh - 36px)"
         />
       </div>
     </div>
-  )
+  );
 }
-
-const formSchema = z.object({
-  taskName: z.string().min(1, 'Task name is required'),
-  taskType: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  priority: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  status: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  assignee: z.object({
-    id: z.string().min(1, 'Assignee is required'),
-    name: z.string(),
-  }),
-  selectedRange: z.object({
-    from: z.date(),
-    to: z.date(),
-  }),
-  product: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  team: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  folder: z.object({
-    id: z.string().min(1),
-    name: z.string(),
-    color: z.string(),
-  }),
-  lists: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-    })
-  ),
-  description: z.string().optional(),
-})

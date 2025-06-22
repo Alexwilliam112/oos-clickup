@@ -192,12 +192,11 @@ export function TaskCreateModal({
     },
   });
 
-  const watchForm = watch();
 
   useEffect(() => {
-    setValue("lists", initialValues.lists);
-    setValue("folder", initialValues.folder);
-    setValue("team", initialValues.team);
+    setValue("lists", initialValues?.lists);
+    setValue("folder", initialValues?.folder);
+    setValue("team", initialValues?.team);
   }, [initialValues]);
 
   const editorRef = useRef(null);
@@ -336,7 +335,6 @@ export function TaskCreateModal({
   if (!isVisible) return null;
 
   const onSubmit = async (values) => {
-    console.log(values);
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
       : {};

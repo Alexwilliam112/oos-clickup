@@ -1,54 +1,54 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ListFilter } from 'lucide-react'
-import { Overview } from './tabs/overview'
-import { Board } from './tabs/board'
-import { ListView } from './tabs/list'
-import { CalendarView } from './tabs/calendar'
-import { useSearchParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { workspaceService } from '@/service/index.mjs'
+import React, { useEffect, useState } from "react";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ListFilter } from "lucide-react";
+import { Overview } from "./tabs/overview";
+import { Board } from "./tabs/board";
+import { ListView } from "./tabs/list";
+import { CalendarView } from "./tabs/calendar";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { workspaceService } from "@/service/index.mjs";
 
 export function Dashboard() {
-  const params = useSearchParams()
+  const params = useSearchParams();
 
-  const [title, setTitle] = useState('Team Space')
-  const [subtitle, setSubtitle] = useState('Placeholder for subtitle')
-  const [path, setPath] = useState([])
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
+  const [title, setTitle] = useState("Team Space");
+  const [subtitle, setSubtitle] = useState("Placeholder for subtitle");
+  const [path, setPath] = useState([]);
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+
+  const workspaceId = params.get("workspace_id");
+  const page = params.get("page");
+  const paramId = params.get("param_id");
 
   useEffect(() => {
     const fetchPageInfo = async () => {
-      const workspaceId = params.get('workspace_id')
-      const page = params.get('page')
-      const paramId = params.get('param_id')
-
       if (workspaceId && page && paramId) {
         try {
           const response = await fetch(
             `${baseUrl}/page-info?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-          )
-          const data = await response.json()
+          );
+          const data = await response.json();
 
           if (data.code === 200 && !data.error) {
-            setTitle(data.data.title || 'Page Title')
-            setSubtitle(data.data.subtitle || 'Path to Page')
-            setPath(data.data.path || 'Placeholder for path')
+            setTitle(data.data.title || "Page Title");
+            setSubtitle(data.data.subtitle || "Path to Page");
+            setPath(data.data.path || "Placeholder for path");
           } else {
-            console.error('Failed to fetch page info:', data.message)
+            console.error("Failed to fetch page info:", data.message);
           }
         } catch (error) {
-          console.error('Error fetching page info:', error)
+          console.error("Error fetching page info:", error);
         }
       }
-    }
+    };
 
-    fetchPageInfo()
-  }, [])
+    fetchPageInfo();
+  }, []);
 
   return (
     <Tabs defaultValue="list" className="h-full w-full p-4">
@@ -57,64 +57,74 @@ export function Dashboard() {
           <ListFilter className="h-4 w-4" />
           List
         </TabsTrigger>
-        <TabsTrigger value="overview" className="gap-2">
-          <svg className="h-4 w-4" viewBox="0 0 24 24">
-            <rect
-              width="20"
-              height="20"
-              x="2"
-              y="2"
-              rx="2"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <rect
-              width="8"
-              height="8"
-              x="4"
-              y="4"
-              rx="1"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <rect
-              width="8"
-              height="8"
-              x="4"
-              y="12"
-              rx="1"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <rect
-              width="8"
-              height="8"
-              x="12"
-              y="4"
-              rx="1"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <rect
-              width="8"
-              height="8"
-              x="12"
-              y="12"
-              rx="1"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </svg>
-          Overview
-        </TabsTrigger>
-        <TabsTrigger value="info" className="gap-2">
-          General Info
-        </TabsTrigger>
+
+        {page == "my_tasks" ? (
+          <></>
+        ) : (
+          <TabsTrigger value="overview" className="gap-2">
+            <svg className="h-4 w-4" viewBox="0 0 24 24">
+              <rect
+                width="20"
+                height="20"
+                x="2"
+                y="2"
+                rx="2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <rect
+                width="8"
+                height="8"
+                x="4"
+                y="4"
+                rx="1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <rect
+                width="8"
+                height="8"
+                x="4"
+                y="12"
+                rx="1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <rect
+                width="8"
+                height="8"
+                x="12"
+                y="4"
+                rx="1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <rect
+                width="8"
+                height="8"
+                x="12"
+                y="12"
+                rx="1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+            Overview
+          </TabsTrigger>
+        )}
+
+        {page == "my_tasks" ? (
+          <></>
+        ) : (
+          <TabsTrigger value="info" className="gap-2">
+            General Info
+          </TabsTrigger>
+        )}
 
         <TabsTrigger value="board" className="gap-2">
           <svg
@@ -209,5 +219,5 @@ export function Dashboard() {
     //     </div>
     //   </header>
     // </SidebarInset>
-  )
+  );
 }

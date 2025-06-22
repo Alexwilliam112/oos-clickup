@@ -682,6 +682,8 @@ export function Board() {
                         fetchTasks={fetchTasks}
                         showSidebar={true}
                         task={task}
+                        setTasks={setTasks}
+                        tasks={tasks}
                         selectData={{
                           indexTaskType,
                           indexStatus,

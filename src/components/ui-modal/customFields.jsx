@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
-import { Controller } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
+
 import { SingleSelectTag, MultipleSelectTags } from "@/components/ui/tag-input";
 
 export default function CustomFields({
@@ -8,15 +9,15 @@ export default function CustomFields({
   control,
   errors,
   setValue,
-  watch,
+  currentValues = {},
 }) {
-  // Sync customFieldValues with form values
   useEffect(() => {
-    const initialValues = customFields.reduce((values, field) => {
-      values[field.id_field] = field.value || "";
-      return values;
-    }, {});
-  }, [customFields]);
+    if (!currentValues) return;
+
+    Object.entries(currentValues).forEach(([key, value]) => {
+      setValue(`customFields.${key}`, value);
+    });
+  }, [currentValues, setValue]);
 
   // Renderer for each field type
   const renderField = (field) => {
@@ -43,6 +44,7 @@ export default function CustomFields({
                         : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
+                    value={field.value || ""} // Ensure the value is always a string
                     {...field}
                   />
                   {errors.customFields?.[field_name] && (
@@ -74,6 +76,7 @@ export default function CustomFields({
                         : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
+                    value={field.value || ""} // Ensure the value is always a string
                     {...field}
                   />
                   {errors.customFields?.[field_name] && (
@@ -106,10 +109,10 @@ export default function CustomFields({
                         : "border-gray-300"
                     }`}
                     placeholder={`Enter ${field_name.toLowerCase()}`}
-                    value={field.value || ""}
+                    value={field.value || ""} // Ensure the value is always a number or empty string
                     onChange={(e) =>
                       field.onChange(
-                        e.target.value === null ? null : Number(e.target.value)
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                   />
@@ -136,14 +139,11 @@ export default function CustomFields({
               render={({ field }) => (
                 <div>
                   <SingleSelectTag
-                    value={field.value}
-                    onChange={(value) => {
-                      field.onChange(value); // Pass the selected value directly
-                    }}
+                    value={field.value || null} // Ensure the value is always null or a valid option
+                    onChange={(value) => field.onChange(value)}
                     options={options.map((opt) => ({
-                      id_record: opt.value, // Map options to match SingleSelectTag's expected format
+                      id_record: opt.value,
                       name: opt.value,
-                      color: "#7DD4FF",
                     }))}
                     placeholder={`Select ${field_name.toLowerCase()}`}
                     className={
@@ -175,7 +175,7 @@ export default function CustomFields({
               render={({ field }) => (
                 <div>
                   <MultipleSelectTags
-                    value={field.value || []}
+                    value={field.value || []} // Ensure the value is always an array
                     onChange={(value) => field.onChange(value)}
                     options={options.map((opt) => ({
                       key: opt.value,
@@ -217,7 +217,7 @@ export default function CustomFields({
                         type="checkbox"
                         id={`${id_field}-${idx}`}
                         value={opt.value}
-                        checked={(field.value || []).includes(opt.value)}
+                        checked={(field.value || []).includes(opt.value)} // Ensure the value is always an array
                         onChange={(e) => {
                           const prevValues = field.value || [];
                           const updatedValues = e.target.checked
