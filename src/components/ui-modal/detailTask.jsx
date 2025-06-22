@@ -182,6 +182,11 @@ export function TaskDetailModalV2({
     ),
   })
 
+  // DELETE TASK ACTION
+  const handleDelete = (id_task) => {
+    console.log(id_task + " Delete action waiting API");
+  };
+
   const {
     control,
     handleSubmit,
@@ -197,7 +202,7 @@ export function TaskDetailModalV2({
       lists: [],
     },
   })
-  useEffect(() => {
+  useEffect(() => {    
     if (task) {
       setValue('taskName', task.name || '')
       setValue('assignee', task.assignee_ids || null)
@@ -271,7 +276,7 @@ export function TaskDetailModalV2({
 
   const onSubmit = async (values) => {
     const descriptionData = editorRef.current ? await editorRef.current.save() : {}
-
+    
     const taskData = {
       name: values.taskName,
       task_type_id: values.taskType,
@@ -607,7 +612,7 @@ export function TaskDetailModalV2({
     } else {
       setTimeout(() => {
         setIsVisible(false)
-        if (editorRef.current) {
+        if (editorRef.current && typeof editorRef.current.destroy === 'function') { // makesure destroy type is func
           editorRef.current.destroy()
           editorRef.current = null
         }
@@ -616,7 +621,7 @@ export function TaskDetailModalV2({
     }
 
     return () => {
-      if (editorRef.current) {
+      if (editorRef.current && typeof editorRef.current.destroy === 'function') { // makesure destroy type is func
         editorRef.current.destroy()
         editorRef.current = null
       }
@@ -1447,9 +1452,12 @@ export function TaskDetailModalV2({
               </div>
             </div>
           )}
-          {/* Submit Button - positioned to avoid sidebar overlap */}
+          {/* Submit & Delete Button - positioned to avoid sidebar overlap */}
           <div className={`absolute bottom-4 ${showSidebar ? 'right-[400px]' : 'right-4'}`}>
-            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg">
+            <Button onClick={()=> handleDelete(task?.id_task)} type="button" className="bg-red-500 text-white px-6 py-2 rounded-md shadow-lg mr-1 cursor-pointer">
+              DELETE
+            </Button>
+            <Button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-lg cursor-pointer">
               SAVE
             </Button>
           </div>{' '}

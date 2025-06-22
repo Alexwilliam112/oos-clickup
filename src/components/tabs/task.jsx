@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { DetailModalTrigger, CreateModalTrigger } from '@/components/ui-modal/modal-trigger'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { ActionCells } from '../actions/action-cells'
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
@@ -106,9 +107,9 @@ export default function Task({
           className="p-2 min-w-[255px]"
           style={{
             paddingLeft: `${level * 20}px`,
-            position: isOpenDetail || isOpenCreate ? 'static' : 'sticky',
+            // position: isOpenDetail || isOpenCreate ? 'static' : 'sticky',
             // left: 50,
-            zIndex: isOpenDetail || isOpenCreate ? undefined : 10,
+            // zIndex: isOpenDetail || isOpenCreate ? undefined : 10,
             backgroundColor: rowBg,
           }}
         >
@@ -266,11 +267,26 @@ export default function Task({
           </span>
         </TableCell>
 
-        <TableCell className="p-2 min-w-[100px] flex justify-end gap-1">
+        {/* <TableCell className="p-2 min-w-[100px] flex justify-end gap-1">
           <Button variant="ghost" size="icon" className="h-7 w-7">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
-        </TableCell>
+        </TableCell> */}
+        <ActionCells 
+          trigger={<span className="text-blue-500 hover:underline">{task.name}</span>}
+          modalTitle="Task Details"
+          fetchTasks={fetchTasks}
+          showSidebar={true}
+          task={task}
+          tasks={tasks}
+          setTasks={setTasks}
+          selectData={selectData}
+          initialValues={initialValues}
+          modalSubtitle={task.created_at}
+          sidebarContent={<p>Sidebar content here</p>}
+          isOpen={isOpenDetail}
+          setIsOpen={setIsOpenDetail}
+        />
       </TableRow>
       {isExpanded && task.children?.length > 0 && renderTasks(task.children, level + 1)}
     </>
