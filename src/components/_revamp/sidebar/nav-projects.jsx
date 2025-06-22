@@ -9,7 +9,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Bell } from 'lucide-react'
-import Link from 'next/link'
 import { ListTodo } from 'lucide-react'
 import { useUserStore } from '@/store/user/userStore'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -37,24 +36,24 @@ export function NavProjects() {
       <SidebarGroupLabel>My Workspace</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="My Tasks">
-            <a
-              href="#"
-              title={'My Tasks'}
-              onClick={() => navigateTo('my_tasks', userId)} // Navigate to team
-            >
+          <SidebarMenuButton
+            asChild
+            tooltip="My Tasks"
+            onClick={() => navigateTo('my_tasks', userId)}
+          >
+            <span>
               <ListTodo />
-              <span>My Tasks</span>
-            </a>
+              <span className="hover:text-blue-500 hover:cursor-pointer">My Tasks</span>
+            </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
 
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip="Notifications">
-            <Link href="/notifications">
+            <span>
               <Bell />
-              <span>Notifications</span>
-            </Link>
+              <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span>
+            </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
