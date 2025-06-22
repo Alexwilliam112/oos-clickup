@@ -35,7 +35,7 @@ export function NavMain() {
   const router = useRouter()
   const params = useSearchParams()
 
-  const { setOpen, setOpenMobile } = useSidebar()
+  const { setOpenMobile } = useSidebar()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
@@ -241,7 +241,6 @@ export function NavMain() {
     if (workspace_id) {
       const url = `/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${param_id}`
       router.push(url)
-      setOpen(false)
       setOpenMobile(false)
     } else {
       console.error('workspace_id is missing in the query parameters.')
