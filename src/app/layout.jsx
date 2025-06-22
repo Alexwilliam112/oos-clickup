@@ -3,7 +3,7 @@
 import './globals.css'
 import { useState, useEffect } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import QueryClient from './query-client'
 import { useUserStore } from '@/store/user/userStore'
 import UnauthorizedPage from '@/components/unauthorized/UnauthorizedPage'
@@ -22,6 +22,7 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const router = useRouter()
   const token = searchParams.get('token')
 
@@ -31,19 +32,21 @@ export default function RootLayout({ children }) {
   const [isReady, setIsReady] = useState(false)
   const [isUnauthorized, setIsUnauthorized] = useState(false)
 
+  const removeSearchParam = (paramToRemove) => {
+    const query = []
+
+    searchParams.keys()?.forEach((key) => {
+      const value = searchParams.get(key)
+
+      if (key !== paramToRemove) {
+        query.push(`${key}=${value}`)
+      }
+    })
+
+    router.replace(`${pathname}?${query.join('&')}`)
+  }
+
   useEffect(() => {
-    const removeSearchParam = (paramToRemove) => {
-      // Get current query object
-      const { pathname, query } = router
-
-      // Create new query object without the parameter
-      const newQuery = { ...query }
-      delete newQuery[paramToRemove]
-
-      // Replace URL without adding to history
-      router.replace({ pathname, query: newQuery }, undefined, { shallow: true })
-    }
-
     if (userId) {
       removeSearchParam('token')
       setIsReady(true)

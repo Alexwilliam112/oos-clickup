@@ -62,10 +62,12 @@ export function ListView() {
 
   const { isLoading: inititalValuesLoading } = useQuery({
     queryFn: () =>
-      taskService.getTaskInitialValues().then((initialValues) => {
-        setTeam(initialValues.team_id || null)
-        setFolder(initialValues.folder_id || null)
-        setLists(initialValues.list_ids || [])
+      taskService.getTaskInitialValues().then((data) => {
+        setTeam(data.team_id || null)
+        setFolder(data.folder_id || null)
+        setLists(data.list_ids || [])
+
+        return data
       }),
     queryKey: ['taskService.getTaskInitialValues', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -73,8 +75,10 @@ export function ListView() {
 
   const { isLoading: taskTypeLoading } = useQuery({
     queryFn: () =>
-      masterService.getTaskTypes().then((taskType) => {
-        setIndexTaskType(taskType || [])
+      masterService.getTaskTypes().then((data) => {
+        setIndexTaskType(data || [])
+
+        return DataTransferItemList
       }),
     queryKey: ['masterService.getTaskTypes', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -82,8 +86,10 @@ export function ListView() {
 
   const { isLoading: statusLoading } = useQuery({
     queryFn: () =>
-      masterService.getStatuses().then((status) => {
-        setIndexStatus(status)
+      masterService.getStatuses().then((data) => {
+        setIndexStatus(data)
+
+        return data
       }),
     queryKey: ['masterService.getStatuses', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -93,6 +99,8 @@ export function ListView() {
     queryFn: () =>
       masterService.getPriorities().then((priority) => {
         setIndexPriority(priority)
+
+        return data
       }),
     queryKey: ['masterService.getPriorities', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -102,6 +110,8 @@ export function ListView() {
     queryFn: () =>
       masterService.getProducts().then((data) => {
         setIndexProduct(data)
+
+        return data
       }),
     queryKey: ['masterService.getProducts', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -111,6 +121,8 @@ export function ListView() {
     queryFn: () =>
       workspaceService.getWorkspaceMembers().then((data) => {
         setIndexMember(data)
+
+        return data
       }),
     queryKey: ['workspaceService.getWorkspaceMembers', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -120,6 +132,8 @@ export function ListView() {
     queryFn: () =>
       masterService.getTeams().then((data) => {
         setIndexTeam(data)
+
+        return data
       }),
     queryKey: ['masterService.getTeams', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -129,6 +143,8 @@ export function ListView() {
     queryFn: () =>
       masterService.getFolders().then((data) => {
         setIndexFolder(data)
+
+        return data
       }),
     queryKey: ['masterService.getFolders', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
@@ -138,6 +154,8 @@ export function ListView() {
     queryFn: () =>
       masterService.getList().then((data) => {
         setIndexList(data)
+
+        return data
       }),
     queryKey: ['masterService.getList', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
