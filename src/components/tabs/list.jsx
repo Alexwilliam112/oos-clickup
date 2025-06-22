@@ -144,7 +144,7 @@ export function ListView() {
   }, [workspaceId, page, paramId])
 
   useEffect(() => {
-    if (workspaceId) {
+    if (workspaceId && !team && !folder && !lists[0]) {
       //GET INITIAL VALUES
       fetch(
         `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
