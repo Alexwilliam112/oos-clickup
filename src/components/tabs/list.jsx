@@ -1,55 +1,156 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { CreateModalTrigger } from "@/components/ui-modal/modal-trigger";
-import { generateChildren } from "@/lib/utils";
-import Task from "./task";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-} from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { CreateModalTrigger } from '@/components/ui-modal/modal-trigger'
+import Task from './task'
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/table'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { useSearchParams } from "next/navigation";
+} from '@/components/ui/select'
+import { useSearchParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { masterService, taskService, workspaceService } from '@/service/index.mjs'
 
 export function ListView() {
-  const [tasks, setTasks] = useState([]);
+  const params = useSearchParams()
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [teamFilter, setTeamFilter] = useState("all");
+  const workspace_id = params.get('workspace_id')
+  const page = params.get('page')
+  const param_id = params.get('param_id')
 
-  const [indexTaskType, setIndexTaskType] = useState([]);
-  const [indexStatus, setIndexStatus] = useState([]);
-  const [indexPriority, setIndexPriority] = useState([]);
-  const [indexProduct, setIndexProduct] = useState([]);
-  const [indexMember, setIndexMember] = useState([]);
-  const [indexTeam, setIndexTeam] = useState([]);
-  const [indexFolder, setIndexFolder] = useState([]);
-  const [indexList, setIndexList] = useState([]);
-  const [team, setTeam] = useState(null);
-  const [folder, setFolder] = useState(null);
-  const [lists, setLists] = useState([]);
+  const [tasks, setTasks] = useState([])
 
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-  const params = useSearchParams();
-  const workspaceId = params.get("workspace_id");
-  const page = params.get("page");
-  const paramId = params.get("param_id");
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [teamFilter, setTeamFilter] = useState('all')
+
+  const [indexTaskType, setIndexTaskType] = useState([])
+  const [indexStatus, setIndexStatus] = useState([])
+  const [indexPriority, setIndexPriority] = useState([])
+  const [indexProduct, setIndexProduct] = useState([])
+  const [indexMember, setIndexMember] = useState([])
+  const [indexTeam, setIndexTeam] = useState([])
+  const [indexFolder, setIndexFolder] = useState([])
+  const [indexList, setIndexList] = useState([])
+
+  const [team, setTeam] = useState(null)
+  const [folder, setFolder] = useState(null)
+  const [lists, setLists] = useState([])
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  const {
+    data: tasksData,
+    isLoading: tasksLoading,
+    isSuccess: tasksSuccess,
+    refetch: fetchTasks,
+  } = useQuery({
+    queryFn: taskService.getTasks,
+    queryKey: ['taskService.getTasks', { team, folder, lists, param_id, workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: inititalValuesLoading } = useQuery({
+    queryFn: () =>
+      taskService.getTaskInitialValues().then((initialValues) => {
+        setTeam(initialValues.team_id || null)
+        setFolder(initialValues.folder_id || null)
+        setLists(initialValues.list_ids || [])
+      }),
+    queryKey: ['taskService.getTaskInitialValues', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: taskTypeLoading } = useQuery({
+    queryFn: () =>
+      masterService.getTaskTypes().then((taskType) => {
+        setIndexTaskType(taskType || [])
+      }),
+    queryKey: ['masterService.getTaskTypes', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: statusLoading } = useQuery({
+    queryFn: () =>
+      masterService.getStatuses().then((status) => {
+        setIndexStatus(status)
+      }),
+    queryKey: ['masterService.getStatuses', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: priorityLoading } = useQuery({
+    queryFn: () =>
+      masterService.getPriorities().then((priority) => {
+        setIndexPriority(priority)
+      }),
+    queryKey: ['masterService.getPriorities', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: productsLoading } = useQuery({
+    queryFn: () =>
+      masterService.getProducts().then((data) => {
+        setIndexProduct(data)
+      }),
+    queryKey: ['masterService.getProducts', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: membersLoading } = useQuery({
+    queryFn: () =>
+      workspaceService.getWorkspaceMembers().then((data) => {
+        setIndexMember(data)
+      }),
+    queryKey: ['workspaceService.getWorkspaceMembers', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: teamsLoading } = useQuery({
+    queryFn: () =>
+      masterService.getTeams().then((data) => {
+        setIndexTeam(data)
+      }),
+    queryKey: ['masterService.getTeams', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: foldersLoading } = useQuery({
+    queryFn: () =>
+      masterService.getFolders().then((data) => {
+        setIndexFolder(data)
+      }),
+    queryKey: ['masterService.getFolders', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const { isLoading: listsLoading } = useQuery({
+    queryFn: () =>
+      masterService.getList().then((data) => {
+        setIndexList(data)
+      }),
+    queryKey: ['masterService.getList', { workspace_id }],
+    enabled: !!workspace_id && !!page && !!param_id,
+  })
+
+  const filteredTasks = filterTasksByName(
+    tasksData || [],
+    search,
+    statusFilter,
+    assigneeFilter,
+    priorityFilter,
+    teamFilter
+  )
 
   function filterTasksByName(
     tasks,
@@ -59,32 +160,27 @@ export function ListView() {
     priorityFilter,
     teamFilter
   ) {
-    const lowerSearch = search.toLowerCase();
+    const lowerSearch = search.toLowerCase()
     return tasks
       .map((task) => {
         const matchesSearch =
           task.name?.toLowerCase().includes(lowerSearch) ||
-          (task.task_type_id?.name?.toLowerCase().includes(lowerSearch) ??
-            false) ||
-          (task.product_id?.name?.toLowerCase().includes(lowerSearch) ?? false);
+          (task.task_type_id?.name?.toLowerCase().includes(lowerSearch) ?? false) ||
+          (task.product_id?.name?.toLowerCase().includes(lowerSearch) ?? false)
 
-        const matchesStatus =
-          statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
+        const matchesStatus = statusFilter !== 'all' ? task.status_id?.id === statusFilter : true
 
         const matchesAssignee =
-          assigneeFilter !== "all"
+          assigneeFilter !== 'all'
             ? Array.isArray(task.assignee_ids)
               ? task.assignee_ids.some((a) => a.id === assigneeFilter)
               : task.assignee_ids?.id === assigneeFilter
-            : true;
+            : true
 
         const matchesPriority =
-          priorityFilter !== "all"
-            ? task.priority_id?.id === priorityFilter
-            : true;
+          priorityFilter !== 'all' ? task.priority_id?.id === priorityFilter : true
 
-        const matchesTeam =
-          teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
+        const matchesTeam = teamFilter !== 'all' ? task.team_id?.id === teamFilter : true
 
         const filteredChildren = task.children
           ? filterTasksByName(
@@ -95,250 +191,25 @@ export function ListView() {
               priorityFilter,
               teamFilter
             )
-          : [];
+          : []
 
         const selfMatches =
-          matchesSearch &&
-          matchesStatus &&
-          matchesAssignee &&
-          matchesPriority &&
-          matchesTeam;
+          matchesSearch && matchesStatus && matchesAssignee && matchesPriority && matchesTeam
 
         if (selfMatches) {
           return {
             ...task,
             children: filteredChildren,
-          };
+          }
         } else if (filteredChildren.length > 0) {
-          return filteredChildren;
+          return filteredChildren
         }
 
-        return null;
+        return null
       })
       .flat()
-      .filter(Boolean);
+      .filter(Boolean)
   }
-  const filteredTasks = filterTasksByName(
-    tasks,
-    search,
-    statusFilter,
-    assigneeFilter,
-    priorityFilter,
-    teamFilter
-  );
-
-  const fetchTasks = () => {
-    let taskDataInitial = [];
-    fetch(
-      //GET TASKS
-      `${baseUrl}/task/index?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch TASKS DATA.");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.error) {
-          throw new Error(data.message || "Failed to TASKS DATA.");
-        }
-        taskDataInitial = data.data;
-        setTasks(generateChildren(taskDataInitial));
-      })
-      .catch((error) => {
-        console.error("Error fetching TASKS DATA:", error);
-      });
-    console.log("SUCCESS FETCH TASKS DATA");
-  };
-
-  useEffect(() => {
-    if (workspaceId && page && paramId) {
-      fetchTasks();
-    }
-  }, [workspaceId, page, paramId]);
-
-  useEffect(() => {
-    if (workspaceId && !team && !folder && !lists[0]) {
-      //GET INITIAL VALUES
-      fetch(
-        `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch initial values.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to initial values.");
-          }
-          const initialValues = data.data;
-          setTeam(initialValues.team_id || null);
-          setFolder(initialValues.folder_id || null);
-          setLists(initialValues.list_ids || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching initial values:", error);
-        });
-      console.log("SUCCESS FETCH INITIAL VALUES");
-
-      //GET TASK TYPES
-      fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch task types.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to task types.");
-          }
-          setIndexTaskType(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching task types:", error);
-        });
-      console.log("Task types fetched successfully:", indexTaskType);
-
-      //GET STATUS
-      fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Status.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Status.");
-          }
-          setIndexStatus(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Status:", error);
-        });
-      console.log("Status fetched successfully:", indexStatus);
-
-      //GET PRIORITY
-      fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Priority.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Priority.");
-          }
-          setIndexPriority(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Priority:", error);
-        });
-      console.log("Task Priority successfully:", indexPriority);
-
-      //GET PRODUCTS
-      fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Products.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Products.");
-          }
-          setIndexProduct(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Products:", error);
-        });
-      console.log("Task Products successfully:", indexProduct);
-
-      //GET MEMBERS
-      fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch Members.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to Members.");
-          }
-          setIndexMember(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching Members:", error);
-        });
-      console.log("Members successfully:", indexMember);
-
-      //GET TEAMS
-      fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
-          }
-          setIndexTeam(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexTeam);
-
-      //GET FOLDERS
-      fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch folders.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to folders.");
-          }
-          setIndexFolder(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching folders:", error);
-        });
-      console.log("folders successfully:", indexFolder);
-
-      //GET LIST
-      fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
-          }
-          setIndexList(data.data || []);
-        })
-        .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexList);
-    }
-  }, [workspaceId]);
-
-  const [isOpen, setIsOpen] = useState(false);
 
   const renderTasks = (taskList, level = 0) =>
     taskList.map((task) => (
@@ -367,9 +238,8 @@ export function ListView() {
           }}
         />
       </React.Fragment>
-    ));
+    ))
 
-  console.log(tasks);
   return (
     <>
       <div className="min-w-[50px] p-2 flex justify-left">
@@ -385,8 +255,8 @@ export function ListView() {
             </Button>
           }
           modalTitle="Create Task"
-          parentTaskId={"0"}
-          modalSubtitle={""}
+          parentTaskId={'0'}
+          modalSubtitle={''}
           sidebarContent={<p></p>}
           fetchTasks={fetchTasks}
           initialValues={{
@@ -486,39 +356,17 @@ export function ListView() {
                 >
                   Task Name
                 </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">
-                  Created
-                </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">
-                  Task Type
-                </TableHead>
-                <TableHead className="p-2 min-w-[150px] bg-muted">
-                  Assignee
-                </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">
-                  Start Date
-                </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">
-                  Due Date
-                </TableHead>
-                <TableHead className="p-2 min-w-[100px] bg-muted">
-                  Priority
-                </TableHead>
-                <TableHead className="p-2 min-w-[130px] bg-muted">
-                  Status
-                </TableHead>
-                <TableHead className="p-2 min-w-[160px] bg-muted">
-                  Lists
-                </TableHead>
-                <TableHead className="p-2 min-w-[120px] bg-muted">
-                  Product
-                </TableHead>
-                <TableHead className="p-2 min-w-[190px] bg-muted">
-                  Team
-                </TableHead>
-                <TableHead className="p-2 min-w-[100px] text-right bg-muted">
-                  Actions
-                </TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Created</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Task Type</TableHead>
+                <TableHead className="p-2 min-w-[150px] bg-muted">Assignee</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Start Date</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Due Date</TableHead>
+                <TableHead className="p-2 min-w-[100px] bg-muted">Priority</TableHead>
+                <TableHead className="p-2 min-w-[130px] bg-muted">Status</TableHead>
+                <TableHead className="p-2 min-w-[160px] bg-muted">Lists</TableHead>
+                <TableHead className="p-2 min-w-[120px] bg-muted">Product</TableHead>
+                <TableHead className="p-2 min-w-[190px] bg-muted">Team</TableHead>
+                <TableHead className="p-2 min-w-[100px] text-right bg-muted">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -555,5 +403,5 @@ export function ListView() {
         </ScrollArea>
       </div>
     </>
-  );
+  )
 }

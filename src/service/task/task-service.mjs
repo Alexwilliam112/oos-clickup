@@ -71,3 +71,5 @@ const ENDPOINTS = {
   UPDATE_TASK: '/task/update',
   UPLOAD_FILE: '/utils/file-upload',
 }
+
+export default taskService
