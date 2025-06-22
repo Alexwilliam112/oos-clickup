@@ -1,6 +1,6 @@
 'use client'
 
-import { apiClient, apiClientV2 } from '../api/api-client.mjs'
+import { apiClient } from '../api/api-client.mjs'
 
 const masterService = {
   async getTaskTypes() {

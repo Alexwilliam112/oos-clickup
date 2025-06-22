@@ -16,14 +16,6 @@ const apiClient = axios.create({
   },
 })
 
-const apiClientV2 = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
 // Request interceptor
 apiClient.interceptors.request.use(function (request) {
   console.log('Request', request.params)
@@ -41,17 +33,4 @@ apiClient.interceptors.request.use(function (request) {
   return request
 })
 
-// Response interceptor
-apiClientV2.interceptors.response.use(function (response) {
-  const { data, error, message } = response.data
-
-  console.log('Response', response.data)
-
-  if (error) return Promise.reject(message)
-
-  response.data = data
-
-  return response
-})
-
-export { apiClient, apiClientV2 }
+export { apiClient }
