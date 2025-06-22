@@ -1,137 +1,116 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DetailModalTrigger,
-  CreateModalTrigger,
-} from "@/components/ui-modal/modal-trigger";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from 'react'
+import { Plus } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { DetailModalTrigger, CreateModalTrigger } from '@/components/ui-modal/modal-trigger'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
-  const color = hexColor.replace("#", "");
+  const color = hexColor.replace('#', '')
 
   // Convert to RGB
-  const r = parseInt(color.substring(0, 2), 16);
-  const g = parseInt(color.substring(2, 4), 16);
-  const b = parseInt(color.substring(4, 6), 16);
+  const r = parseInt(color.substring(0, 2), 16)
+  const g = parseInt(color.substring(2, 4), 16)
+  const b = parseInt(color.substring(4, 6), 16)
 
   // Calculate brightness
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
 
   // Return black for light backgrounds, white for dark backgrounds
-  return brightness > 128 ? "#000000" : "#FFFFFF";
+  return brightness > 128 ? '#000000' : '#FFFFFF'
 }
 
 export function Board() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openDetailTaskId, setOpenDetailTaskId] = useState(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const [openDetailTaskId, setOpenDetailTaskId] = useState(null)
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [teamFilter, setTeamFilter] = useState("all");
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [teamFilter, setTeamFilter] = useState('all')
 
-  const [tasks, setTasks] = useState([]);
-  const [indexTaskType, setIndexTaskType] = useState([]);
-  const [indexStatus, setIndexStatus] = useState([]);
-  const [indexPriority, setIndexPriority] = useState([]);
-  const [indexProduct, setIndexProduct] = useState([]);
-  const [indexMember, setIndexMember] = useState([]);
-  const [indexTeam, setIndexTeam] = useState([]);
-  const [indexFolder, setIndexFolder] = useState([]);
-  const [indexList, setIndexList] = useState([]);
-  const [team, setTeam] = useState(null);
-  const [folder, setFolder] = useState(null);
-  const [lists, setLists] = useState([]);
+  const [tasks, setTasks] = useState([])
+  const [indexTaskType, setIndexTaskType] = useState([])
+  const [indexStatus, setIndexStatus] = useState([])
+  const [indexPriority, setIndexPriority] = useState([])
+  const [indexProduct, setIndexProduct] = useState([])
+  const [indexMember, setIndexMember] = useState([])
+  const [indexTeam, setIndexTeam] = useState([])
+  const [indexFolder, setIndexFolder] = useState([])
+  const [indexList, setIndexList] = useState([])
+  const [team, setTeam] = useState(null)
+  const [folder, setFolder] = useState(null)
+  const [lists, setLists] = useState([])
 
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
-  const params = new URLSearchParams(
-    typeof window !== "undefined" ? window.location.search : ""
-  );
-  const workspaceId = params.get("workspace_id");
-  const page = params.get("page");
-  const paramId = params.get("param_id");
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+  const workspaceId = params.get('workspace_id')
+  const page = params.get('page')
+  const paramId = params.get('param_id')
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.name.toLowerCase().includes(search.toLowerCase()) ||
-      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
-        false) ||
-      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ??
-        false);
+      (task.task_type_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+      (task.product_id?.name?.toLowerCase().includes(search.toLowerCase()) ?? false)
 
-    const matchesStatus =
-      statusFilter !== "all" ? task.status_id?.id === statusFilter : true;
+    const matchesStatus = statusFilter !== 'all' ? task.status_id?.id === statusFilter : true
 
     const matchesAssignee =
-      assigneeFilter !== "all"
-        ? task.assignee_ids?.some((a) => a.id === assigneeFilter)
-        : true;
+      assigneeFilter !== 'all' ? task.assignee_ids?.some((a) => a.id === assigneeFilter) : true
 
     const matchesPriority =
-      priorityFilter !== "all" ? task.priority_id?.id === priorityFilter : true;
+      priorityFilter !== 'all' ? task.priority_id?.id === priorityFilter : true
 
-    const matchesTeam =
-      teamFilter !== "all" ? task.team_id?.id === teamFilter : true;
+    const matchesTeam = teamFilter !== 'all' ? task.team_id?.id === teamFilter : true
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesAssignee &&
-      matchesPriority &&
-      matchesTeam
-    );
-  });
+    return matchesSearch && matchesStatus && matchesAssignee && matchesPriority && matchesTeam
+  })
 
   const fetchTasks = () => {
-    let taskDataInitial = [];
+    let taskDataInitial = []
     fetch(
       //GET TASKS
       `${baseUrl}/task/index?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to fetch TASKS DATA.");
+          throw new Error('Failed to fetch TASKS DATA.')
         }
-        return response.json();
+        return response.json()
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || "Failed to TASKS DATA.");
+          throw new Error(data.message || 'Failed to TASKS DATA.')
         }
-        setTasks(data.data);
+        setTasks(data.data)
       })
       .catch((error) => {
-        console.error("Error fetching TASKS DATA:", error);
-      });
-    console.log("SUCCESS FETCH TASKS DATA");
-  };
+        console.error('Error fetching TASKS DATA:', error)
+      })
+    console.log('SUCCESS FETCH TASKS DATA')
+  }
 
   useEffect(() => {
     if (workspaceId && page && paramId) {
-      fetchTasks();
+      fetchTasks()
     }
-  }, [workspaceId, page, paramId]);
+  }, [workspaceId, page, paramId])
 
   useEffect(() => {
     if (workspaceId) {
@@ -141,188 +120,186 @@ export function Board() {
       )
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch initial values.");
+            throw new Error('Failed to fetch initial values.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to initial values.");
+            throw new Error(data.message || 'Failed to initial values.')
           }
-          const initialValues = data.data;
-          setTeam(initialValues.team_id || null);
-          setFolder(initialValues.folder_id || null);
-          setLists(initialValues.list_ids || []);
+          const initialValues = data.data
+          setTeam(initialValues.team_id || null)
+          setFolder(initialValues.folder_id || null)
+          setLists(initialValues.list_ids || [])
         })
         .catch((error) => {
-          console.error("Error fetching initial values:", error);
-        });
-      console.log("SUCCESS FETCH INITIAL VALUES");
+          console.error('Error fetching initial values:', error)
+        })
+      console.log('SUCCESS FETCH INITIAL VALUES')
 
       //GET TASK TYPES
       fetch(`${baseUrl}/task-type/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch task types.");
+            throw new Error('Failed to fetch task types.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to task types.");
+            throw new Error(data.message || 'Failed to task types.')
           }
-          setIndexTaskType(data.data || []);
+          setIndexTaskType(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching task types:", error);
-        });
-      console.log("Task types fetched successfully:", indexTaskType);
+          console.error('Error fetching task types:', error)
+        })
+      console.log('Task types fetched successfully:', indexTaskType)
 
       //GET STATUS
       fetch(`${baseUrl}/status/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch Status.");
+            throw new Error('Failed to fetch Status.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to fetch Status.");
+            throw new Error(data.message || 'Failed to fetch Status.')
           }
 
           // Sort the data by the "order" property
-          const sortedData = (data.data || []).sort(
-            (a, b) => a.order - b.order
-          );
+          const sortedData = (data.data || []).sort((a, b) => a.order - b.order)
 
           // Set the sorted data to state
-          setIndexStatus(sortedData);
-          console.log("Status fetched and sorted successfully:", sortedData);
+          setIndexStatus(sortedData)
+          console.log('Status fetched and sorted successfully:', sortedData)
         })
         .catch((error) => {
-          console.error("Error fetching Status:", error);
-        });
+          console.error('Error fetching Status:', error)
+        })
 
       //GET PRIORITY
       fetch(`${baseUrl}/priority/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch Priority.");
+            throw new Error('Failed to fetch Priority.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to Priority.");
+            throw new Error(data.message || 'Failed to Priority.')
           }
-          setIndexPriority(data.data || []);
+          setIndexPriority(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching Priority:", error);
-        });
-      console.log("Task Priority successfully:", indexPriority);
+          console.error('Error fetching Priority:', error)
+        })
+      console.log('Task Priority successfully:', indexPriority)
 
       //GET PRODUCTS
       fetch(`${baseUrl}/product/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch Products.");
+            throw new Error('Failed to fetch Products.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to Products.");
+            throw new Error(data.message || 'Failed to Products.')
           }
-          setIndexProduct(data.data || []);
+          setIndexProduct(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching Products:", error);
-        });
-      console.log("Task Products successfully:", indexProduct);
+          console.error('Error fetching Products:', error)
+        })
+      console.log('Task Products successfully:', indexProduct)
 
       //GET MEMBERS
       fetch(`${baseUrl}/workspace-member/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch Members.");
+            throw new Error('Failed to fetch Members.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to Members.");
+            throw new Error(data.message || 'Failed to Members.')
           }
-          setIndexMember(data.data || []);
+          setIndexMember(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching Members:", error);
-        });
-      console.log("Members successfully:", indexMember);
+          console.error('Error fetching Members:', error)
+        })
+      console.log('Members successfully:', indexMember)
 
       //GET TEAMS
       fetch(`${baseUrl}/team-select/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
+            throw new Error('Failed to fetch teams.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
+            throw new Error(data.message || 'Failed to teams.')
           }
-          setIndexTeam(data.data || []);
+          setIndexTeam(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexTeam);
+          console.error('Error fetching teams:', error)
+        })
+      console.log('teams successfully:', indexTeam)
 
       //GET FOLDERS
       fetch(`${baseUrl}/folder-select/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch folders.");
+            throw new Error('Failed to fetch folders.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to folders.");
+            throw new Error(data.message || 'Failed to folders.')
           }
-          setIndexFolder(data.data || []);
+          setIndexFolder(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching folders:", error);
-        });
-      console.log("folders successfully:", indexFolder);
+          console.error('Error fetching folders:', error)
+        })
+      console.log('folders successfully:', indexFolder)
 
       //GET LIST
       fetch(`${baseUrl}/list-select/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to fetch teams.");
+            throw new Error('Failed to fetch teams.')
           }
-          return response.json();
+          return response.json()
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || "Failed to teams.");
+            throw new Error(data.message || 'Failed to teams.')
           }
-          setIndexList(data.data || []);
+          setIndexList(data.data || [])
         })
         .catch((error) => {
-          console.error("Error fetching teams:", error);
-        });
-      console.log("teams successfully:", indexList);
+          console.error('Error fetching teams:', error)
+        })
+      console.log('teams successfully:', indexList)
     }
-  }, [workspaceId]);
+  }, [workspaceId])
 
   const renderStatusIcon = (statusType) => {
     switch (statusType) {
-      case "BACKLOG":
+      case 'BACKLOG':
         return (
           <svg
             className="h-3 w-3"
@@ -333,8 +310,8 @@ export function Board() {
           >
             <circle cx="12" cy="12" r="10" strokeDasharray="4" />
           </svg>
-        );
-      case "PROGRESS":
+        )
+      case 'PROGRESS':
         return (
           <svg
             className="h-3 w-3"
@@ -346,8 +323,8 @@ export function Board() {
             <circle cx="12" cy="12" r="10" />
             <path d="M12 6v6l4 2" />
           </svg>
-        );
-      case "COMPLETE":
+        )
+      case 'COMPLETE':
         return (
           <svg
             className="h-3 w-3"
@@ -359,17 +336,17 @@ export function Board() {
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
-        );
+        )
       default:
-        return null;
+        return null
     }
-  };
+  }
 
-  console.log(filteredTasks);
+  console.log(filteredTasks)
 
   return (
-    <>
-      <div className="flex gap-2 my-4">
+    <div className="w-full h-full flex-1 flex flex-col gap-3 shrink">
+      <div className="flex gap-2">
         <Input
           type="text"
           placeholder="Search tasks..."
@@ -431,8 +408,8 @@ export function Board() {
         </Select>
       </div>
 
-      <div className="flex">
-        <ScrollArea type="always" className="w-1 flex-1">
+      <div className="flex w-full">
+        <ScrollArea type="always" className="w-1 flex-1 border rounded h-[calc(100vh-11.5rem)]">
           <div className="relative flex h-fit w-full">
             {indexStatus.map((status) => (
               <div
@@ -443,8 +420,8 @@ export function Board() {
                 <div
                   className="sticky top-0 z-10 flex items-center justify-between p-2"
                   style={{
-                    backgroundColor: status.color || "#f3f4f6",
-                    color: "#fff",
+                    backgroundColor: status.color || '#f3f4f6',
+                    color: '#fff',
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -453,11 +430,7 @@ export function Board() {
                     </div>
                     <span className="text-sm font-medium">{status.name}</span>
                     <Badge variant="secondary" className="bg-white/20 text-xs">
-                      {
-                        tasks.filter(
-                          (task) => task.status_id.id === status.id_record
-                        ).length
-                      }
+                      {tasks.filter((task) => task.status_id.id === status.id_record).length}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-1">
@@ -472,8 +445,8 @@ export function Board() {
                         </Button>
                       }
                       modalTitle="Create Task"
-                      parentTaskId={"0"}
-                      modalSubtitle={""}
+                      parentTaskId={'0'}
+                      modalSubtitle={''}
                       sidebarContent={<p></p>}
                       fetchTasks={fetchTasks}
                       initialValues={{
@@ -505,13 +478,10 @@ export function Board() {
                       <DetailModalTrigger
                         key={task.id_task}
                         trigger={
-                          <Card
-                            key={task.id_task}
-                            className="p-3 gap-2 hover:bg-gray-50"
-                          >
+                          <Card key={task.id_task} className="p-3 gap-2 hover:bg-gray-50">
                             <div
                               className="mb-0 text-sm font-medium w-full p-0 pb-2"
-                              style={{ wordBreak: "break-word" }}
+                              style={{ wordBreak: 'break-word' }}
                             >
                               {task.name}
                             </div>
@@ -525,14 +495,7 @@ export function Board() {
                                 stroke="currentColor"
                                 strokeWidth="2"
                               >
-                                <rect
-                                  x="3"
-                                  y="3"
-                                  width="18"
-                                  height="18"
-                                  rx="2"
-                                  ry="2"
-                                />
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                 <line x1="9" y1="9" x2="15" y2="15" />
                                 <line x1="15" y1="9" x2="9" y2="15" />
                               </svg>
@@ -563,9 +526,7 @@ export function Board() {
                                   className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
                                   style={{
                                     backgroundColor: task.product_id.color,
-                                    color: getContrastColor(
-                                      task.product_id.color
-                                    ),
+                                    color: getContrastColor(task.product_id.color),
                                   }}
                                 >
                                   {task.product_id.name}
@@ -587,9 +548,7 @@ export function Board() {
                                   className="text-xs px-2 py-0.75 border border-muted-foreground/20 rounded-sm"
                                   style={{
                                     backgroundColor: task.priority_id.color,
-                                    color: getContrastColor(
-                                      task.priority_id.color
-                                    ),
+                                    color: getContrastColor(task.priority_id.color),
                                   }}
                                 >
                                   {task.priority_id.name}
@@ -606,26 +565,14 @@ export function Board() {
                                     stroke="currentColor"
                                     strokeWidth="2"
                                   >
-                                    <rect
-                                      x="3"
-                                      y="4"
-                                      width="18"
-                                      height="18"
-                                      rx="2"
-                                      ry="2"
-                                    />
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                     <line x1="16" y1="2" x2="16" y2="6" />
                                     <line x1="8" y1="2" x2="8" y2="6" />
                                     <line x1="3" y1="10" x2="21" y2="10" />
                                   </svg>
                                   <span className="text-black font-medium">
-                                    {new Date(
-                                      task.date_start
-                                    ).toLocaleDateString()}{" "}
-                                    -{" "}
-                                    {new Date(
-                                      task.date_end
-                                    ).toLocaleDateString()}
+                                    {new Date(task.date_start).toLocaleDateString()} -{' '}
+                                    {new Date(task.date_end).toLocaleDateString()}
                                   </span>
                                 </div>
 
@@ -633,15 +580,14 @@ export function Board() {
                                 <div className="flex items-center gap-1 ml-auto">
                                   {(() => {
                                     // Extract the name and id from the object
-                                    const { name = "", id = "" } =
-                                      task?.assignee_ids;
+                                    const { name = '', id = '' } = task?.assignee_ids
 
                                     // Generate initials from the name
                                     const initials = name
-                                      .split(" ")
+                                      .split(' ')
                                       .map((word) => word.charAt(0))
                                       .slice(0, 2)
-                                      .join("");
+                                      .join('')
 
                                     return (
                                       <Tooltip key={id}>
@@ -649,17 +595,15 @@ export function Board() {
                                           <div
                                             className="relative border rounded-full border-gray-700"
                                             style={{
-                                              marginLeft:
-                                                idx === 0 ? "0" : "-13%", // Overlap by 15%
+                                              marginLeft: idx === 0 ? '0' : '-13%', // Overlap by 15%
                                             }}
                                           >
                                             <Avatar>
                                               <AvatarFallback
                                                 style={{
-                                                  backgroundColor: "#F5B1FF",
-                                                  color:
-                                                    getContrastColor("#F5B1FF"),
-                                                  cursor: "pointer",
+                                                  backgroundColor: '#F5B1FF',
+                                                  color: getContrastColor('#F5B1FF'),
+                                                  cursor: 'pointer',
                                                 }}
                                               >
                                                 {initials}
@@ -671,7 +615,7 @@ export function Board() {
                                           <span>{name}</span>
                                         </TooltipContent>
                                       </Tooltip>
-                                    );
+                                    )
                                   })()}
                                 </div>
                               </div>
@@ -697,9 +641,7 @@ export function Board() {
                         modalSubtitle={task.created_at}
                         sidebarContent={<p>Sidebar content here</p>}
                         isOpen={openDetailTaskId === task.id_task}
-                        setIsOpen={(open) =>
-                          setOpenDetailTaskId(open ? task.id_task : null)
-                        }
+                        setIsOpen={(open) => setOpenDetailTaskId(open ? task.id_task : null)}
                       >
                         <p>Modal content here</p>
                       </DetailModalTrigger>
@@ -717,8 +659,8 @@ export function Board() {
                         </Button>
                       }
                       modalTitle="Create Task"
-                      parentTaskId={"0"}
-                      modalSubtitle={""}
+                      parentTaskId={'0'}
+                      modalSubtitle={''}
                       sidebarContent={<p></p>}
                       fetchTasks={fetchTasks}
                       initialValues={{
@@ -747,6 +689,6 @@ export function Board() {
           <ScrollBar orientation="horizontal" className="w-full" />
         </ScrollArea>
       </div>
-    </>
-  );
+    </div>
+  )
 }
