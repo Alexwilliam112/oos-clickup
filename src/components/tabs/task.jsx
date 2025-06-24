@@ -67,41 +67,11 @@ export default function Task({
     })
   }
 
-  const multiplier = 5 // Adjust this value to control the color change speed
-  const startColor = 255 // Starting color value (white)
-  const transparency = 1 // Adjust this value to control the transparency level
   const rowBg = level % 2 === 1 ? 'bg-muted/50' : ''
 
   return (
     <>
       <TableRow className={cn(rowBg)}>
-        {/* <TableCell
-          className="p-2 min-w-[50px]"
-          style={{
-            position: isOpenCreate ? "static" : "sticky",
-            left: 0,
-            zIndex: isOpenCreate ? undefined : 10,
-            backgroundColor: rowBg,
-          }}
-        >
-          <CreateModalTrigger
-            trigger={
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <Plus className="h-4 w-4" />
-              </Button>
-            }
-            modalTitle="Create Task"
-            parentTaskId={task.id_task}
-            fetchTasks={fetchTasks}
-            modalSubtitle={""}
-            initialValues={initialValues}
-            selectData={selectData}
-            sidebarContent={<p></p>}
-            isOpen={isOpenCreate}
-            setIsOpen={setIsOpenCreate}
-          />
-        </TableCell> */}
-
         <TableCell
           className="p-2 min-w-[255px]"
           style={{
