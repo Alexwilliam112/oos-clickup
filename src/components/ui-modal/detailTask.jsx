@@ -173,23 +173,36 @@ export function TaskDetailModalV2({
 
         // Determine validation based on field type
         switch (field.field_type) {
-          case "text":
-          case "text-area":
-          case "single-select":
-          case "radio":
-            fieldValidation = z
-              .string()
-              .min(1, `${field.field_name} is required`);
-            break;
+          case 'text':
+          case 'text-area':
+            fieldValidation = z.string().min(1, `${field.field_name} is required`)
+            break
+          case 'single-select':
+            fieldValidation = z.object(
+              {
+                id_record: z.string().min(1, "Multiple-Select id_record is required"),
+                name: z.string().min(1, "Multiple-Select name is required")
+              }
+            )
+            break
+          case 'radio':
+            fieldValidation = z.string().min(1, `${field.field_name} is required`)
+            break
 
-          case "number":
-            fieldValidation = z
-              .number()
-              .min(0, `${field.field_name} is required`);
-            break;
+          case 'number':
+            fieldValidation = z.number().min(0, `${field.field_name} is required`)
+            break
 
-          case "multiple-select":
-          case "checkbox":
+          case 'multiple-select':
+            fieldValidation = z.array(z.object(
+              {
+                id: z.string().min(1, "Multiple-Select id is required"),
+                key: z.string().min(1, "Multiple-Select key is required"),
+                name: z.string().min(1, "Multiple-Select name is required")
+              }
+            ))
+            break
+          case 'checkbox':
             fieldValidation = z
               .array(z.string())
               .min(1, `${field.field_name} is required`);
@@ -226,7 +239,7 @@ export function TaskDetailModalV2({
     defaultValues: {
       taskName: "",
       assignee: null,
-      lists: [],
+      lists: []
     },
   });
   useEffect(() => {
