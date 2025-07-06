@@ -31,17 +31,6 @@ export function NavProjects() {
       console.error('workspace_id is missing in the query parameters.')
     }
   }
-  const navigateToNotif = (page, param_id) => {
-    const workspace_id = params.get('workspace_id')
-
-    if (workspace_id) {
-      const url = `/notifications`
-      router.push(url)
-      // setOpenMobile(false)
-    } else {
-      console.error('workspace_id is missing in the query parameters.')
-    }
-  }
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:block">
