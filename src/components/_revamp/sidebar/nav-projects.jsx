@@ -12,6 +12,7 @@ import { Bell } from 'lucide-react'
 import { ListTodo } from 'lucide-react'
 import { useUserStore } from '@/store/user/userStore'
 import { useRouter, useSearchParams } from 'next/navigation'
+import NotificationModal from '@/components/notifications/NotificationModal'
 
 export function NavProjects() {
   const userId = useUserStore((state) => state.user_id)
@@ -26,6 +27,17 @@ export function NavProjects() {
       const url = `/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${param_id}`
       router.push(url)
       setOpenMobile(false)
+    } else {
+      console.error('workspace_id is missing in the query parameters.')
+    }
+  }
+  const navigateToNotif = (page, param_id) => {
+    const workspace_id = params.get('workspace_id')
+
+    if (workspace_id) {
+      const url = `/notifications`
+      router.push(url)
+      // setOpenMobile(false)
     } else {
       console.error('workspace_id is missing in the query parameters.')
     }
@@ -49,10 +61,13 @@ export function NavProjects() {
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Notifications">
+          <SidebarMenuButton asChild tooltip="Notifications" 
+            // onClick={() => navigateToNotif('notification', userId)}
+          >
             <span>
               <Bell />
-              <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span>
+              {/* <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span> */}
+            <NotificationModal/>
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
