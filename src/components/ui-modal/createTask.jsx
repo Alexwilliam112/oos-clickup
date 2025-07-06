@@ -144,7 +144,16 @@ export function TaskCreateModal({
         switch (field.field_type) {
           case 'text':
           case 'text-area':
+            fieldValidation = z.string().min(1, `${field.field_name} is required`)
+            break
           case 'single-select':
+            fieldValidation = z.object(
+              {
+                id_record: z.string().min(1, "Multiple-Select id_record is required"),
+                name: z.string().min(1, "Multiple-Select name is required")
+              }
+            )
+            break
           case 'radio':
             fieldValidation = z.string().min(1, `${field.field_name} is required`)
             break
@@ -154,6 +163,14 @@ export function TaskCreateModal({
             break
 
           case 'multiple-select':
+            fieldValidation = z.array(z.object(
+              {
+                id: z.string().min(1, "Multiple-Select id is required"),
+                key: z.string().min(1, "Multiple-Select key is required"),
+                name: z.string().min(1, "Multiple-Select name is required")
+              }
+            ))
+            break
           case 'checkbox':
             fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
             break
@@ -321,6 +338,10 @@ export function TaskCreateModal({
 
   if (!isVisible) return null
 
+  const onError = (errors) => {
+    console.log("Form validation errors:", errors);
+  };
+
   const onSubmit = async (values) => {
     const descriptionData = editorRef.current ? await editorRef.current.save() : {}
 
@@ -434,7 +455,7 @@ export function TaskCreateModal({
         </div>
 
         {/* Modal Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-1 overflow-hidden relative">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="flex flex-1 overflow-hidden relative">
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}

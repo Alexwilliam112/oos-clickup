@@ -12,7 +12,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-4xl font-bold">ClickUp</h1>
+      <h1 className="text-4xl font-bold">SyncBoard</h1>
+      <h2 className="text-3xl font-bold py-5">"Sync your work. Streamline your world."</h2>
     </div>
   )
 }
