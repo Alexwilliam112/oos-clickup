@@ -1,11 +1,8 @@
 'use client'
 
 import './globals.css'
-import { Suspense } from 'react'
 import { Poppins } from 'next/font/google'
-import QueryClient from './query-client'
-import Sidebar from '@/components/_revamp/sidebar/sidebar'
-import AuthWrapper from './auth-wrapper'
+import ClientLayoutWrapper from './clientLayoutWrapper'
 
 const pjs = Poppins({
   subsets: ['latin'],
@@ -19,14 +16,8 @@ export default function RootLayout({ children }) {
         <title>Mekari Task Management</title>
         <meta name="description" content={'Mekari Task Management'} />
       </head>
-      <body className={`antialiased`} style={pjs.style}>
-        <QueryClient>
-          <Suspense>
-            <AuthWrapper>
-              <Sidebar>{children}</Sidebar>
-            </AuthWrapper>
-          </Suspense>
-        </QueryClient>
+      <body className="antialiased" style={pjs.style}>
+        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
       </body>
     </html>
   )

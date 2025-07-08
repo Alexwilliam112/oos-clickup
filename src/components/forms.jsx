@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { SingleSelectTag } from './ui/tag-input'
 import { DateRangePicker } from './ui/dateRangePicker'
 import DynamicFileAttachmentsForm from './ui/dynamicAttachmentForm'
+import { MultipleSelectTags } from './ui/tag-input'
 
 export default function PublicFormPage() {
   const { formId } = useParams()
@@ -33,8 +34,8 @@ export default function PublicFormPage() {
         return response.json()
       })
       .then((data) => {
-        if (data.error) {
-          throw new Error(data.message || 'Failed to fetch DATA.')
+        if (!data || data.error) {
+          throw new Error(data?.message || 'Failed to fetch DATA.')
         }
         setForm(data.data)
         console.log(data.data)
@@ -49,99 +50,109 @@ export default function PublicFormPage() {
   }
   
   useEffect(() => {
-      if (formId) {
+      if (formId && typeof formId === 'string' && formId !== 'submitted') {
           fetchData()
       }
   }, [formId])
 
   // Dynamically build schema AFTER form.form_field exists
   const formSchema = useMemo(() => {
-    if (!form.form_field) return z.object({})
-    const schemaFields = form.form_field.reduce((acc, field) => {
-      switch (field.originalName) {
+  if (!form.form_field) return z.object({});
+
+  const schemaFields = {};
+
+  form.form_field.forEach((field) => {
+    const name = field.originalName;
+
+    let fieldValidation;
+
+    if (!field.is_custom_field) {
+      switch (name) {
         case 'name':
-          acc[field.originalName] = field.required
-            ? z.string().min(1, 'Task name is required and cannot be empty')
-            : z.string().optional();
+          fieldValidation = z.string().min(1, 'Task name is required and cannot be empty');
           break;
 
         case 'priority':
-          acc[field.originalName] = field.required
-            ? z.object({
-                id: z.string().min(1, 'Priority selection is required'),
-                name: z.string().min(1, 'Priority name is required'),
-                color: z.string().min(1, 'Priority color is required'),
-              }, { required_error: 'Please select a priority level' })
-            : z.object({
-                id: z.string().optional(),
-                name: z.string().optional(),
-                color: z.string().optional(),
-              }).optional();
-          break;
-
         case 'status':
-          acc[field.originalName] = field.required
-            ? z.object({
-                id: z.string().min(1, 'Status selection is required'),
-                name: z.string().min(1, 'Status name is required'),
-                color: z.string().min(1, 'Status color is required'),
-              }, { required_error: 'Please select a task status' })
-            : z.object({
-                id: z.string().optional(),
-                name: z.string().optional(),
-                color: z.string().optional(),
-              }).optional();
+        case 'product':
+          fieldValidation = z.object({
+            id: z.string().min(1, `${field.label || name} id is required`),
+            name: z.string().min(1, `${field.label || name} name is required`),
+            color: z.string().min(1, `${field.label || name} color is required`),
+          });
           break;
 
         case 'assignee':
-          acc[field.originalName] = field.required
-            ? z.object({
-                id: z.string().min(1, 'Assignee selection is required'),
-                name: z.string().min(1, 'Assignee name is required'),
-              }, { required_error: 'Please assign this task to someone' })
-            : z.object({
-                id: z.string().optional(),
-                name: z.string().optional(),
-              }).optional();
-          break;
-
-        case 'product':
-          acc[field.originalName] = field.required
-            ? z.object({
-                id: z.string().min(1, 'Product selection is required'),
-                name: z.string().min(1, 'Product name is required'),
-                color: z.string().min(1, 'Product color is required'),
-              }, { required_error: 'Please select a product' })
-            : z.object({
-                id: z.string().optional(),
-                name: z.string().optional(),
-                color: z.string().optional(),
-              }).optional();
+          fieldValidation = z.object({
+            id: z.string().min(1, 'Assignee selection is required'),
+            name: z.string().min(1, 'Assignee name is required'),
+          });
           break;
 
         case 'description':
-          acc[field.originalName] = field.required
-            ? z.string().min(1, `${field.label} is required`)
-            : z.string().optional();
+          fieldValidation = z.string().min(1, `${field.label} is required`);
           break;
 
         case 'date-range':
-          acc[field.originalName] = field.required
-            ? z.object({
-                from: z.date({ required_error: 'Start date is required' }),
-                to: z.date({ required_error: 'End date is required' }),
-              }, { required_error: 'Please select a date range for this task' })
-            : z.object({
-                from: z.date().optional(),
-                to: z.date().optional(),
-              }).optional();
+          fieldValidation = z.object({
+            from: z.date({ required_error: 'Start date is required' }),
+            to: z.date({ required_error: 'End date is required' }),
+          });
           break;
-      }
 
-      return acc;
-    }, {});
-    return z.object(schemaFields)
-  }, [form.form_field])
+        default:
+          fieldValidation = z.any();
+      }
+    } else {
+      switch (field.type) {
+        case 'text':
+        case 'textarea':
+        case 'radio':
+          fieldValidation = z.string().min(1, `${field.label} is required`);
+          break;
+
+        case 'select':
+          fieldValidation = z.object({
+            id_record: z.string().min(1, 'Single-Select id_record is required'),
+            name: z.string().min(1, 'Single-Select name is required'),
+          });
+          break;
+
+        case 'number':
+          fieldValidation = z.preprocess(
+            (val) => (val === '' || val === undefined ? undefined : Number(val)),
+            z.number({ invalid_type_error: `${field.label} is required` })
+          );
+          break;
+
+        case 'multiple-select':
+          fieldValidation = z.array(
+            z.object({
+              id: z.string().min(1, 'Multiple-Select id is required'),
+              key: z.string().min(1, 'Multiple-Select key is required'),
+              name: z.string().min(1, 'Multiple-Select name is required'),
+            })
+          );
+          break;
+
+        case 'checkbox':
+          fieldValidation = z
+            .array(z.string())
+            .min(1, `${field.label} is required`);
+          break;
+
+        default:
+          fieldValidation = z.any();
+      }
+    }
+
+    schemaFields[name] = field.required
+      ? fieldValidation
+      : fieldValidation.optional();
+  });
+
+  return z.object(schemaFields);
+}, [form.form_field]);
 
   const {
     control,
@@ -159,11 +170,10 @@ export default function PublicFormPage() {
 
   const onSubmit = async (values) => {
     console.log('Form submitted:', values)
-    
-     const descriptionData = 'text'
 
     // Collect task data
     const taskData = {
+      form_field: form.form_field,
       name: values.name,
       task_type_id: form.task_type_id,
       assignee_ids: values.assignee,
@@ -175,13 +185,50 @@ export default function PublicFormPage() {
       list_ids: form.list_ids,
       product_id: values.product,
       team_id: form.team_id,
-      description: descriptionData,
-      attachments: attachments
+      description: values.description,
+      attachments: attachments,
+      workspace_id: form.workspace_id,
+      custom_fields: []
     }
 
-    reset()
+    if (Array.isArray(form.form_field)) {
+      const customFieldsPayload = form.form_field
+        .filter((field) => field.is_custom_field)
+        .map((field) => {
+          const rawValue = values[field.originalName];
 
-    fetch(`${baseUrl}/task/create?workspace_id=${form.workspace_id}&page=list`, {
+          let value = rawValue;
+          switch (field.type) {
+            case 'text':
+            case 'textarea':
+            case 'radio':
+              value = rawValue ?? '';
+              break;
+            case 'select':
+              value = rawValue ?? {}; // force empty string if undefined
+              break;
+            case 'multiple-select':
+              value = Array.isArray(rawValue) ? rawValue : [];
+              break;
+            case 'checkbox':
+              value = Array.isArray(rawValue) ? rawValue : [];
+              break;
+            case 'number':
+              value = rawValue === '' || rawValue === undefined ? null : Number(rawValue);
+              break;
+          }
+
+          return {
+            id: field.id,
+            value,
+          };
+        });
+
+      taskData.custom_fields = customFieldsPayload;
+    }
+
+    
+    fetch(`${baseUrl}/task/create-by-form?workspace_id=${form.workspace_id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -195,8 +242,8 @@ export default function PublicFormPage() {
         return response.json()
       })
       .then((data) => {
-        if (data.error) {
-          throw new Error(data.message || 'Failed to create task.')
+        if (!data || data.error) {
+          throw new Error(data?.message || 'Failed create task.')
         }
         console.log('Task created successfully:', data)
       })
@@ -205,6 +252,7 @@ export default function PublicFormPage() {
       })
 
     // Redirect to page success
+    reset()
     router.push('/forms/submitted')
   }
 
@@ -292,7 +340,37 @@ export default function PublicFormPage() {
                       />
                     )}
 
-                    {field_data.type === 'select' && (
+                    {field_data.type === 'select' && field_data.is_custom_field && (
+                      <Controller
+                        name={field_data.originalName}
+                        control={control}
+                        render={({ field }) => (
+                          <div>
+                            <SingleSelectTag
+                              value={field.value || null} // Ensure the value is always null or a valid option
+                              onChange={(value) => field.onChange(value)}
+                              options={field_data.options.map((opt) => ({
+                                id_record: opt.value,
+                                name: opt.value,
+                              }))}
+                              placeholder={`Select ${field_data.originalName}`}
+                              className={
+                                errors[field_data.originalName]
+                                  ? "border-red-500"
+                                  : "border-gray-300"
+                              }
+                            />
+                            {errors[field_data.originalName] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[field_data.originalName].message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
+                    )}
+
+                    {field_data.type === 'select' && !field_data.is_custom_field && (
                       <>
                         {field_data.originalName === 'assignee' ? (
                           <Controller
@@ -305,7 +383,7 @@ export default function PublicFormPage() {
                                   onChange={(value) => {
                                     console.log("SELECTED VALUE:", value)
                                     field.onChange({
-                                      id: value.id,
+                                      id: String(value.id),
                                       name: value.name
                                     })
                                   }}
@@ -314,7 +392,7 @@ export default function PublicFormPage() {
                                   className={getBorderColor('assignee')}
                                 />
                                 {errors.assignee && (
-                                  <p className="text-red-500 text-xs mt-1">Assignee is required</p>
+                                  <p className="text-red-500 text-xs mt-1">{errors[field_data.originalName].message}</p>
                                 )}
                               </div>
                             )}
@@ -372,10 +450,148 @@ export default function PublicFormPage() {
                       <DynamicFileAttachmentsForm setAttachments={setAttachments} attachments={attachments} />
                     )}
 
-                    {errors[field_data.originalName] && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors[field_data.originalName]?.message}
-                      </p>
+                    {field_data.type === 'number' && (
+                      <Controller
+                        name={field_data.originalName}
+                        control={control}
+                        render={({ field }) => (
+                          <div>
+                            <input
+                              type="number"
+                              className={`w-full border rounded-md px-3 py-2 ${
+                                errors[field_data.originalName]
+                                  ? "border-red-500"
+                                  : "border-gray-300"
+                              }`}
+                              placeholder={`Enter ${field_data.label}`}
+                              value={field.value || ""} // Ensure the value is always a number or empty string
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value === "" ? "" : Number(e.target.value)
+                                )
+                              }
+                            />
+                            {errors[field_data.originalName] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[field_data.originalName].message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
+                    )}
+
+                    {field_data.type === 'radio' && (
+                      <Controller
+                        name={field_data.originalName}
+                        control={control}
+                        render={({ field }) => (
+                          <div className="space-y-2">
+                            {field_data.options.map((opt, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id={opt.id}
+                                  value={opt.value}
+                                  checked={field.value === opt.value}
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                  className={`h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                                    errors[field_data.originalName]
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                <label
+                                  htmlFor={opt.id}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  {opt.value}
+                                </label>
+                              </div>
+                            ))}
+                            {errors[field_data.originalName] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[field_data.originalName].message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
+                    )}
+
+                    {field_data.type === 'checkbox' && (
+                      <Controller
+                        name={field_data.originalName}
+                        control={control}
+                        render={({ field }) => (
+                          <div className="space-y-2">
+                            {field_data.options.map((opt, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={opt.id}
+                                  value={opt.value}
+                                  checked={(field.value || []).includes(opt.value)} // Ensure the value is always an array
+                                  onChange={(e) => {
+                                    const prevValues = field.value || [];
+                                    const updatedValues = e.target.checked
+                                      ? [...prevValues, opt.value]
+                                      : prevValues.filter((v) => v !== opt.value);
+                                    field.onChange(updatedValues);
+                                  }}
+                                  className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                                    errors[field_data.originalName]
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                <label
+                                  htmlFor={opt.id}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  {opt.value}
+                                </label>
+                              </div>
+                            ))}
+                            {errors[field_data.originalName] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[field_data.originalName].message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
+                    )}
+
+                    {field_data.type === 'multiple-select' && (
+                      <Controller
+                        name={field_data.originalName}
+                        control={control}
+                        render={({ field }) => (
+                          <div>
+                            <MultipleSelectTags
+                              value={field.value || []} // Ensure the value is always an array
+                              onChange={(value) => field.onChange(value)}
+                              options={field_data.options.map((opt) => ({
+                                key: opt.value,
+                                id: opt.value,
+                                name: opt.value,
+                              }))}
+                              placeholder={`Add ${field_data.label}`}
+                              className={
+                                errors[field_data.originalName]
+                                  ? "border-red-500"
+                                  : "border-gray-300"
+                              }
+                            />
+                            {errors[field_data.originalName] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[field_data.originalName].message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
                     )}
                   </div>
                 ))}

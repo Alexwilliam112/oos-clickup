@@ -144,34 +144,41 @@ export function FormDetailModal({
     },
   });
 
-  const fetchData = () => {
-    fetch(
-      //GET TASKS
-      `${baseUrl}/form/initial-field-config?workspace_id=${workspaceId}`
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch DATA.')
-        }
-        return response.json()
-      })
-      .then((data) => {
-        if (data.error) {
-          throw new Error(data.message || 'Failed to fetch DATA.')
-        }
-        const usedFieldNames = form.form_field?.map((field) => field.originalName) || []
+  const fetchData = async () => {
+     try {
+        const response = await fetch(`${baseUrl}/form/initial-field-config?workspace_id=${workspaceId}`)
+        if (!response.ok) throw new Error('Failed to fetch DATA.')
 
-        const filteredFields = data.data.filter(
-          (field) => !usedFieldNames.includes(field.originalName)
-        )
+        const result = await response.json()
+        if (result.error) throw new Error(result.message || 'Failed to fetch DATA.')
 
-        setAvailableFields(filteredFields)
-        setInitialFields(data.data);
-      })
-      .catch((error) => {
+        console.log('SUCCESS FETCH DATA')
+        return result.data
+      } catch (error) {
         console.error('Error fetching DATA:', error)
-      })
-    console.log('SUCCESS FETCH DATA')
+        return [] // return empty array on error
+      }
+  }
+
+  const fetchCustomField = async (task_type_id) => {
+    // Fetch custom fields based on task type
+    try {
+      const response = await fetch(
+        `${baseUrl}/form/initial-custom-field-config?task_type_id=${task_type_id}`
+      )
+      if (!response.ok) {
+        throw new Error('Failed to fetch custom fields.')
+      }
+      const data = await response.json()
+      console.log('Custom fields fetched successfully:', data)
+
+      const customFields = data.data;
+      return customFields;
+      
+    } catch (error) {
+      console.error('Error fetching custom fields:', error)
+    }
+
   }
 
   useEffect(() => {
@@ -273,8 +280,39 @@ export function FormDetailModal({
       setIsVisible(true);
       document.body.style.overflow = "hidden";
 
-      // fetch initial data
-      fetchData();
+      reset({
+        formName: form.form_name || "",
+        lists: form.list_ids || [],
+        folder: form.folder_id || null,
+        taskType: form.task_type_id || null,
+        team: form.team_id || null,
+        description: form.description?.value || "",
+      });
+
+      // Fetch Initial Config Data
+      const loadInitialData = async() => {
+        try {
+          const mandatoryField = await fetchData()
+          setAvailableFields(mandatoryField)
+          setInitialFields(mandatoryField)
+          if (form.task_type_id) {
+            const customFields = await fetchCustomField(form.task_type_id.id)
+            setAvailableFields(prev => [...prev, ...customFields])
+            setInitialFields(prev => [...prev, ...customFields])
+
+            const usedFieldNames = form.form_field?.map((field) => field.originalName) || []
+
+            const filteredFields = initialFields.filter(
+              (field) => !usedFieldNames.includes(field.originalName)
+            )
+
+            setAvailableFields(filteredFields)
+          }
+        } catch (error) {
+          console.error('Error loading initial fields:', error)
+        }
+      }
+      loadInitialData()
 
       // Load fresh form data when modal opens
       setFieldConfig(form.form_field || []);
@@ -390,15 +428,6 @@ export function FormDetailModal({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000) // hide after 2 seconds
   }
-
-  const formatTimestamp = (timestamp) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const getUserName = (userId) => {
-    const member = workspaceMembers.find((m) => m.id === userId);
-    return member ? member.name : `User ${userId}`;
-  };
 
   if (!isVisible) return null;
 
@@ -517,7 +546,29 @@ export function FormDetailModal({
                                         name: value.name,
                                         color: value.color,
                                       }
+                                      const currentValue = field.value;
+
+                                      // Check if it's different before deleting custom fields
+                                      const isDifferent =
+                                        !currentValue ||
+                                        currentValue.id !== selectedTaskType.id ||
+                                        currentValue.name !== selectedTaskType.name ||
+                                        currentValue.color !== selectedTaskType.color;
+
                                       field.onChange(selectedTaskType)
+
+                                      if (isDifferent) {
+                                        const mandatoryField = await fetchData()
+                                        setAvailableFields(mandatoryField)
+                                        setInitialFields(mandatoryField);
+                                        setFieldConfig([]);
+  
+                                        // Fetch custom fields based on task type
+                                        const customFields = await fetchCustomField(selectedTaskType.id)
+                                        setAvailableFields(prev => [...prev, ...customFields])
+                                        setInitialFields(prev => [...prev, ...customFields])
+                                      }
+
                                     }}
                                     options={indexTaskType}
                                     placeholder="Select task type"
@@ -726,6 +777,57 @@ export function FormDetailModal({
                                         File upload preview (disabled)
                                       </div>
                                     )}
+                                    {field.type === 'radio' && (
+                                      <div className="space-y-1">
+                                        {field.options.map((opt) => (
+                                          <label key={opt.id} className="flex items-center space-x-2 text-sm text-gray-600">
+                                            <input
+                                              type="radio"
+                                              disabled
+                                              name={field.originalName}
+                                              className="cursor-not-allowed"
+                                            />
+                                            <span>{opt.name}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {field.type === 'number' && (
+                                      <input
+                                        type="number"
+                                        disabled
+                                        className="w-full p-2 border rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+                                        placeholder={field.placeholder || 'Enter a number'}
+                                      />
+                                    )}
+                                    {field.type === 'checkbox' && (
+                                      <div className="space-y-1">
+                                        {field.options.map((opt) => (
+                                          <label key={opt.id} className="flex items-center space-x-2 text-sm text-gray-600">
+                                            <input
+                                              type="checkbox"
+                                              disabled
+                                              className="cursor-not-allowed"
+                                            />
+                                            <span>{opt.name}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {field.type === 'multiple-select' && (
+                                      <select
+                                        multiple
+                                        disabled
+                                        className="w-full p-2 border rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+                                      >
+                                        {field.options.map((opt) => (
+                                          <option key={opt.id} value={opt.value}>
+                                            {opt.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    )}
                                     {field.type === 'date-range' && (
                                       <div className="flex gap-2">
                                         <input
@@ -850,6 +952,80 @@ export function FormDetailModal({
                               <p className="text-red-500 text-xs mt-1">Date range is required</p>
                             )}
                           </div>
+                        )}
+                        {field.type === 'radio' && (
+                          <>
+                            {field.options.map((opt, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id={opt.id}
+                                  value={opt.value}
+                                  checked={'' === opt.value}
+                                  onChange={() => {}}
+                                  className={`h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                                    errors[field.originalName]
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                <label
+                                  htmlFor={opt.id}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  {opt.value}
+                                </label>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        {field.type === 'checkbox' && (
+                          <>
+                            {field.options.map((opt, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={opt.id}
+                                  value={opt.value}
+                                  checked={([]).includes(opt.value)} // Ensure the value is always an array
+                                  onChange={() => {}}
+                                  className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                                    errors[field.originalName]
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                <label
+                                  htmlFor={opt.id}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  {opt.value}
+                                </label>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                        {field.type === 'multiple-select' && (
+                          <MultipleSelectTags
+                            value={null} // Ensure the value is always an array
+                            onChange={() => {}}
+                            options={field.options}
+                            placeholder={`Add ${field.label}`}
+                            className={
+                              errors.customFields?.[field_name]
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            }
+                          />
+                        )}
+                        {field.type === 'number' && (
+                          <input
+                            type="number"
+                            className={`w-full p2`}
+                            placeholder={field.placeholder}
+                            value={''} // Ensure the value is always a number or empty string
+                            onChange={() => {}}
+                          />
                         )}
                       </div>
                     ))}
