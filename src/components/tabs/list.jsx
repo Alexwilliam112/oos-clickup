@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateModalTrigger } from '@/components/ui-modal/modal-trigger'
@@ -20,6 +20,7 @@ import { useQuery } from '@tanstack/react-query'
 import { masterService, taskService, workspaceService, formService } from '@/service/index.mjs'
 import { generateChildren } from '@/lib/utils'
 import { Skeleton } from '../ui/skeleton'
+import { useTaskStore } from '@/store/task/task'
 
 export function ListView() {
   const params = useSearchParams()
@@ -28,7 +29,17 @@ export function ListView() {
   const page = params.get('page')
   const param_id = params.get('param_id')
 
-  const [tasks, setTasks] = useState([])
+   const {
+    tasks,
+    setTasks,
+    setInitialValues,
+    setSelectData,
+    initialValues,
+    selectData,
+    setFetchTasks
+  } = useTaskStore()
+
+  // const [tasks, setTasks] = useState([])
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -61,6 +72,13 @@ export function ListView() {
     queryKey: ['taskService.getTasks', { param_id, workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
   })
+
+  useEffect(() => {
+    if (tasksData) {
+      setTasks(tasksData)
+      setFetchTasks(() => fetchTasks) // ← ini dia!
+    }
+  }, [tasksData, fetchTasks, setTasks, setFetchTasks])
 
   const { isLoading: inititalValuesLoading } = useQuery({
     queryFn: () =>
@@ -162,6 +180,28 @@ export function ListView() {
     queryKey: ['masterService.getList', { workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
   })
+
+  useEffect(() => {
+    setSelectData({
+      indexTaskType,
+      indexStatus,
+      indexPriority,
+      indexProduct,
+      indexMember,
+      indexTeam,
+      indexFolder,
+      indexList,
+    })
+  }, [
+    indexTaskType,
+    indexStatus,
+    indexPriority,
+    indexProduct,
+    indexMember,
+    indexTeam,
+    indexFolder,
+    indexList,
+  ])
 
   const filteredTasks = filterTasksByName(
     generateChildren(tasksData || []),

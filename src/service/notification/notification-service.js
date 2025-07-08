@@ -10,7 +10,7 @@ const notificationService = {
   },
 
   async postRead({ payload, params }) {
-    const { data } = await apiClient.get(NOTIFICATION_API.GET_NOTIFICATION, payload, { params })
+    const { data } = await apiClient.post(NOTIFICATION_API.POST_READ_NOTIFICATION, payload, { params })
 
     return data
   },

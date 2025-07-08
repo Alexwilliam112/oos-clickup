@@ -12,6 +12,7 @@ import { Bell, ClipboardPenLine } from 'lucide-react'
 import { ListTodo } from 'lucide-react'
 import { useUserStore } from '@/store/user/userStore'
 import { useRouter, useSearchParams } from 'next/navigation'
+import NotificationModal from '@/components/notifications/NotificationModal'
 
 export function NavProjects() {
   const userId = useUserStore((state) => state.user_id)
@@ -49,10 +50,13 @@ export function NavProjects() {
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Notifications">
+          <SidebarMenuButton asChild tooltip="Notifications" 
+            // onClick={() => navigateToNotif('notification', userId)}
+          >
             <span>
               <Bell />
-              <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span>
+              {/* <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span> */}
+            <NotificationModal/>
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>

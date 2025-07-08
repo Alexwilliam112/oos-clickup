@@ -72,7 +72,7 @@ export function Board() {
     const matchesStatus = statusFilter !== 'all' ? task.status_id?.id === statusFilter : true
 
     const matchesAssignee =
-      assigneeFilter !== 'all' ? task.assignee_ids?.some((a) => a.id === assigneeFilter) : true
+      assigneeFilter !== 'all' ? task.assignee_ids?.id === assigneeFilter : true
 
     const matchesPriority =
       priorityFilter !== 'all' ? task.priority_id?.id === priorityFilter : true
