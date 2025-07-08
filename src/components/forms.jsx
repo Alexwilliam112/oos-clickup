@@ -148,7 +148,7 @@ export default function PublicFormPage() {
 
     schemaFields[name] = field.required
       ? fieldValidation
-      : fieldValidation.optional();
+      : fieldValidation.nullable().optional();
   });
 
   return z.object(schemaFields);
@@ -174,20 +174,20 @@ export default function PublicFormPage() {
     // Collect task data
     const taskData = {
       form_field: form.form_field,
-      name: values.name,
       task_type_id: form.task_type_id,
-      assignee_ids: values.assignee,
-      date_start: new Date(values['date-range'].from).getTime(),
-      date_end: new Date(values['date-range'].to).getTime(),
       folder_id: form.folder_id,
+      team_id: form.team_id,
+      list_ids: form.list_ids,
+      workspace_id: form.workspace_id,
+      name: values.name,
+      assignee_ids: values.assignee,
+      date_start: new Date(values['date-range']?.from).getTime(),
+      date_end: new Date(values['date-range']?.to).getTime(),
       priority_id: values.priority,
       status_id: values.status,
-      list_ids: form.list_ids,
       product_id: values.product,
-      team_id: form.team_id,
       description: values.description,
       attachments: attachments,
-      workspace_id: form.workspace_id,
       custom_fields: []
     }
 

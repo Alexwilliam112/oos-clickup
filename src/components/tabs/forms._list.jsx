@@ -35,11 +35,6 @@ export function FormsListView() {
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [teamFilter, setTeamFilter] = useState('all')
 
-  const [indexTaskType, setIndexTaskType] = useState([])
-  const [indexTeam, setIndexTeam] = useState([])
-  const [indexFolder, setIndexFolder] = useState([])
-  const [indexList, setIndexList] = useState([])
-
   const [isOpen, setIsOpen] = useState(false)
 
   const {
@@ -56,50 +51,45 @@ export function FormsListView() {
     }
   })
 
-  const { isLoading: taskTypeLoading } = useQuery({
-    queryFn: () =>
-      masterService.getTaskTypes().then((data) => {
-        setIndexTaskType(data || [])
-
-        return DataTransferItemList
-      }),
-    queryKey: ['masterService.getTaskTypes', { workspace_id }],
+  const {
+    data: indexTaskType = [],
+    isLoading: taskTypeLoading,
+    isSuccess: taskTypeSuccess,
+  } = useQuery({
+    queryKey: ['masterService.getTaskTypes', workspace_id],
+    queryFn: () => masterService.getTaskTypes(),
     enabled: !!workspace_id && !!page && !!param_id,
-  })
+  });
 
-
-  const { isLoading: teamsLoading } = useQuery({
-    queryFn: () =>
-      masterService.getTeams().then((data) => {
-        setIndexTeam(data)
-
-        return data
-      }),
+  const {
+    data: indexTeam = [],
+    isLoading: teamsLoading,
+    isSuccess: teamsSuccess,
+  } = useQuery({
     queryKey: ['masterService.getTeams', workspace_id],
+    queryFn: () => masterService.getTeams(),
     enabled: !!workspace_id && !!page && !!param_id,
-  })
+  });
 
-  const { isLoading: foldersLoading } = useQuery({
-    queryFn: () =>
-      masterService.getFolders().then((data) => {
-        setIndexFolder(data)
-
-        return data
-      }),
+  const {
+    data: indexFolder = [],
+    isLoading: foldersLoading,
+    isSuccess: foldersSuccess,
+  } = useQuery({
     queryKey: ['masterService.getFolders', workspace_id],
+    queryFn: () => masterService.getFolders(),
     enabled: !!workspace_id && !!page && !!param_id,
-  })
+  });
 
-  const { isLoading: listsLoading } = useQuery({
-    queryFn: () =>
-      masterService.getList().then((data) => {
-        setIndexList(data)
-
-        return data
-      }),
+  const {
+    data: indexList = [],
+    isLoading: listsLoading,
+    isSuccess: listsSuccess,
+  } = useQuery({
     queryKey: ['masterService.getList', workspace_id],
+    queryFn: () => masterService.getList(),
     enabled: !!workspace_id && !!page && !!param_id,
-  })
+  });
 
   const filteredForms = useMemo(() => {
     if (!formsData) return []
@@ -138,7 +128,15 @@ export function FormsListView() {
       .filter(Boolean)
   }
 
-  const isSelectDataReady = indexTaskType.length && indexTeam.length && indexFolder.length && indexList.length
+  const isSelectDataReady =
+      taskTypeSuccess &&
+      teamsSuccess &&
+      foldersSuccess &&
+      listsSuccess &&
+      indexTaskType.length &&
+      indexTeam.length &&
+      indexFolder.length &&
+      indexList.length;
 
   const renderForms = (formList, level = 0) => {
     if (!isSelectDataReady) {
@@ -172,34 +170,32 @@ export function FormsListView() {
 
   return (
     <div className="w-full h-full flex flex-col gap-3">
-      {
-        (indexTaskType.length && indexTeam.length && indexFolder.length && indexList.length) ? (
-          <FormCreateModalTrigger
-            trigger={
-              <Button variant="outline" size="sm">
-                <Plus />
-                Add
-              </Button>
-            }
-            modalTitle="Create Form"
-            modalSubtitle={''}
-            fetchForms={fetchForms}
-            selectData={{
-              indexTaskType,
-              indexTeam,
-              indexFolder,
-              indexList,
-            }}
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-          />
-        ) : (
-          <Button variant="outline" size="sm" disabled>
-            <Plus />
-            Add
-          </Button>
-        )
-      }
+      {(isSelectDataReady) ? (
+        <FormCreateModalTrigger
+          trigger={
+            <Button variant="outline" size="sm" className="w-fit">
+              <Plus />
+              Add
+            </Button>
+          }
+          modalTitle="Create Form"
+          modalSubtitle=""
+          fetchForms={fetchForms}
+          selectData={{
+            indexTaskType,
+            indexTeam,
+            indexFolder,
+            indexList,
+          }}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
+      ) : (
+        <Button variant="outline" size="sm" disabled className="w-fit">
+          <Plus />
+          Add
+        </Button>
+      )}
 
       <div className="flex gap-2 ">
         <Input
@@ -251,7 +247,7 @@ export function FormsListView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(indexTaskType && indexTeam && indexFolder && indexList)
+                {(isSelectDataReady)
                   ? filteredForms.map((form, idx) => (
                       <Form
                         key={form.id_form}

@@ -276,7 +276,7 @@ export function FormDetailModal({
   useEffect(() => {
 
     if (isOpen) {
-      if (!isOpen || !form) return;
+      if (!form) return;
       setIsVisible(true);
       document.body.style.overflow = "hidden";
 
@@ -298,15 +298,16 @@ export function FormDetailModal({
           if (form.task_type_id) {
             const customFields = await fetchCustomField(form.task_type_id.id)
             setAvailableFields(prev => [...prev, ...customFields])
-            setInitialFields(prev => [...prev, ...customFields])
+            const combinedFields = [...mandatoryField, ...customFields];
 
-            const usedFieldNames = form.form_field?.map((field) => field.originalName) || []
+            setInitialFields(combinedFields);
 
-            const filteredFields = initialFields.filter(
+            const usedFieldNames = form.form_field?.map((field) => field.originalName) || [];
+            const filteredFields = combinedFields.filter(
               (field) => !usedFieldNames.includes(field.originalName)
-            )
+            );
 
-            setAvailableFields(filteredFields)
+            setAvailableFields(filteredFields);
           }
         } catch (error) {
           console.error('Error loading initial fields:', error)
@@ -349,7 +350,7 @@ export function FormDetailModal({
       }
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, form]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -428,6 +429,55 @@ export function FormDetailModal({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000) // hide after 2 seconds
   }
+
+  const handleDefaultValueChange = (id, value) => {
+    setFieldConfig((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+  
+        let customValue;
+  
+        if (f.type === 'checkbox') {
+          customValue = Array.isArray(value) ? value : [value.value];
+        } else if (f.type === 'multiple-select') {
+          customValue = Array.isArray(value)
+            ? value.map((v) => ({
+                id: v.name || v,
+                key: v.name || v,
+                name: v.name || v,
+              }))
+            : [{id: value.name, key: value.name, name: value.name}];
+        } else if (f.type === 'select' && f.is_custom_field) {
+          customValue = {
+            id_record: value,
+            name: value
+          }
+        } else if (f.type === 'select' && !f.is_custom_field) {
+          const matchedOption = f.options?.find((opt) => opt.name === value);
+
+          if (f.originalName === 'assignee') {
+            customValue = {
+              id: matchedOption.id,
+              name: matchedOption.name,
+            };
+          } else {
+            customValue = {
+              id: matchedOption.id,
+              name: matchedOption.name,
+              color: matchedOption.color
+            };
+          }
+        } else {
+          customValue = value;
+        }
+  
+        return {
+          ...f,
+          defaultValue: customValue,
+        };
+      })
+    );
+  };
 
   if (!isVisible) return null;
 
@@ -862,6 +912,86 @@ export function FormDetailModal({
                                         onChange={() => handleToggleRequired(field.id)} // Determine required section or not
                                       />
                                     </div>
+
+                                    {/* Default Value */}
+                                    {!field.required && (
+                                      <div className="mt-2">
+                                        <label className="text-xs text-gray-500">Default Value</label>
+                                        {field.type === 'text' || field.type === 'number' || field.type === 'textarea' ? (
+                                          <input
+                                            type={field.type === 'number' ? 'number' : 'text'}
+                                            value={field.defaultValue || ''}
+                                            onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
+                                            className="mt-1 w-full p-2 border rounded bg-white text-sm"
+                                            placeholder="Enter default value"
+                                          />
+                                        ) : null}
+                                        {field.type === 'select' && !field.is_custom_field ? (
+                                          <select
+                                            className="mt-1 w-full p-2 border rounded bg-white text-sm"
+                                            value={field.defaultValue?.name || field.options[0].name || ''}
+                                            onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
+                                          >
+                                            <option value={field.options[0].name}>{field.options[0].name}</option>
+                                            {field.options.slice(1).map((opt) => (
+                                              <option key={opt.id} value={opt.name}>
+                                                {opt.name}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        ) : null}
+                                        {field.type === 'select' && field.is_custom_field ? (
+                                          <select
+                                            className="mt-1 w-full p-2 border rounded bg-white text-sm"
+                                            value={field.defaultValue?.name || field.options[0].value || ''}
+                                            onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
+                                          >
+                                            <option value={field.options[0].value}>{field.options[0].value}</option>
+                                            {field.options.slice(1).map((opt) => (
+                                              <option key={opt.id} value={opt.value}>
+                                                {opt.name}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        ) : null}
+                                        {field.type === 'radio' ? (
+                                          <select
+                                            className="mt-1 w-full p-2 border rounded bg-white text-sm"
+                                            value={field.defaultValue || field.options[0].value || ''}
+                                            onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
+                                          >
+                                            <option value={field.options[0].value}>{field.options[0].value}</option>
+                                            {field.options.slice(1).map((opt) => (
+                                              <option key={opt.id} value={opt.value}>
+                                                {opt.name}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        ) : null}
+                                        {field.type === 'checkbox' ? (
+                                          <MultipleSelectTags
+                                            value={field.defaultValue || null}
+                                            onChange={(val) => handleDefaultValueChange(field.id, val)}
+                                            options={field.options}
+                                            placeholder="Choose default options"
+                                            className="mt-1"
+                                          />
+                                        ) : null}
+                                        {field.type === 'multiple-select' ? (() => {
+                                          const selectedNames = (field.defaultValue || []).map((item) => item.name);
+
+                                          return (
+                                            <MultipleSelectTags
+                                              value={field.defaultValue || []}
+                                              onChange={(val) => handleDefaultValueChange(field.id, val)}
+                                              options={field.options.filter((opt) => !selectedNames.includes(opt.name))}
+                                              placeholder="Choose default options"
+                                              className="mt-1"
+                                            />
+                                          );
+                                        })() : null}
+                                      </div>
+                                    )}
                                   </div>
                                 </SortableItem>
                               ))}
