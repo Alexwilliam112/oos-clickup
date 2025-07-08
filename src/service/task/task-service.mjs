@@ -2,6 +2,7 @@ import { apiClient } from '../api/api-client.mjs'
 
 const taskService = {
   async getTasks() {
+    console.log('called get Tasks')
     const response = await apiClient.get(ENDPOINTS.GET_TASKS)
 
     const { data, error, message } = response.data
