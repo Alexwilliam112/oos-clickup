@@ -1,5 +1,9 @@
 'use client'
 
+import NotificationModal from "@/components/notifications/NotificationModal"
+
 export default function NotificationsPage() {
-  return <main></main>
+  return <main>
+    <NotificationModal/>
+  </main>
 }
