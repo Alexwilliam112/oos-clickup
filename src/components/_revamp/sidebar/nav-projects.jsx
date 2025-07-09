@@ -8,7 +8,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Bell } from 'lucide-react'
+import { Bell, ClipboardPenLine } from 'lucide-react'
 import { ListTodo } from 'lucide-react'
 import { useUserStore } from '@/store/user/userStore'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -57,6 +57,18 @@ export function NavProjects() {
               <Bell />
               {/* <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span> */}
             <NotificationModal/>
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem>
+          <SidebarMenuButton 
+            asChild tooltip="Custom-Forms"
+            onClick={() => navigateTo('form', 'form')}
+          >
+            <span>
+              <ClipboardPenLine />
+              <span className="hover:text-blue-500 hover:cursor-pointer">Custom Forms</span>
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>

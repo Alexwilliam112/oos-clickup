@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { masterService, taskService, workspaceService } from '@/service/index.mjs'
+import { masterService, taskService, workspaceService, formService } from '@/service/index.mjs'
 import { generateChildren } from '@/lib/utils'
 import { Skeleton } from '../ui/skeleton'
 import { useTaskStore } from '@/store/task/task'
@@ -69,7 +69,7 @@ export function ListView() {
     refetch: fetchTasks,
   } = useQuery({
     queryFn: taskService.getTasks,
-    queryKey: ['taskService.getTasks', { team, folder, lists, param_id, workspace_id }],
+    queryKey: ['taskService.getTasks', { param_id, workspace_id }],
     enabled: !!workspace_id && !!page && !!param_id,
   })
 

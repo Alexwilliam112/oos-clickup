@@ -306,6 +306,7 @@ export function TaskCreateModal({
     } else {
       setTimeout(() => {
         setIsVisible(false)
+        reset()
         if (editorRef.current) {
           editorRef.current.destroy()
           editorRef.current = null

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Inbox, Megaphone, Plus } from "lucide-react";
+import { Inbox, Megaphone, Plus, ClipboardPenLine } from "lucide-react";
 import { Folders } from "@/components/navigationBars/folders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -341,6 +341,16 @@ export function SidebarNav() {
                 <Link href="/notifications" className="flex items-center gap-3">
                   <Megaphone className="h-5 w-5" />
                   <span className="text-sm font-medium">Notifications</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Custom Form */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/notifications" className="flex items-center gap-3">
+                  <ClipboardPenLine className="h-5 w-5" />
+                  <span className="text-sm font-medium">Custom Forms</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
