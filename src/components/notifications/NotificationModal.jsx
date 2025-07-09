@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { notificationService } from '@/service/index.mjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTaskStore } from '@/store/task/task'
+import { useDashboardStore, useTaskStore } from '@/store/task/task'
 import { TaskDetailModalV2 } from '../ui-modal/detailTask'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSidebar } from '../ui/sidebar'
@@ -11,7 +11,7 @@ import { useSidebar } from '../ui/sidebar'
 export default function NotificationModal({ isOpen, setIsOpen, notifications, setNotifications }) {
   const [isOpenDetail, setIsOpenDetail] = useState(false)
   const queryClient = useQueryClient()
-
+  const tabValue = useDashboardStore((state) => state.tabValue)
   const {
     setSelectedTask,
     setInitialValues,
@@ -56,13 +56,13 @@ export default function NotificationModal({ isOpen, setIsOpen, notifications, se
 
     if (workspace_id && notif.task_id) {
       // Simpan niat buka task detail
+      // Navigasi
+      router.push(`/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${notif.task_id?.team_id?.id}`)
+      setOpenMobile(false)
       localStorage.setItem('open_task_from_notification', JSON.stringify({
         task_id: notif.task_id?.id_task,
         team_id: notif.task_id?.team_id?.id,
       }))
-      // Navigasi
-      router.push(`/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${notif.task_id?.team_id?.id}`)
-      setOpenMobile(false)
       markAsRead(notif?.id)
     }
   }
@@ -75,9 +75,8 @@ export default function NotificationModal({ isOpen, setIsOpen, notifications, se
         setSelectedTask(fullTask)
         setIsOpenDetail(true)
       }
-      localStorage.removeItem('open_task_from_notification')
     }
-  }, [tasks, selectData])
+  }, [tasks, selectData, tabValue])
 
 
   return (
@@ -89,7 +88,10 @@ export default function NotificationModal({ isOpen, setIsOpen, notifications, se
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  localStorage.removeItem('open_task_from_notification')
+                  setIsOpen(false)
+                }}
                 className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
               >
                 ✖
@@ -156,7 +158,10 @@ export default function NotificationModal({ isOpen, setIsOpen, notifications, se
           fetchTasks={useTaskStore.getState().fetchTasks}
           isOpen={isOpenDetail}
           setIsOpen={setIsOpenDetail}
-          onClose={() => setIsOpenDetail(false)}
+          onClose={() => {
+            setIsOpenDetail(false)
+            localStorage.removeItem('open_task_from_notification');
+          }}
           title={"Task Details"}
           subtitle={useTaskStore.getState().selectedTask?.created_at}
           showSidebar={true}

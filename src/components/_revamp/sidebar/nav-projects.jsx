@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import NotificationModal from '@/components/notifications/NotificationModal'
 import { notificationService } from '@/service/index.mjs'
 import { useQuery } from '@tanstack/react-query'
+import { useDashboardStore } from '@/store/task/task'
 
 export function NavProjects() {
   
@@ -29,6 +30,7 @@ export function NavProjects() {
   const { setOpenMobile } = useSidebar()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
+  const setTabValue = useDashboardStore((state) => state.setTabValue)
   
   const { isLoading } = useQuery({
     queryFn: () =>
@@ -71,7 +73,10 @@ export function NavProjects() {
 
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip="Notifications"
-            onClick={() => setIsOpen(true)}
+            onClick={() => {
+              setTabValue('list')
+              setIsOpen(true)
+            }}
           >
             <span className='hover:cursor-pointer'>
               <Bell />
