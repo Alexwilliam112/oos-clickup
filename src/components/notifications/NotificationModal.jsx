@@ -1,18 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { notificationService } from '@/service/index.mjs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { DetailModalTrigger } from '../ui-modal/modal-trigger'
-import { useTaskStore } from '@/store/task/task'
+import { useDashboardStore, useTaskStore } from '@/store/task/task'
 import { TaskDetailModalV2 } from '../ui-modal/detailTask'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useSidebar } from '../ui/sidebar'
 
-
-export default function NotificationModal() {
-  const [isOpen, setIsOpen] = useState(false)
+export default function NotificationModal({ isOpen, setIsOpen, notifications, setNotifications }) {
   const [isOpenDetail, setIsOpenDetail] = useState(false)
   const queryClient = useQueryClient()
-
+  const tabValue = useDashboardStore((state) => state.tabValue)
   const {
     setSelectedTask,
     setInitialValues,
@@ -22,17 +21,10 @@ export default function NotificationModal() {
     selectData,
     fetchTasks
   } = useTaskStore()
-  console.log(useTaskStore.getState().selectedTask, ">>>>")
-  const [notifications, setNotifications] = useState([])
 
-  const { isLoading } = useQuery({
-    queryFn: () =>
-      notificationService.getAll().then((data) => {
-        setNotifications(data?.data || [])
-        return data
-      }),
-    queryKey: ['notificationService.getAll', { isOpen }],
-  })
+  const params = useSearchParams()
+  const router = useRouter()
+  const { setOpenMobile } = useSidebar()
 
   // ✅ Mark as read (1 or all)
   const markAsReadMutation = useMutation({
@@ -59,33 +51,36 @@ export default function NotificationModal() {
     markAsReadMutation.mutate({ id })
   }
 
-  const handleNotificationClick = (notif) => {
-    markAsRead(notif.id)
+  const handleNotificationClick = (page, notif) => {
+    const workspace_id = params.get('workspace_id')
 
-    if (notif.task_id) {
-      const fullTask = tasks.find((t) => t.id_task === notif.task_id?.id)
-      setSelectedTask(fullTask)
-      setIsOpenDetail(true)
+    if (workspace_id && notif.task_id) {
+      // Simpan niat buka task detail
+      // Navigasi
+      router.push(`/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${notif.task_id?.team_id?.id}`)
+      setOpenMobile(false)
+      localStorage.setItem('open_task_from_notification', JSON.stringify({
+        task_id: notif.task_id?.id_task,
+        team_id: notif.task_id?.team_id?.id,
+      }))
+      markAsRead(notif?.id)
     }
   }
+  useEffect(() => {
+    const raw = localStorage.getItem('open_task_from_notification')
+    if (raw) {
+      const { task_id } = JSON.parse(raw)
+      const fullTask = tasks.find((t) => t.id_task === task_id)
+      if (fullTask) {
+        setSelectedTask(fullTask)
+        setIsOpenDetail(true)
+      }
+    }
+  }, [tasks, selectData, tabValue])
+
 
   return (
     <>
-      {/* Button */}
-      <span
-        onClick={() => setIsOpen(true)}
-        className="flex items-center hover:text-blue-500 hover:cursor-pointer"
-      >
-        <span className="text-sm">
-          Notifications
-          {notifications.filter((n) => !n.is_read).length > 0 && (
-            <span className="ml-2 inline-block bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-              {notifications.filter((n) => !n.is_read).length}
-            </span>
-          )}
-        </span>
-      </span>
-
       {/* Notification Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -93,7 +88,10 @@ export default function NotificationModal() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  localStorage.removeItem('open_task_from_notification')
+                  setIsOpen(false)
+                }}
                 className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
               >
                 ✖
@@ -107,7 +105,7 @@ export default function NotificationModal() {
                 {notifications.map((notif) => (
                   <li
                     key={notif.id}
-                    onClick={() => handleNotificationClick(notif)}
+                    onClick={() => handleNotificationClick('team', notif)}
                     className={`flex gap-3 items-start border px-4 py-3 rounded-lg transition duration-200 hover:bg-gray-50 cursor-pointer ${!notif.is_read ? 'bg-gray-100' : 'bg-white'
                       }`}
                   >
@@ -160,7 +158,10 @@ export default function NotificationModal() {
           fetchTasks={useTaskStore.getState().fetchTasks}
           isOpen={isOpenDetail}
           setIsOpen={setIsOpenDetail}
-          onClose={() => setIsOpenDetail(false)}
+          onClose={() => {
+            setIsOpenDetail(false)
+            localStorage.removeItem('open_task_from_notification');
+          }}
           title={"Task Details"}
           subtitle={useTaskStore.getState().selectedTask?.created_at}
           showSidebar={true}

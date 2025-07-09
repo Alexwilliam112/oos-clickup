@@ -13,19 +13,24 @@ import { SquareKanban, ChartAreaIcon } from 'lucide-react'
 import { List } from 'lucide-react'
 import { Skeleton } from './ui/skeleton'
 import { ChartPage } from './tabs/chart'
+import { useDashboardStore } from '@/store/task/task'
 
 export function Dashboard() {
   const params = useSearchParams()
 
   const [page, setPage] = useState(null)
-  const [tabValue, setTabValue] = useState('chart')
+  // const [tabValue, setTabValue] = useState('chart')
+
+  const tabValue = useDashboardStore((state) => state.tabValue)
+  const setTabValue = useDashboardStore((state) => state.setTabValue)
+  const open_task_from_notification = localStorage.getItem('open_task_from_notification')
 
   useEffect(() => {
     const currentPage = params.get('page')
     setPage(currentPage)
 
     // Reset tab when page changes
-    if (currentPage === 'form') {
+    if (currentPage === 'form' || open_task_from_notification) {
       setTabValue('list')
     } else {
       setTabValue('chart')
