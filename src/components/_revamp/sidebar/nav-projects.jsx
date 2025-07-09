@@ -8,17 +8,37 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useState } from 'react'
 import { Bell, ClipboardPenLine } from 'lucide-react'
 import { ListTodo } from 'lucide-react'
 import { useUserStore } from '@/store/user/userStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import NotificationModal from '@/components/notifications/NotificationModal'
+import { notificationService } from '@/service/index.mjs'
+import { useQuery } from '@tanstack/react-query'
 
 export function NavProjects() {
+  
   const userId = useUserStore((state) => state.user_id)
   const params = useSearchParams()
   const router = useRouter()
+
+  const workspace_id = params.get('workspace_id')
+  const page = params.get('page')
+  const param_id = params.get('param_id')
   const { setOpenMobile } = useSidebar()
+  const [isOpen, setIsOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  
+  const { isLoading } = useQuery({
+    queryFn: () =>
+      notificationService.getAll().then((data) => {
+        setNotifications(data?.data || [])
+        return data
+      }),
+    queryKey: ['notificationService.getAll', { isOpen }],
+  })
+
 
   const navigateTo = (page, param_id) => {
     const workspace_id = params.get('workspace_id')
@@ -50,15 +70,26 @@ export function NavProjects() {
         </SidebarMenuItem>
 
         <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Notifications" 
-            // onClick={() => navigateToNotif('notification', userId)}
+          <SidebarMenuButton asChild tooltip="Notifications"
+            onClick={() => setIsOpen(true)}
           >
-            <span>
+            <span className='hover:cursor-pointer'>
               <Bell />
-              {/* <span className="hover:text-blue-500 hover:cursor-pointer">Notifications</span> */}
-            <NotificationModal/>
+              <span
+                className="flex items-center hover:text-blue-500 hover:cursor-pointer"
+              >
+                <span className="text-sm">
+                  Notifications
+                  {notifications.filter((n) => !n.is_read).length > 0 && (
+                    <span className="ml-2 inline-block bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {notifications.filter((n) => !n.is_read).length}
+                    </span>
+                  )}
+                </span>
+              </span>
             </span>
           </SidebarMenuButton>
+          <NotificationModal isOpen={isOpen} setIsOpen={setIsOpen} notifications={notifications} setNotifications={setNotifications} />
         </SidebarMenuItem>
 
         <SidebarMenuItem>
