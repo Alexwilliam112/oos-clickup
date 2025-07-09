@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import QueryClient from './query-client'
 import Sidebar from '@/components/_revamp/sidebar/sidebar'
@@ -16,9 +17,11 @@ export default function ClientLayoutWrapper({ children }) {
 
   return (
     <QueryClient>
-      <AuthWrapper>
-        <Sidebar>{children}</Sidebar>
-      </AuthWrapper>
+      <Suspense>
+        <AuthWrapper>
+          <Sidebar>{children}</Sidebar>
+        </AuthWrapper>
+      </Suspense>
     </QueryClient>
   )
 }
