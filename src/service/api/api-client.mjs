@@ -29,7 +29,9 @@ apiClient.interceptors.request.use(function (request) {
   request.params.workspace_id = params.get('workspace_id')
   request.params.page = params.get('page')
   request.params.param_id = params.get('param_id')
-  request.params.user_id = JSON.parse(localStorage.getItem('user-store')).state.user_id
+  if(localStorage.getItem('user-store')){
+    request.params.user_id = JSON.parse(localStorage.getItem('user-store')).state.user_id 
+  }
 
 
 
