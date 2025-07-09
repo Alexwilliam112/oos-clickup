@@ -136,57 +136,60 @@ export function TaskCreateModal({
       .min(1, 'Please select at least one list for this task'),
     description: z.string().optional(),
 
-    customFields: z.object(
-      customFields.reduce((schema, field) => {
-        let fieldValidation
+    // Fix: Only add customFields validation if there are actual custom fields
+    customFields: customFields.length > 0 
+      ? z.object(
+          customFields.reduce((schema, field) => {
+            let fieldValidation
 
-        // Determine validation based on field type
-        switch (field.field_type) {
-          case 'text':
-          case 'text-area':
-            fieldValidation = z.string().min(1, `${field.field_name} is required`)
-            break
-          case 'single-select':
-            fieldValidation = z.object(
-              {
-                id_record: z.string().min(1, "Multiple-Select id_record is required"),
-                name: z.string().min(1, "Multiple-Select name is required")
-              }
-            )
-            break
-          case 'radio':
-            fieldValidation = z.string().min(1, `${field.field_name} is required`)
-            break
+            // Determine validation based on field type
+            switch (field.field_type) {
+              case 'text':
+              case 'text-area':
+                fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                break
+              case 'single-select':
+                fieldValidation = z.object(
+                  {
+                    id_record: z.string().min(1, "Single-Select id_record is required"),
+                    name: z.string().min(1, "Single-Select name is required")
+                  }
+                )
+                break
+              case 'radio':
+                fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                break
 
-          case 'number':
-            fieldValidation = z.number().min(0, `${field.field_name} is required`)
-            break
+              case 'number':
+                fieldValidation = z.number().min(0, `${field.field_name} is required`)
+                break
 
-          case 'multiple-select':
-            fieldValidation = z.array(z.object(
-              {
-                id: z.string().min(1, "Multiple-Select id is required"),
-                key: z.string().min(1, "Multiple-Select key is required"),
-                name: z.string().min(1, "Multiple-Select name is required")
-              }
-            ))
-            break
-          case 'checkbox':
-            fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
-            break
+              case 'multiple-select':
+                fieldValidation = z.array(z.object(
+                  {
+                    id: z.string().min(1, "Multiple-Select id is required"),
+                    key: z.string().min(1, "Multiple-Select key is required"),
+                    name: z.string().min(1, "Multiple-Select name is required")
+                  }
+                ))
+                break
+              case 'checkbox':
+                fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
+                break
 
-          default:
-            fieldValidation = z.any() // Default to any type if field type is unknown
-        }
+              default:
+                fieldValidation = z.any() // Default to any type if field type is unknown
+            }
 
-        // Apply conditional validation based on is_mandatory
-        schema[field.field_name] = field.is_mandatory
-          ? fieldValidation // Required validation
-          : fieldValidation.optional() // Optional validation
+            // Apply conditional validation based on is_mandatory
+            schema[field.field_name] = field.is_mandatory
+              ? fieldValidation // Required validation
+              : fieldValidation.optional() // Optional validation
 
-        return schema
-      }, {})
-    ),
+            return schema
+          }, {})
+        )
+      : z.object({}).optional(), // If no custom fields, make it optional empty object
   })
 
   const {
@@ -295,6 +298,7 @@ export function TaskCreateModal({
     }
 
     if (isOpen) {
+      reset()
       setIsVisible(true)
       document.body.style.overflow = 'hidden'
 
@@ -344,6 +348,7 @@ export function TaskCreateModal({
   };
 
   const onSubmit = async (values) => {
+    console.log("Task successfully created: ", values);
     const descriptionData = editorRef.current ? await editorRef.current.save() : {}
 
     // Collect task data
