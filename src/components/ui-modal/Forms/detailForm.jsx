@@ -289,6 +289,14 @@ export function FormDetailModal({
         description: form.description?.value || "",
       });
 
+      // Load fresh form data when modal opens
+      setFieldConfig(form.form_field || []);
+      setFormName(form.form_name || "");
+      setDescription(form.description || {});
+      setAttachments(form.attachments || []);
+      setFormId(form.id_form || "");
+      setActiveTab("builder");
+      
       // Fetch Initial Config Data
       const loadInitialData = async() => {
         try {
@@ -315,13 +323,6 @@ export function FormDetailModal({
       }
       loadInitialData()
 
-      // Load fresh form data when modal opens
-      setFieldConfig(form.form_field || []);
-      setFormName(form.form_name || "");
-      setDescription(form.description || {});
-      setAttachments(form.attachments || []);
-      setFormId(form.id_form || "");
-      setActiveTab("builder");
 
     } else {
       setTimeout(() => {
@@ -334,6 +335,7 @@ export function FormDetailModal({
         setAvailableFields([]);
         setFormId("");
         setActiveTab("builder");
+        reset();
 
         if (editorRef.current && typeof editorRef.current.destroy === 'function') { // makesure destroy type is func
           editorRef.current.destroy()
