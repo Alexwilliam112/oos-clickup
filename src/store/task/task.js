@@ -12,3 +12,8 @@ export const useTaskStore = create((set) => ({
   selectData: {},
   setSelectData: (data) => set({ selectData: data }),
 }))
+
+export const useDashboardStore = create((set) => ({
+  tabValue: 'chart',
+  setTabValue: (value) => set({ tabValue: value }),
+}))
