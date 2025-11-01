@@ -33,7 +33,7 @@ export function Dashboard() {
     if (currentPage === 'form' || open_task_from_notification) {
       setTabValue('list')
     } else {
-      setTabValue('chart')
+      setTabValue('list')
     }
   }, [params])
 

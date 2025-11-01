@@ -16,7 +16,7 @@ import * as z from "zod";
 import SubTaskItem from "./sub-task-item";
 import CustomFields from "./customFields";
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
-
+import { useUserStore } from '@/store/user/userStore'
 
 export function TaskDetailModalV2({
   isOpen,
@@ -36,6 +36,7 @@ export function TaskDetailModalV2({
   width = "calc(90vw - 36px)", // Reduced by 10%
   height = "calc(90vh - 36px)", // Reduced by 10%
 }) {
+  const userId = useUserStore((state) => state.user_id)
   const [isVisible, setIsVisible] = useState(false);
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
   const {
@@ -251,8 +252,17 @@ export function TaskDetailModalV2({
   })
 
   // DELETE TASK ACTION
-  const handleDelete = (id_task) => {
-    console.log(id_task + " Delete action waiting API");
+  const handleDelete = async (id_task) => {
+    try {
+      const response = await fetch(`${baseUrl}/delete-task?task_id=${id_task}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      fetchTasks();
+      onClose();
+    } catch (error) {
+      console.log(`Error deleting task ${id_task}`)
+    }
   };
 
   const {
@@ -520,7 +530,7 @@ export function TaskDetailModalV2({
           },
           body: JSON.stringify({
             content: newComment,
-            user_id: 178566, // You'll need to get this from your auth context
+            user_id: userId, // You'll need to get this from your auth context
             tagged_user_ids: taggedUsers,
           }),
         }
@@ -772,7 +782,7 @@ export function TaskDetailModalV2({
   // Sub-task handlers
 
   const getUserName = (userId) => {
-    const member = workspaceMembers.find((m) => m.id === userId);
+    const member = workspaceMembers.find((m) => m.id == userId);
     return member ? member.name : `User ${userId}`;
   };
 

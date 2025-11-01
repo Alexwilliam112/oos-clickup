@@ -80,6 +80,16 @@ const workspaceService = {
 
     return data
   },
+
+  async getUserWorkspaceMember({ payload }) {
+    const response = await apiClient.get(ENDPOINTS.GET_USER_WORKSPACE_MEMBER, payload)
+
+    const { data, error, message } = response.data
+
+    if (error) throw new Error(message)
+
+    return data
+  }
 }
 
 const ENDPOINTS = {
@@ -88,6 +98,7 @@ const ENDPOINTS = {
   GET_LIST: '/lists/index',
   GET_PAGE_INFO: '/page-info',
   GET_WORKSPACE_MEMBER: '/workspace-member/index',
+  GET_USER_WORKSPACE_MEMBER: '/get-user-workspace-member',
 
   CREATE_TEAMS: '/team/create',
   CREATE_FOLDERS: '/folder/create',
