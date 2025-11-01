@@ -10,6 +10,19 @@ import {
 import { DetailModalTrigger } from "../ui-modal/modal-trigger"
 
 export function ActionCells({ modalTitle, fetchTasks, showSidebar, task, tasks, setTasks, selectData, initialValues, modalSubtitle, sidebarContent, isOpen, setIsOpen }) {
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+  const handleDelete = async (id_task) => {
+    try {
+      const response = await fetch(`${baseUrl}/delete-task?task_id=${id_task}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      fetchTasks();
+    } catch (error) {
+      console.log(`Error deleting task ${id_task}`)
+    }
+  };
+
   return (
     <TableCell className="p-2 min-w-[100px] flex justify-end gap-1">
       <DropdownMenu>
@@ -38,7 +51,7 @@ export function ActionCells({ modalTitle, fetchTasks, showSidebar, task, tasks, 
             </DetailModalTrigger>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className={'cursor-pointer'}  onClick={() => console.log("Delete clicked")}>
+          <DropdownMenuItem className={'cursor-pointer'}  onClick={() => handleDelete(task.id_task)}>
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

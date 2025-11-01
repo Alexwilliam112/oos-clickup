@@ -265,6 +265,28 @@ export function TaskDetailModalV2({
     }
   };
 
+  const handleNextStatus = async (id_task) => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
+
+    try {
+      const response = await fetch(`${baseUrl}/task/next-status`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          'task_id': id_task,
+          'workspace_id': workspaceId
+        })
+      });
+      const data = await response.json()
+      fetchTasks();
+    } catch (error) {
+      console.error(`Error handling next status task ${id_task}`)
+    }
+  }
+
   const {
     control,
     handleSubmit,
@@ -1092,7 +1114,8 @@ export function TaskDetailModalV2({
                           variant="outline"
                           size="sm"
                           className="h-10 w-10 flex items-center gap-2 px-2 py-2 border border-blue-500 text-blue-500 font-medium rounded-md hover:bg-blue-500 hover:text-white transition-colors"
-                          onClick={() => console.log("Next status triggered")}
+                          onClick={() => handleNextStatus(task?.id_task)}
+                          type="button"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
