@@ -20,6 +20,7 @@ export function CreateModalTrigger({
   initialValues,
   isOpen,
   setIsOpen,
+  editorJsId
 }) {
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -49,6 +50,7 @@ export function CreateModalTrigger({
         sidebarContent={sidebarContent}
         selectData={selectData}
         initialValues={initialValues}
+        editorJsId={editorJsId}
       >
         {children}
       </TaskCreateModal>

@@ -56,6 +56,8 @@ export function Board() {
   const [team, setTeam] = useState(null)
   const [folder, setFolder] = useState(null)
   const [lists, setLists] = useState([])
+  const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false)
+  const [isColumnModalOpen, setIsColumnModalOpen] = useState(false)
 
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
@@ -342,8 +344,6 @@ export function Board() {
     }
   }
 
-  console.log(filteredTasks)
-
   return (
     <div className="w-full h-full flex-1 flex flex-col gap-3 shrink">
       <div className="flex gap-2">
@@ -464,8 +464,9 @@ export function Board() {
                         indexFolder,
                         indexList,
                       }}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
+                      isOpen={isHeaderModalOpen}
+                      setIsOpen={setIsHeaderModalOpen}
+                      editorJsId={`editorjs-board-header-${status.id_record}`}
                     />
                   </div>
                 </div>
@@ -678,8 +679,9 @@ export function Board() {
                         indexFolder,
                         indexList,
                       }}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
+                      isOpen={isColumnModalOpen}
+                      setIsOpen={setIsColumnModalOpen}
+                      editorJsId={`editorjs-board-column-${status.id_record}`}
                     />
                   </div>
                 </div>

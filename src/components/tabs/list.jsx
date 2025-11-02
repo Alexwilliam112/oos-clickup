@@ -202,7 +202,7 @@ export function ListView() {
     indexFolder,
     indexList,
   ])
-
+  
   const filteredTasks = filterTasksByName(
     generateChildren(tasksData || []),
     search,
@@ -211,6 +211,7 @@ export function ListView() {
     priorityFilter,
     teamFilter
   )
+
 
   function filterTasksByName(
     tasks,
@@ -330,6 +331,7 @@ export function ListView() {
         }}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
+        editorJsId="editorjs-create-task-list"
       />
 
       <div className="flex gap-2 ">

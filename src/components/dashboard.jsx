@@ -17,19 +17,18 @@ import { useDashboardStore } from '@/store/task/task'
 
 export function Dashboard() {
   const params = useSearchParams()
-
   const [page, setPage] = useState(null)
-  // const [tabValue, setTabValue] = useState('chart')
 
   const tabValue = useDashboardStore((state) => state.tabValue)
   const setTabValue = useDashboardStore((state) => state.setTabValue)
   const open_task_from_notification = localStorage.getItem('open_task_from_notification')
 
+  console.log('🏠 Dashboard render - tabValue:', tabValue)
+
   useEffect(() => {
     const currentPage = params.get('page')
     setPage(currentPage)
 
-    // Reset tab when page changes
     if (currentPage === 'form' || open_task_from_notification) {
       setTabValue('list')
     } else {
@@ -39,9 +38,7 @@ export function Dashboard() {
 
   const isFormPage = page === 'form'
 
-  // Show loading state until params are available
   if (page === null) return <Skeleton/>
-
 
   return (
     <Tabs value={tabValue} onValueChange={setTabValue} className="h-full w-full p-4">
@@ -63,33 +60,37 @@ export function Dashboard() {
             </TabsTrigger>
           </>
         )}
-
       </TabsList>
 
-      {/* List tab content */}
-      <TabsContent value="list">
-        {isFormPage ? <FormsListView /> : <ListView />}
-      </TabsContent>
+      {/* ✅ SOLUSI: Conditional Rendering dengan key prop */}
+      {tabValue === 'list' && (
+        <TabsContent value="list" key="list-tab">
+          {isFormPage ? <FormsListView /> : <ListView />}
+        </TabsContent>
+      )}
 
-      {/* Only show these tabs if not in "form" mode */}
-      {!isFormPage && (
-        <>
-          <TabsContent value="overview">
-            <Overview />
-          </TabsContent>
+      {!isFormPage && tabValue === 'chart' && (
+        <TabsContent value="chart" key="chart-tab">
+          <ChartPage />
+        </TabsContent>
+      )}
 
-          <TabsContent value="chart">
-            <ChartPage />
-          </TabsContent>
+      {!isFormPage && tabValue === 'board' && (
+        <TabsContent value="board" key="board-tab" className="gap-2">
+          <Board />
+        </TabsContent>
+      )}
 
-          <TabsContent value="board" className="gap-2">
-            <Board />
-          </TabsContent>
+      {!isFormPage && tabValue === 'overview' && (
+        <TabsContent value="overview" key="overview-tab">
+          <Overview />
+        </TabsContent>
+      )}
 
-          <TabsContent value="calendar">
-            <CalendarView />
-          </TabsContent>
-        </>
+      {!isFormPage && tabValue === 'calendar' && (
+        <TabsContent value="calendar" key="calendar-tab">
+          <CalendarView />
+        </TabsContent>
       )}
     </Tabs>
   )

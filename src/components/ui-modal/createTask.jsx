@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, lazy, Suspense, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -15,8 +16,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import CustomFields from './customFields'
 
-const EDITORJS_ID = 'editorjs-create-board'
-
 export function TaskCreateModal({
   isOpen,
   onClose,
@@ -26,10 +25,12 @@ export function TaskCreateModal({
   selectData,
   fetchTasks,
   initialValues,
-  width = 'calc(90vw - 36px)', // Reduced by 10%
-  height = 'calc(90vh - 36px)', // Reduced by 10%
+  editorJsId = 'editorjs-default',
+  width = 'calc(90vw - 36px)',
+  height = 'calc(90vh - 36px)',
 }) {
   const [isVisible, setIsVisible] = useState(false)
+  const [editorReady, setEditorReady] = useState(false)
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   const {
     indexTaskType,
@@ -136,60 +137,56 @@ export function TaskCreateModal({
       .min(1, 'Please select at least one list for this task'),
     description: z.string().optional(),
 
-    // Fix: Only add customFields validation if there are actual custom fields
-    customFields: customFields.length > 0 
-      ? z.object(
-          customFields.reduce((schema, field) => {
-            let fieldValidation
+    customFields:
+      customFields.length > 0
+        ? z.object(
+            customFields.reduce((schema, field) => {
+              let fieldValidation
 
-            // Determine validation based on field type
-            switch (field.field_type) {
-              case 'text':
-              case 'text-area':
-                fieldValidation = z.string().min(1, `${field.field_name} is required`)
-                break
-              case 'single-select':
-                fieldValidation = z.object(
-                  {
-                    id_record: z.string().min(1, "Single-Select id_record is required"),
-                    name: z.string().min(1, "Single-Select name is required")
-                  }
-                )
-                break
-              case 'radio':
-                fieldValidation = z.string().min(1, `${field.field_name} is required`)
-                break
+              switch (field.field_type) {
+                case 'text':
+                case 'text-area':
+                  fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                  break
+                case 'single-select':
+                  fieldValidation = z.object({
+                    id_record: z.string().min(1, 'Single-Select id_record is required'),
+                    name: z.string().min(1, 'Single-Select name is required'),
+                  })
+                  break
+                case 'radio':
+                  fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                  break
 
-              case 'number':
-                fieldValidation = z.number().min(0, `${field.field_name} is required`)
-                break
+                case 'number':
+                  fieldValidation = z.number().min(0, `${field.field_name} is required`)
+                  break
 
-              case 'multiple-select':
-                fieldValidation = z.array(z.object(
-                  {
-                    id: z.string().min(1, "Multiple-Select id is required"),
-                    key: z.string().min(1, "Multiple-Select key is required"),
-                    name: z.string().min(1, "Multiple-Select name is required")
-                  }
-                ))
-                break
-              case 'checkbox':
-                fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
-                break
+                case 'multiple-select':
+                  fieldValidation = z.array(
+                    z.object({
+                      id: z.string().min(1, 'Multiple-Select id is required'),
+                      key: z.string().min(1, 'Multiple-Select key is required'),
+                      name: z.string().min(1, 'Multiple-Select name is required'),
+                    })
+                  )
+                  break
+                case 'checkbox':
+                  fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
+                  break
 
-              default:
-                fieldValidation = z.any() // Default to any type if field type is unknown
-            }
+                default:
+                  fieldValidation = z.any()
+              }
 
-            // Apply conditional validation based on is_mandatory
-            schema[field.field_name] = field.is_mandatory
-              ? fieldValidation // Required validation
-              : fieldValidation.optional() // Optional validation
+              schema[field.field_name] = field.is_mandatory
+                ? fieldValidation
+                : fieldValidation.optional()
 
-            return schema
-          }, {})
-        )
-      : z.object({}).optional(), // If no custom fields, make it optional empty object
+              return schema
+            }, {})
+          )
+        : z.object({}).optional(),
   })
 
   const {
@@ -215,118 +212,164 @@ export function TaskCreateModal({
   }, [initialValues])
 
   const editorRef = useRef(null)
+  const initTimeoutRef = useRef(null)
+
+  // Pisahkan useEffect untuk modal visibility
   useEffect(() => {
-    async function initEditor() {
-      const editorElement = document.getElementById(EDITORJS_ID)
-      if (!editorElement) {
-        console.error('EditorJS element is missing')
-        return
-      }
-
-      const EditorJSModule = (await import('@editorjs/editorjs')).default
-      const [
-        Header,
-        List,
-        Table,
-        Quote,
-        Embed,
-        SimpleImage,
-        Marker,
-        InlineCode,
-        TextColorPlugin,
-        TextVariantTune,
-        Checklist,
-      ] = await Promise.all([
-        import('@editorjs/header').then((m) => m.default),
-        import('@editorjs/list').then((m) => m.default),
-        import('@editorjs/table').then((m) => m.default),
-        import('@editorjs/quote').then((m) => m.default),
-        import('@editorjs/embed').then((m) => m.default),
-        import('@editorjs/simple-image').then((m) => m.default),
-        import('@editorjs/marker').then((m) => m.default),
-        import('@editorjs/inline-code').then((m) => m.default),
-        import('editorjs-text-color-plugin').then((m) => m.default),
-        import('@editorjs/text-variant-tune').then((m) => m.default),
-        import('@editorjs/checklist').then((m) => m.default),
-      ])
-      const editor = new EditorJSModule({
-        holder: EDITORJS_ID,
-        placeholder: 'Write something...',
-        onChange: async (api, event) => {
-          try {
-            const outputData = await api.saver.save()
-            setValue('description', JSON.stringify(outputData))
-          } catch (error) {
-            console.error('Error saving editor data:', error)
-          }
-        },
-        tools: {
-          header: {
-            class: Header,
-            inlineToolbar: true,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [1, 2, 3, 4],
-              defaultLevel: 1,
-            },
-            tunes: ['textVariantTune'],
-          },
-          list: { class: List, inlineToolbar: true },
-          table: { class: Table, inlineToolbar: true },
-          checklist: { class: Checklist, inlineToolbar: true },
-          quote: { class: Quote, inlineToolbar: true },
-          embed: {
-            class: Embed,
-            inlineToolbar: false,
-            config: {
-              services: { youtube: true, twitter: true, instagram: true },
-            },
-          },
-          image: { class: SimpleImage, inlineToolbar: true },
-          marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
-          inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
-          textVariantTune: {
-            class: TextVariantTune,
-            config: {
-              types: ['primary', 'secondary', 'info', 'success', 'warning', 'danger'],
-            },
-          },
-        },
-      })
-
-      editorRef.current = editor
-    }
-
     if (isOpen) {
-      reset()
       setIsVisible(true)
+      setEditorReady(false)
       document.body.style.overflow = 'hidden'
-
-      setTimeout(() => {
-        if (!editorRef.current) {
-          initEditor()
-        }
-      }, 0) // Ensure DOM is rendered before initializing
     } else {
-      setTimeout(() => {
-        setIsVisible(false)
-        reset()
-        if (editorRef.current) {
-          editorRef.current.destroy()
-          editorRef.current = null
-        }
-        document.body.style.overflow = ''
-      }, 300) // Match modal close animation duration
-    }
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.destroy()
-        editorRef.current = null
-      }
+      setIsVisible(false)
+      setEditorReady(false)
       document.body.style.overflow = ''
     }
   }, [isOpen])
+
+  // Pisahkan useEffect untuk editor initialization
+  useEffect(() => {
+    async function initEditor() {
+      const editorElement = document.getElementById(editorJsId)
+
+      if (!editorElement) {
+        console.error(`EditorJS element with ID "${editorJsId}" is missing`)
+        return
+      }
+
+      console.log(`Initializing EditorJS with ID: ${editorJsId}`)
+
+      // Destroy existing editor jika ada
+      if (editorRef.current) {
+        try {
+          await editorRef.current.destroy()
+          editorRef.current = null
+        } catch (error) {
+          console.error('Error destroying previous editor:', error)
+        }
+      }
+
+      try {
+        const EditorJSModule = (await import('@editorjs/editorjs')).default
+        const [
+          Header,
+          List,
+          Table,
+          Quote,
+          Embed,
+          SimpleImage,
+          Marker,
+          InlineCode,
+          TextColorPlugin,
+          TextVariantTune,
+          Checklist,
+        ] = await Promise.all([
+          import('@editorjs/header').then((m) => m.default),
+          import('@editorjs/list').then((m) => m.default),
+          import('@editorjs/table').then((m) => m.default),
+          import('@editorjs/quote').then((m) => m.default),
+          import('@editorjs/embed').then((m) => m.default),
+          import('@editorjs/simple-image').then((m) => m.default),
+          import('@editorjs/marker').then((m) => m.default),
+          import('@editorjs/inline-code').then((m) => m.default),
+          import('editorjs-text-color-plugin').then((m) => m.default),
+          import('@editorjs/text-variant-tune').then((m) => m.default),
+          import('@editorjs/checklist').then((m) => m.default),
+        ])
+
+        const editor = new EditorJSModule({
+          holder: editorJsId,
+          placeholder: 'Write something...',
+          onChange: async (api, event) => {
+            try {
+              const outputData = await api.saver.save()
+              setValue('description', JSON.stringify(outputData))
+            } catch (error) {
+              console.error('Error saving editor data:', error)
+            }
+          },
+          tools: {
+            header: {
+              class: Header,
+              inlineToolbar: true,
+              config: {
+                placeholder: 'Enter a header',
+                levels: [1, 2, 3, 4],
+                defaultLevel: 1,
+              },
+              tunes: ['textVariantTune'],
+            },
+            list: { class: List, inlineToolbar: true },
+            table: { class: Table, inlineToolbar: true },
+            checklist: { class: Checklist, inlineToolbar: true },
+            quote: { class: Quote, inlineToolbar: true },
+            embed: {
+              class: Embed,
+              inlineToolbar: false,
+              config: {
+                services: { youtube: true, twitter: true, instagram: true },
+              },
+            },
+            image: { class: SimpleImage, inlineToolbar: true },
+            marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
+            inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
+            textVariantTune: {
+              class: TextVariantTune,
+              config: {
+                types: ['primary', 'secondary', 'info', 'success', 'warning', 'danger'],
+              },
+            },
+          },
+        })
+
+        editorRef.current = editor
+        setEditorReady(true)
+        console.log(`EditorJS initialized successfully with ID: ${editorJsId}`)
+      } catch (error) {
+        console.error('Error initializing editor:', error)
+      }
+    }
+
+    if (isVisible && !editorReady) {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current)
+      }
+
+      initTimeoutRef.current = setTimeout(() => {
+        initEditor()
+      }, 500)
+    }
+
+    return () => {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current)
+      }
+    }
+  }, [isVisible, editorReady, editorJsId, setValue])
+
+  // Cleanup saat modal ditutup
+  useEffect(() => {
+    if (!isOpen) {
+      const cleanup = async () => {
+        if (editorRef.current) {
+          try {
+            await editorRef.current.destroy()
+            editorRef.current = null
+            console.log(`EditorJS destroyed for ID: ${editorJsId}`)
+          } catch (error) {
+            console.error('Error destroying editor:', error)
+          }
+        }
+        reset()
+      }
+
+      cleanup()
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen, editorJsId, reset])
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -344,14 +387,13 @@ export function TaskCreateModal({
   if (!isVisible) return null
 
   const onError = (errors) => {
-    console.log("Form validation errors:", errors);
-  };
+    console.log('Form validation errors:', errors)
+  }
 
   const onSubmit = async (values) => {
-    console.log("Task successfully created: ", values);
+    console.log('Task successfully created: ', values)
     const descriptionData = editorRef.current ? await editorRef.current.save() : {}
 
-    // Collect task data
     const taskData = {
       name: values.taskName,
       task_type_id: values.taskType,
@@ -369,8 +411,6 @@ export function TaskCreateModal({
       parent_task_id: parentTaskId,
       custom_fields: values.customFields,
     }
-
-    reset()
 
     const params = new URLSearchParams(window.location.search)
     const workspaceId = params.get('workspace_id')
@@ -400,9 +440,6 @@ export function TaskCreateModal({
         console.error('Error creating task:', error)
       })
 
-    // Close modal
-
-    //RESET INITIAL VALUES
     await fetch(
       `${baseUrl}/utils/task-initial-values?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`
     )
@@ -424,11 +461,13 @@ export function TaskCreateModal({
       .catch((error) => {
         console.error('Error fetching initial values:', error)
       })
+
     await fetchTasks()
     onClose()
   }
 
-  return (
+  // Render modal menggunakan Portal untuk menghindari style inheritance
+  const modalContent = (
     <div
       className={cn(
         'fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-300',
@@ -444,30 +483,37 @@ export function TaskCreateModal({
         style={{
           width,
           height,
-          maxWidth: 'calc(90vw - 36px)', // Reduced by 10%
-          maxHeight: 'calc(90vh - 36px)', // Reduced by 10%
+          maxWidth: 'calc(90vw - 36px)',
+          maxHeight: 'calc(90vh - 36px)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold">{title}</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md hover:bg-gray-100 text-gray-900"
+            aria-label="Close"
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Modal Content */}
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="flex flex-1 overflow-hidden relative">
+        <form
+          onSubmit={handleSubmit(onSubmit, onError)}
+          className="flex flex-1 overflow-hidden relative"
+        >
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium">Task Name</label>
+                <label className="block text-sm font-medium text-gray-700">Task Name</label>
                 <Controller
                   name="taskName"
                   control={control}
@@ -487,7 +533,7 @@ export function TaskCreateModal({
               </div>
 
               <div className="flex-1">
-                <label className="block text-sm font-medium">Task Type</label>
+                <label className="block text-sm font-medium text-gray-700">Task Type</label>
                 <Controller
                   name="taskType"
                   control={control}
@@ -503,7 +549,6 @@ export function TaskCreateModal({
                           }
                           field.onChange(selectedTaskType)
 
-                          // Fetch custom fields based on task type
                           try {
                             const response = await fetch(
                               `${baseUrl}/task/custom-fields?task_type_id=${selectedTaskType.id}`
@@ -534,7 +579,7 @@ export function TaskCreateModal({
             {/* Priority and Status */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium">Priority</label>
+                <label className="block text-sm font-medium text-gray-700">Priority</label>
                 <Controller
                   name="priority"
                   control={control}
@@ -562,7 +607,7 @@ export function TaskCreateModal({
               </div>
 
               <div className="flex-1">
-                <label className="block text-sm font-medium">Status</label>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
                 <Controller
                   name="status"
                   control={control}
@@ -592,7 +637,7 @@ export function TaskCreateModal({
 
             {/* Assignee */}
             <div>
-              <label className="block text-sm font-medium">Assignee</label>
+              <label className="block text-sm font-medium text-gray-700">Assignee</label>
               <Controller
                 name="assignee"
                 control={control}
@@ -619,7 +664,7 @@ export function TaskCreateModal({
 
             {/* Start Date & Due Date */}
             <div>
-              <label className="block text-sm font-medium">Date Range</label>
+              <label className="block text-sm font-medium text-gray-700">Date Range</label>
               <Controller
                 name="selectedRange"
                 control={control}
@@ -642,7 +687,7 @@ export function TaskCreateModal({
             {/* Team and Product */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium">Product</label>
+                <label className="block text-sm font-medium text-gray-700">Product</label>
                 <Controller
                   name="product"
                   control={control}
@@ -669,7 +714,7 @@ export function TaskCreateModal({
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium">Team</label>
+                <label className="block text-sm font-medium text-gray-700">Team</label>
                 <Controller
                   name="team"
                   control={control}
@@ -688,7 +733,9 @@ export function TaskCreateModal({
                         placeholder="Select team"
                         className={getBorderColor('team')}
                       />
-                      {errors.team && <p className="text-red-500 text-xs mt-1">Team is required</p>}
+                      {errors.team && (
+                        <p className="text-red-500 text-xs mt-1">Team is required</p>
+                      )}
                     </div>
                   )}
                 />
@@ -698,7 +745,7 @@ export function TaskCreateModal({
             {/* Folder and Lists */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium">Folder</label>
+                <label className="block text-sm font-medium text-gray-700">Folder</label>
                 <Controller
                   name="folder"
                   control={control}
@@ -726,7 +773,7 @@ export function TaskCreateModal({
               </div>
 
               <div className="flex-1">
-                <label className="block text-sm font-medium">Lists</label>
+                <label className="block text-sm font-medium text-gray-700">Lists</label>
                 <Controller
                   name="lists"
                   control={control}
@@ -760,16 +807,15 @@ export function TaskCreateModal({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium">Description</label>
+              <label className="block text-sm font-medium text-gray-700">Description</label>
               <Controller
                 name="description"
                 control={control}
                 render={({ field }) => (
                   <div
-                    id={EDITORJS_ID}
-                    className="border rounded p-2 text-left"
+                    id={editorJsId}
+                    className="border rounded p-2 text-left min-h-[200px]"
                     onBlur={async () => {
-                      // Update RHF value when editor loses focus
                       if (editorRef.current) {
                         try {
                           const outputData = await editorRef.current.save()
@@ -797,4 +843,7 @@ export function TaskCreateModal({
       </div>
     </div>
   )
+
+  // Render dengan Portal agar tidak terpengaruh style parent
+  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null
 }
