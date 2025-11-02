@@ -430,7 +430,7 @@ export function Board() {
                     </div>
                     <span className="text-sm font-medium">{status.name}</span>
                     <Badge variant="secondary" className="bg-white/20 text-xs">
-                      {tasks.filter((task) => task.status_id.id === status.id_record).length}
+                      {tasks.filter((task) => task.status_id?.id === status.id_record).length}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-1">
@@ -473,7 +473,7 @@ export function Board() {
                 {/* Column Content */}
                 <div className="flex flex-1 flex-col gap-3 p-2">
                   {filteredTasks
-                    .filter((task) => task.status_id.id === status.id_record)
+                    .filter((task) => task.status_id?.id === status.id_record)
                     .map((task, idx) => (
                       <DetailModalTrigger
                         key={task.id_task}
