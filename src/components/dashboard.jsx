@@ -23,8 +23,6 @@ export function Dashboard() {
   const setTabValue = useDashboardStore((state) => state.setTabValue)
   const open_task_from_notification = localStorage.getItem('open_task_from_notification')
 
-  console.log('🏠 Dashboard render - tabValue:', tabValue)
-
   useEffect(() => {
     const currentPage = params.get('page')
     setPage(currentPage)
@@ -62,7 +60,6 @@ export function Dashboard() {
         )}
       </TabsList>
 
-      {/* ✅ SOLUSI: Conditional Rendering dengan key prop */}
       {tabValue === 'list' && (
         <TabsContent value="list" key="list-tab">
           {isFormPage ? <FormsListView /> : <ListView />}
