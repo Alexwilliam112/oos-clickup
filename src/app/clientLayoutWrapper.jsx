@@ -6,9 +6,8 @@ import QueryClient from './query-client'
 import Sidebar from '@/components/_revamp/sidebar/sidebar'
 import AuthWrapper from './auth-wrapper'
 
-export default function ClientLayoutWrapper({ children }) {
+function ConditionalLayout({ children }) {
   const pathname = usePathname()
-
   const isFormPage = pathname.startsWith('/forms')
 
   if (isFormPage) {
@@ -16,12 +15,18 @@ export default function ClientLayoutWrapper({ children }) {
   }
 
   return (
+    <Suspense>
+      <AuthWrapper>
+        <Sidebar>{children}</Sidebar>
+      </AuthWrapper>
+    </Suspense>
+  )
+}
+
+export default function ClientLayoutWrapper({ children }) {
+  return (
     <QueryClient>
-      <Suspense>
-        <AuthWrapper>
-          <Sidebar>{children}</Sidebar>
-        </AuthWrapper>
-      </Suspense>
+      <ConditionalLayout>{children}</ConditionalLayout>
     </QueryClient>
   )
 }

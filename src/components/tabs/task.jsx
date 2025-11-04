@@ -177,15 +177,17 @@ export default function Task({
         <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_end)}</TableCell>
 
         <TableCell className="p-2 min-w-[100px]">
-          <span
-            className="text-xs px-2 min-w-[120px] py-1 border border-muted-foreground/20 rounded-sm"
-            style={{
-              backgroundColor: task.priority_id.color,
-              color: getContrastColor(task.priority_id.color),
-            }}
-          >
-            {task.priority_id.name}
-          </span>
+          {task.priority_id ? (
+            <span
+              className="text-xs px-2 min-w-[120px] py-1 border border-muted-foreground/20 rounded-sm"
+              style={{
+                backgroundColor: task.priority_id.color,
+                color: getContrastColor(task.priority_id.color),
+              }}
+            >
+              {task.priority_id.name}
+            </span>
+          ) : null}
         </TableCell>
 
         
@@ -219,15 +221,17 @@ export default function Task({
         </TableCell>
 
         <TableCell className="p-2 min-w-[120px]">
-          <span
-            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-            style={{
-              backgroundColor: task.product_id.color,
-              color: getContrastColor(task.product_id.color),
-            }}
-          >
-            {task.product_id.name}
-          </span>
+          {task.product_id ? (
+            <span
+              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+              style={{
+                backgroundColor: task.product_id.color,
+                color: getContrastColor(task.product_id.color),
+              }}
+            >
+              {task.product_id.name}
+            </span>
+          ) : null}
         </TableCell>
 
         <TableCell className="p-2 min-w-[190px]">
