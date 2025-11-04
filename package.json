@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@editorjs/checklist": "^1.6.0",
     "@editorjs/editorjs": "^2.30.8",
     "@editorjs/embed": "^2.7.6",
@@ -20,6 +23,7 @@
     "@editorjs/simple-image": "^1.6.0",
     "@editorjs/table": "^2.4.4",
     "@editorjs/text-variant-tune": "^1.0.3",
+    "@fullcalendar/core": "^6.1.18",
     "@fullcalendar/daygrid": "^6.1.17",
     "@fullcalendar/interaction": "^6.1.17",
     "@fullcalendar/react": "^6.1.17",
@@ -61,6 +65,7 @@
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "dotenv": "^16.5.0",
+    "editorjs-html": "^4.0.5",
     "editorjs-text-color-plugin": "^2.0.4",
     "embla-carousel-react": "8.5.1",
     "input-otp": "1.4.1",

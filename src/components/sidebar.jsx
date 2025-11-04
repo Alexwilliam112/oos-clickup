@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Inbox, Megaphone, Plus } from 'lucide-react'
-import { Folders } from '@/components/navigationBars/folders'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
+import * as React from "react";
+import { Inbox, Megaphone, Plus, ClipboardPenLine } from "lucide-react";
+import { Folders } from "@/components/navigationBars/folders";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -14,139 +14,156 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from '@/components/ui/sidebar'
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/modals/general.jsx'
-import { ErrorModal } from '@/components/utils/errorModal'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+} from "@/components/ui/sidebar";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@/components/modals/general.jsx";
+import { ErrorModal } from "@/components/utils/errorModal";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export function SidebarNav() {
-  const params = useSearchParams()
-  const [searchQuery, setSearchQuery] = React.useState('')
-  const [teams, setTeams] = React.useState([])
-  const [folders, setFolders] = React.useState([])
-  const [lists, setLists] = React.useState([])
-  const [loadingFolders, setLoadingFolders] = React.useState(true)
-  const [loadingLists, setLoadingLists] = React.useState(true)
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
-  const [isModalOpen, setIsModalOpen] = React.useState(false)
-  const [isFolderModalOpen, setIsFolderModalOpen] = React.useState(false)
-  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false)
-  const [currentFolderId, setCurrentFolderId] = React.useState(null)
-  const [currentTeamId, setCurrentTeamId] = React.useState(null)
-  const [newListName, setNewListName] = React.useState('')
-  const [newFolderName, setNewFolderName] = React.useState('')
-  const [newTeamName, setNewTeamName] = React.useState('')
-  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
+  const params = useSearchParams();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [teams, setTeams] = React.useState([]);
+  const [folders, setFolders] = React.useState([]);
+  const [lists, setLists] = React.useState([]);
+  const [loadingFolders, setLoadingFolders] = React.useState(true);
+  const [loadingLists, setLoadingLists] = React.useState(true);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isFolderModalOpen, setIsFolderModalOpen] = React.useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = React.useState(false);
+  const [currentFolderId, setCurrentFolderId] = React.useState(null);
+  const [currentTeamId, setCurrentTeamId] = React.useState(null);
+  const [newListName, setNewListName] = React.useState("");
+  const [newFolderName, setNewFolderName] = React.useState("");
+  const [newTeamName, setNewTeamName] = React.useState("");
+  const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
 
-  const fetchTeams = React.useCallback(() => {
-    const workspaceId = params.get('workspace_id')
+  const navigateTo = (page, paramId) => {
+    const params = new URLSearchParams(window.location.search);
+    const workspaceId = params.get("workspace_id");
 
     if (workspaceId) {
-      setLoading(true)
+      const url = `/dashboard?workspace_id=${workspaceId}&page=${page}&param_id=${paramId}`;
+      window.location.href = url; // Navigate to the constructed URL
+    } else {
+      console.error("workspace_id is missing in the query parameters.");
+    }
+  };
+
+  const fetchTeams = React.useCallback(() => {
+    const workspaceId = params.get("workspace_id");
+
+    if (workspaceId) {
+      setLoading(true);
       fetch(`${baseUrl}/team/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error('Failed to fetch teams.')
+            throw new Error("Failed to fetch teams.");
           }
-          return response.json()
+          return response.json();
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || 'Failed to fetch teams.')
+            throw new Error(data.message || "Failed to fetch teams.");
           }
-          setTeams(data.data || [])
-          setLoading(false)
+          setTeams(data.data || []);
+          setLoading(false);
         })
         .catch((error) => {
-          console.error('Error fetching teams:', error)
-          setError(error.message)
-          setLoading(false)
-        })
+          console.error("Error fetching teams:", error);
+          setError(error.message);
+          setLoading(false);
+        });
     } else {
-      setError('workspace_id is missing in the query parameters.')
-      setLoading(false)
+      setError("workspace_id is missing in the query parameters.");
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   const fetchFolders = React.useCallback(() => {
-    const workspaceId = params.get('workspace_id')
+    const workspaceId = params.get("workspace_id");
 
     if (workspaceId) {
-      setLoadingFolders(true)
+      setLoadingFolders(true);
       fetch(`${baseUrl}/folder/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error('Failed to fetch folders.')
+            throw new Error("Failed to fetch folders.");
           }
-          return response.json()
+          return response.json();
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || 'Failed to fetch folders.')
+            throw new Error(data.message || "Failed to fetch folders.");
           }
-          setFolders(data.data || [])
-          setLoadingFolders(false)
+          setFolders(data.data || []);
+          setLoadingFolders(false);
         })
         .catch((error) => {
-          console.error('Error fetching folders:', error)
-          setError(error.message)
-          setLoadingFolders(false)
-        })
+          console.error("Error fetching folders:", error);
+          setError(error.message);
+          setLoadingFolders(false);
+        });
     } else {
-      setError('workspace_id is missing in the query parameters.')
-      setLoadingFolders(false)
+      setError("workspace_id is missing in the query parameters.");
+      setLoadingFolders(false);
     }
-  }, [])
+  }, []);
 
   const fetchLists = React.useCallback(() => {
-    const workspaceId = params.get('workspace_id')
+    const workspaceId = params.get("workspace_id");
 
     if (workspaceId) {
-      setLoadingLists(true)
+      setLoadingLists(true);
       fetch(`${baseUrl}/lists/index?workspace_id=${workspaceId}`)
         .then((response) => {
           if (!response.ok) {
-            throw new Error('Failed to fetch lists.')
+            throw new Error("Failed to fetch lists.");
           }
-          return response.json()
+          return response.json();
         })
         .then((data) => {
           if (data.error) {
-            throw new Error(data.message || 'Failed to fetch lists.')
+            throw new Error(data.message || "Failed to fetch lists.");
           }
-          setLists(data.data || [])
-          setLoadingLists(false)
+          setLists(data.data || []);
+          setLoadingLists(false);
         })
         .catch((error) => {
-          console.error('Error fetching lists:', error)
-          setError(error.message)
-          setLoadingLists(false)
-        })
+          console.error("Error fetching lists:", error);
+          setError(error.message);
+          setLoadingLists(false);
+        });
     } else {
-      setError('workspace_id is missing in the query parameters.')
-      setLoadingLists(false)
+      setError("workspace_id is missing in the query parameters.");
+      setLoadingLists(false);
     }
-  }, [])
+  }, []);
 
   const handleAddTeam = () => {
     if (!newTeamName) {
-      setError('Team name cannot be empty.')
-      return
+      setError("Team name cannot be empty.");
+      return;
     }
 
-    const workspaceId = params.get('workspace_id')
+    const workspaceId = params.get("workspace_id");
 
     if (!workspaceId) {
-      setError('Workspace ID is missing.')
-      return
+      setError("Workspace ID is missing.");
+      return;
     }
 
     fetch(`${baseUrl}/team/create?workspace_id=${workspaceId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: newTeamName,
@@ -154,41 +171,41 @@ export function SidebarNav() {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to create team.')
+          throw new Error("Failed to create team.");
         }
-        return response.json()
+        return response.json();
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || 'Failed to create team.')
+          throw new Error(data.message || "Failed to create team.");
         }
-        setNewTeamName('') // Clear the input field
-        setIsTeamModalOpen(false) // Close the modal
-        fetchTeams() // Refetch the teams to update the UI
+        setNewTeamName(""); // Clear the input field
+        setIsTeamModalOpen(false); // Close the modal
+        fetchTeams(); // Refetch the teams to update the UI
       })
       .catch((error) => {
-        console.error('Error creating team:', error)
-        setError('Failed to create team. Please try again.')
-      })
-  }
+        console.error("Error creating team:", error);
+        setError("Failed to create team. Please try again.");
+      });
+  };
 
   const handleAddFolder = () => {
     if (!newFolderName) {
-      setError('Folder name cannot be empty.')
-      return
+      setError("Folder name cannot be empty.");
+      return;
     }
 
-    const workspaceId = params.get('workspace_id')
+    const workspaceId = params.get("workspace_id");
 
     if (!workspaceId) {
-      setError('Workspace ID is missing.')
-      return
+      setError("Workspace ID is missing.");
+      return;
     }
 
     fetch(`${baseUrl}/folder/create?workspace_id=${workspaceId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: newFolderName,
@@ -197,41 +214,41 @@ export function SidebarNav() {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to create folder.')
+          throw new Error("Failed to create folder.");
         }
-        return response.json()
+        return response.json();
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || 'Failed to create folder.')
+          throw new Error(data.message || "Failed to create folder.");
         }
-        setNewFolderName('') // Clear the input field
-        setIsFolderModalOpen(false) // Close the modal
-        fetchFolders() // Refetch the folders to update the UI
+        setNewFolderName(""); // Clear the input field
+        setIsFolderModalOpen(false); // Close the modal
+        fetchFolders(); // Refetch the folders to update the UI
       })
       .catch((error) => {
-        console.error('Error creating folder:', error)
-        setError('Failed to create folder. Please try again.')
-      })
-  }
+        console.error("Error creating folder:", error);
+        setError("Failed to create folder. Please try again.");
+      });
+  };
 
   const handleAddList = () => {
     if (!newListName) {
-      setError('List name cannot be empty.')
-      return
+      setError("List name cannot be empty.");
+      return;
     }
 
-    const workspaceId = params.get('workspace_id')
+    const workspaceId = params.get("workspace_id");
 
     if (!workspaceId) {
-      setError('Workspace ID is missing.')
-      return
+      setError("Workspace ID is missing.");
+      return;
     }
 
     fetch(`${baseUrl}/lists/create?workspace_id=${workspaceId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: newListName,
@@ -240,58 +257,58 @@ export function SidebarNav() {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Failed to create list.')
+          throw new Error("Failed to create list.");
         }
-        return response.json()
+        return response.json();
       })
       .then((data) => {
         if (data.error) {
-          throw new Error(data.message || 'Failed to create list.')
+          throw new Error(data.message || "Failed to create list.");
         }
-        setNewListName('') // Clear the input field
-        setIsModalOpen(false) // Close the modal
-        fetchLists() // Refetch the lists to update the UI
+        setNewListName(""); // Clear the input field
+        setIsModalOpen(false); // Close the modal
+        fetchLists(); // Refetch the lists to update the UI
       })
       .catch((error) => {
-        console.error('Error creating list:', error)
-        setError('Failed to create list. Please try again.')
-      })
-  }
+        console.error("Error creating list:", error);
+        setError("Failed to create list. Please try again.");
+      });
+  };
 
   const openModal = (folderId) => {
-    setCurrentFolderId(folderId)
-    setIsModalOpen(true)
-  }
+    setCurrentFolderId(folderId);
+    setIsModalOpen(true);
+  };
 
   const openTeamModal = () => {
-    setIsTeamModalOpen(true)
-  }
+    setIsTeamModalOpen(true);
+  };
 
   const openFolderModal = (teamId) => {
-    setCurrentTeamId(teamId)
-    setIsFolderModalOpen(true)
-  }
+    setCurrentTeamId(teamId);
+    setIsFolderModalOpen(true);
+  };
 
   const closeTeamModal = () => {
-    setIsTeamModalOpen(false)
-    setNewTeamName('')
-  }
+    setIsTeamModalOpen(false);
+    setNewTeamName("");
+  };
 
   const closeFolderModal = () => {
-    setIsFolderModalOpen(false)
-    setNewFolderName('')
-  }
+    setIsFolderModalOpen(false);
+    setNewFolderName("");
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setNewListName('')
-  }
+    setIsModalOpen(false);
+    setNewListName("");
+  };
 
   React.useEffect(() => {
-    fetchTeams()
-    fetchFolders()
-    fetchLists()
-  }, [fetchTeams, fetchFolders, fetchLists])
+    fetchTeams();
+    fetchFolders();
+    fetchLists();
+  }, [fetchTeams, fetchFolders, fetchLists]);
 
   return (
     <>
@@ -307,10 +324,15 @@ export function SidebarNav() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#" className="flex items-center gap-3">
+                <a
+                  href="#"
+                  className="text-sm truncate line-clamp-1 font-medium"
+                  title={"My Tasks"}
+                  onClick={() => navigateTo("my_tasks", "abc")} // Navigate to folder
+                >
                   <Inbox className="h-5 w-5" />
                   <span className="text-sm font-medium">My Tasks</span>
-                </Link>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
@@ -319,6 +341,16 @@ export function SidebarNav() {
                 <Link href="/notifications" className="flex items-center gap-3">
                   <Megaphone className="h-5 w-5" />
                   <span className="text-sm font-medium">Notifications</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Custom Form */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/notifications" className="flex items-center gap-3">
+                  <ClipboardPenLine className="h-5 w-5" />
+                  <span className="text-sm font-medium">Custom Forms</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -418,9 +450,13 @@ export function SidebarNav() {
         </ModalFooter>
       </Modal>
 
-      <ErrorModal isOpen={!!error} onClose={() => setError(null)} errorMessage={error} />
+      <ErrorModal
+        isOpen={!!error}
+        onClose={() => setError(null)}
+        errorMessage={error}
+      />
 
       {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
     </>
-  )
+  );
 }

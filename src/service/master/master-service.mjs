@@ -1,6 +1,6 @@
 'use client'
 
-import { apiClient, apiClientV2 } from '../api/api-client.mjs'
+import { apiClient } from '../api/api-client.mjs'
 
 const masterService = {
   async getTaskTypes() {
@@ -73,7 +73,7 @@ const masterService = {
 const MASTER_API = {
   GET_TASK_TYPE: '/task-type/index',
   GET_STATUS: '/status/index',
-  GET_PRIORITY: '/priority',
+  GET_PRIORITY: '/priority/index',
   GET_PRODUCT: '/product/index',
   GET_TEAM: '/team-select/index',
   GET_FOLDERS: '/folder-select/index',

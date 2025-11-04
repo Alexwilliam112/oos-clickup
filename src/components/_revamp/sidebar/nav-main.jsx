@@ -28,6 +28,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Inbox } from 'lucide-react'
+import { taskService } from '@/service/index.mjs'
 
 const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
 
@@ -35,7 +36,7 @@ export function NavMain() {
   const router = useRouter()
   const params = useSearchParams()
 
-  const { setOpen, setOpenMobile } = useSidebar()
+  const { setOpenMobile } = useSidebar()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
@@ -235,18 +236,99 @@ export function NavMain() {
     queryKey: ['workspaceService.getList'],
   })
 
+  const {
+    data: userData,
+    isSuccess: userSuccess,
+    isLoading: userLoading,
+    refetch: refetchUser,
+  } = useQuery({
+    queryFn: workspaceService.getUserWorkspaceMember,
+    queryKey: ['workspaceService.getUserWorkspaceMember']
+  })
+
+  const {
+    data: myTaskData,
+    isSuccess: myTaskSuccess,
+    isLoading: myTaskLoading,
+    refetch: refetchMyTask,
+  } = useQuery({
+    queryFn: taskService.getMyTask,
+    queryKey: ['taskService.getMyTask']
+  })
+
   const navigateTo = (page, param_id) => {
     const workspace_id = params.get('workspace_id')
 
     if (workspace_id) {
       const url = `/dashboard?workspace_id=${workspace_id}&page=${page}&param_id=${param_id}`
       router.push(url)
-      setOpen(false)
       setOpenMobile(false)
     } else {
       console.error('workspace_id is missing in the query parameters.')
     }
   }
+
+  const teamsToDisplay = (() => {
+    if (userData?.is_admin) {
+      return teamsData;
+    }
+
+    const allowedTeamIds = new Set(userData?.allowed_team_ids || []);
+
+    myTaskData?.forEach((task) => {
+      if (task.team_id?.id) {
+        allowedTeamIds.add(task.team_id.id);
+      }
+    });
+
+    if (teamsData) {
+      return teamsData.filter((team) => allowedTeamIds.has(team.id_team));
+    }
+
+    return [];
+  })();
+
+  const teamListToDisplay = {}
+  myTaskData?.forEach((task) => {
+    if (task.is_default_list === "YES") {
+      teamListToDisplay[task.team_id?.id] = true;
+    }
+  });
+
+  const foldersToDisplay = (() => {
+    const allowedFolderIds = new Set([]);
+    if (userData?.is_admin) {
+      foldersData?.forEach((folder) => {
+        allowedFolderIds.add(folder.id_folder);
+      })
+      return allowedFolderIds;
+    }
+
+    myTaskData?.forEach((task) => {
+      allowedFolderIds.add(task.folder_id?.id);
+    })
+
+    return allowedFolderIds;
+  })();
+
+  
+  const listsToDisplay = {}
+  foldersToDisplay?.forEach((folder) => {
+    listsToDisplay[folder] = new Set([]);
+    if (userData?.is_admin) {
+      listData?.forEach((list) => {
+        listsToDisplay[folder].add(list.id_list)
+      })
+    } else {
+      myTaskData?.forEach((task) => {
+        if (task.folder_id?.id === folder) {
+          task.list_ids?.forEach((list) => {
+            listsToDisplay[folder].add(list.id)
+          })
+        }
+      })
+    }
+  })
 
   return (
     <SidebarGroup>
@@ -255,7 +337,7 @@ export function NavMain() {
         <Plus /> <span className="sr-only">Add team</span>
       </SidebarGroupAction>
       <SidebarMenu>
-        {teamsData?.map((team) => (
+        {teamsToDisplay?.map((team) => (
           <Collapsible
             key={team.name}
             asChild
@@ -268,7 +350,7 @@ export function NavMain() {
                   <Users />
                   <span
                     onClick={() => navigateTo('team', team.id_team)}
-                    className="hover:text-blue-500 hover:cursor-pointer"
+                    className="hover:text-blue-500 hover:cursor-pointer line-clamp-1"
                   >
                     {team.name}
                   </span>
@@ -277,14 +359,16 @@ export function NavMain() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  <SidebarMenuSubButton
-                    className="hover:cursor-pointer hover:text-blue-500"
-                    onClick={() => navigateTo('default_list', team.id_team)}
-                  >
-                    <Inbox />
+                  {(teamListToDisplay[team.id_team] || userData?.is_admin) && (
+                    <SidebarMenuSubButton
+                      className="hover:cursor-pointer hover:text-blue-500"
+                      onClick={() => navigateTo('default_list', team.id_team)}
+                    >
+                      <Inbox />
 
-                    <span>Team list</span>
-                  </SidebarMenuSubButton>
+                      <span>Team list</span>
+                    </SidebarMenuSubButton>
+                  )}
 
                   <SidebarMenuSubButton
                     className="hover:cursor-pointer text-muted-foreground"
@@ -294,7 +378,7 @@ export function NavMain() {
                     Add folder
                   </SidebarMenuSubButton>
                   {foldersData
-                    ?.filter((folder) => folder.team_id === team.id_team)
+                    ?.filter((folder) => folder.team_id === team.id_team && foldersToDisplay.has(folder.id_folder))
                     .map((folder) => (
                       <Collapsible className="group/subcollapsible" key={folder.name}>
                         <CollapsibleTrigger asChild>
@@ -319,7 +403,7 @@ export function NavMain() {
                               Add list
                             </SidebarMenuSubButton>
                             {listData
-                              ?.filter((list) => list.folder_id === folder.id_folder)
+                              ?.filter((list) => list.folder_id === folder.id_folder && listsToDisplay[folder.id_folder].has(list.id_list))
                               .map((list) => (
                                 <SidebarMenuSubItem key={list.name}>
                                   <SidebarMenuSubButton asChild>
