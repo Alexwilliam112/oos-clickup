@@ -15,6 +15,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import CustomFields from './customFields'
+import { masterService, workspaceService } from '@/service/index.mjs'
 
 export function TaskCreateModal({
   isOpen,
@@ -32,6 +33,11 @@ export function TaskCreateModal({
   const [isVisible, setIsVisible] = useState(false)
   const [editorReady, setEditorReady] = useState(false)
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
+  
+  // State declarations for auto-refetching functionality
+  const [isRefetchingOptions, setIsRefetchingOptions] = useState(false);
+  const [refetchedOptions, setRefetchedOptions] = useState({});
+  
   const {
     indexTaskType,
     indexStatus,
@@ -42,6 +48,18 @@ export function TaskCreateModal({
     indexFolder,
     indexList,
   } = selectData
+
+  // Merge original selectData with refetched options
+  const effectiveSelectData = {
+    indexTaskType: refetchedOptions.indexTaskType || indexTaskType || [],
+    indexStatus: refetchedOptions.indexStatus || indexStatus || [],
+    indexPriority: refetchedOptions.indexPriority || indexPriority || [],
+    indexProduct: refetchedOptions.indexProduct || indexProduct || [],
+    indexMember: refetchedOptions.indexMember || indexMember || [],
+    indexTeam: refetchedOptions.indexTeam || indexTeam || [],
+    indexFolder: refetchedOptions.indexFolder || indexFolder || [],
+    indexList: refetchedOptions.indexList || indexList || [],
+  };
 
   // Task fields state
   const [taskName, setTaskName] = useState('')
@@ -210,6 +228,132 @@ export function TaskCreateModal({
     setValue('folder', initialValues?.folder)
     setValue('team', initialValues?.team)
   }, [initialValues])
+
+  // Add debugging and fallback for missing options
+  useEffect(() => {
+    if (isOpen) {
+      console.log('TaskCreateModal selectData:', {
+        indexStatus: indexStatus?.length || 0,
+        indexPriority: indexPriority?.length || 0,
+        indexProduct: indexProduct?.length || 0,
+        indexTaskType: indexTaskType?.length || 0,
+        indexMember: indexMember?.length || 0,
+        indexTeam: indexTeam?.length || 0,
+        indexFolder: indexFolder?.length || 0,
+        indexList: indexList?.length || 0,
+      });
+      
+      // Check if critical options are missing and refetch automatically
+      const missingOptions = [];
+      if (!effectiveSelectData.indexStatus || effectiveSelectData.indexStatus.length === 0) missingOptions.push('Status');
+      if (!effectiveSelectData.indexPriority || effectiveSelectData.indexPriority.length === 0) missingOptions.push('Priority');
+      if (!effectiveSelectData.indexProduct || effectiveSelectData.indexProduct.length === 0) missingOptions.push('Product');
+      if (!effectiveSelectData.indexTaskType || effectiveSelectData.indexTaskType.length === 0) missingOptions.push('TaskType');
+      if (!effectiveSelectData.indexMember || effectiveSelectData.indexMember.length === 0) missingOptions.push('Member');
+      if (!effectiveSelectData.indexTeam || effectiveSelectData.indexTeam.length === 0) missingOptions.push('Team');
+      if (!effectiveSelectData.indexFolder || effectiveSelectData.indexFolder.length === 0) missingOptions.push('Folder');
+      if (!effectiveSelectData.indexList || effectiveSelectData.indexList.length === 0) missingOptions.push('List');
+      
+      if (missingOptions.length > 0) {
+        console.warn('Missing dropdown options in TaskCreateModal:', missingOptions);
+        console.log('Attempting to refetch missing options automatically...');
+        refetchMissingOptions(missingOptions);
+      }
+    }
+  }, [isOpen, indexStatus, indexPriority, indexProduct, indexTaskType, indexMember, indexTeam, indexFolder, indexList]);
+
+  // Function to refetch missing dropdown options
+  const refetchMissingOptions = async (missingOptions) => {
+    if (isRefetchingOptions) return; // Prevent multiple simultaneous refetches
+    
+    setIsRefetchingOptions(true);
+    
+    try {
+      console.log('Refetching missing options:', missingOptions);
+      
+      const refetchPromises = [];
+      
+      if (missingOptions.includes('Status')) {
+        refetchPromises.push(
+          masterService.getStatuses().then(data => {
+            console.log('Refetched Status options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexStatus: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('Priority')) {
+        refetchPromises.push(
+          masterService.getPriorities().then(data => {
+            console.log('Refetched Priority options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexPriority: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('Product')) {
+        refetchPromises.push(
+          masterService.getProducts().then(data => {
+            console.log('Refetched Product options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexProduct: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('TaskType')) {
+        refetchPromises.push(
+          masterService.getTaskTypes().then(data => {
+            console.log('Refetched TaskType options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexTaskType: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('Member')) {
+        refetchPromises.push(
+          workspaceService.getWorkspaceMembers().then(data => {
+            console.log('Refetched Member options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexMember: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('Team')) {
+        refetchPromises.push(
+          masterService.getTeams().then(data => {
+            console.log('Refetched Team options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexTeam: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('Folder')) {
+        refetchPromises.push(
+          masterService.getFolders().then(data => {
+            console.log('Refetched Folder options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexFolder: data }));
+          })
+        );
+      }
+      
+      if (missingOptions.includes('List')) {
+        refetchPromises.push(
+          masterService.getList().then(data => {
+            console.log('Refetched List options:', data?.length || 0);
+            setRefetchedOptions(prev => ({ ...prev, indexList: data }));
+          })
+        );
+      }
+      
+      await Promise.all(refetchPromises);
+      console.log('Successfully refetched missing options');
+      
+    } catch (error) {
+      console.error('Error refetching missing options:', error);
+    } finally {
+      setIsRefetchingOptions(false);
+    }
+  };
 
   const editorRef = useRef(null)
   const initTimeoutRef = useRef(null)
@@ -508,6 +652,46 @@ export function TaskCreateModal({
           onSubmit={handleSubmit(onSubmit, onError)}
           className="flex flex-1 overflow-hidden relative"
         >
+          {/* Warning message for missing dropdown options */}
+          {(!effectiveSelectData.indexStatus || effectiveSelectData.indexStatus.length === 0 || 
+            !effectiveSelectData.indexPriority || effectiveSelectData.indexPriority.length === 0 || 
+            !effectiveSelectData.indexProduct || effectiveSelectData.indexProduct.length === 0 ||
+            !effectiveSelectData.indexTaskType || effectiveSelectData.indexTaskType.length === 0 ||
+            !effectiveSelectData.indexMember || effectiveSelectData.indexMember.length === 0 ||
+            !effectiveSelectData.indexTeam || effectiveSelectData.indexTeam.length === 0 ||
+            !effectiveSelectData.indexFolder || effectiveSelectData.indexFolder.length === 0 ||
+            !effectiveSelectData.indexList || effectiveSelectData.indexList.length === 0) && (
+            <div className="mx-4 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  {isRefetchingOptions ? (
+                    <svg className="animate-spin h-5 w-5 text-blue-400" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    {isRefetchingOptions ? 'Loading dropdown options...' : 'Dropdown options loaded'}
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>
+                      {isRefetchingOptions 
+                        ? 'We detected some missing dropdown options (Status, Priority, Product, Task Type, Assignees, Teams, Folders, or Lists) and are loading them now. Please wait a moment.'
+                        : 'All dropdown options have been loaded successfully. You can now use all dropdowns normally.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Main Content */}
           <div className="flex-1 overflow-auto p-4 space-y-4 mb-10">
             {/* Task Name and Task Type */}
@@ -563,7 +747,7 @@ export function TaskCreateModal({
                             console.error('Error fetching custom fields:', error)
                           }
                         }}
-                        options={indexTaskType}
+                        options={effectiveSelectData.indexTaskType}
                         placeholder="Select task type"
                         className={getBorderColor('taskType')}
                       />
@@ -594,7 +778,7 @@ export function TaskCreateModal({
                             color: value.color,
                           })
                         }}
-                        options={indexPriority}
+                        options={effectiveSelectData.indexPriority}
                         placeholder="Select priority"
                         className={getBorderColor('priority')}
                       />
@@ -622,7 +806,7 @@ export function TaskCreateModal({
                             color: value.color,
                           })
                         }}
-                        options={indexStatus}
+                        options={effectiveSelectData.indexStatus}
                         placeholder="Select status"
                         className={getBorderColor('status')}
                       />
@@ -651,7 +835,7 @@ export function TaskCreateModal({
                           name: value.name,
                         })
                       }}
-                      options={indexMember}
+                      options={effectiveSelectData.indexMember}
                       placeholder="Add assignee"
                     />
                     {errors.assignee && (
@@ -702,7 +886,7 @@ export function TaskCreateModal({
                             color: value.color,
                           })
                         }}
-                        options={indexProduct}
+                        options={effectiveSelectData.indexProduct}
                         placeholder="Select product"
                         className={getBorderColor('product')}
                       />
@@ -729,7 +913,7 @@ export function TaskCreateModal({
                             color: value.color,
                           })
                         }}
-                        options={indexTeam}
+                        options={effectiveSelectData.indexTeam}
                         placeholder="Select team"
                         className={getBorderColor('team')}
                       />
@@ -760,7 +944,7 @@ export function TaskCreateModal({
                             color: value.color,
                           })
                         }}
-                        options={indexFolder}
+                        options={effectiveSelectData.indexFolder}
                         placeholder="Select Folder"
                         className={getBorderColor('folder')}
                       />
@@ -782,7 +966,7 @@ export function TaskCreateModal({
                       <MultipleSelectTags
                         value={field.value}
                         onChange={(value) => field.onChange(value)}
-                        options={indexList}
+                        options={effectiveSelectData.indexList}
                         placeholder="Add lists"
                         className={getBorderColor('lists')}
                       />
