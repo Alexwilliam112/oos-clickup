@@ -435,11 +435,11 @@ export default function PublicFormPage() {
                             <DateRangePicker
                               value={field.value}
                               onChange={(range) => field.onChange(range)}
-                              placeholder="Select a date range"
+                              placeholder="Select a deadline (Double click in the same date)"
                               className={getBorderColor('selectedRange')}
                             />
                             {errors[field_data.originalName] && (
-                              <p className="text-red-500 text-xs mt-1">Date range is required</p>
+                              <p className="text-red-500 text-xs mt-1">Deadline is required</p>
                             )}
                           </div>
                         )}
