@@ -303,7 +303,7 @@ export function TaskDetailModalV2({
         from: z.date({ required_error: 'Start date is required' }),
         to: z.date({ required_error: 'End date is required' }),
       },
-      { required_error: 'Please select a date range for this task' }
+      { required_error: 'Please select a deadline for this task' }
     ),
     product: z.object(
       {
@@ -1341,7 +1341,7 @@ export function TaskDetailModalV2({
 
                   {/* Start Date & Due Date */}
                   <div>
-                    <label className="block text-sm font-medium">Date Range</label>
+                    <label className="block text-sm font-medium">Deadline (Double click in the same date)</label>
                     <Controller
                       name="selectedRange"
                       control={control}
@@ -1350,12 +1350,12 @@ export function TaskDetailModalV2({
                           <DateRangePicker
                             value={field.value}
                             onChange={(range) => field.onChange(range)}
-                            placeholder="Select a date range"
+                            placeholder="Select a deadline"
                             className={getBorderColor("selectedRange")}
                           />
                           {errors.selectedRange && (
                             <p className="text-red-500 text-xs mt-1">
-                              Date range is required
+                              Deadline is required
                             </p>
                           )}
                         </div>
