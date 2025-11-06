@@ -952,7 +952,7 @@ export function FormCreateModal({
                             placeholder={field.placeholder}
                           />
                           {errors.selectedRange && (
-                            <p className="text-red-500 text-xs mt-1">Date range is required</p>
+                            <p className="text-red-500 text-xs mt-1">Deadline is required</p>
                           )}
                         </div>
                       )}

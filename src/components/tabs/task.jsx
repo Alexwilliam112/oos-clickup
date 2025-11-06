@@ -12,18 +12,20 @@ import { ActionCells } from '../actions/action-cells'
 
 function getContrastColor(hexColor) {
   // Remove the hash if it exists
-  const color = hexColor.replace('#', '')
-
-  // Convert to RGB
-  const r = parseInt(color.substring(0, 2), 16)
-  const g = parseInt(color.substring(2, 4), 16)
-  const b = parseInt(color.substring(4, 6), 16)
-
-  // Calculate brightness
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000
-
-  // Return black for light backgrounds, white for dark backgrounds
-  return brightness > 128 ? '#000000' : '#FFFFFF'
+  if (hexColor) {
+    const color = hexColor.replace('#', '')
+  
+    // Convert to RGB
+    const r = parseInt(color.substring(0, 2), 16)
+    const g = parseInt(color.substring(2, 4), 16)
+    const b = parseInt(color.substring(4, 6), 16)
+  
+    // Calculate brightness
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  
+    // Return black for light backgrounds, white for dark backgrounds
+    return brightness > 128 ? '#000000' : '#FFFFFF'
+  }
 }
 
 export default function Task({
@@ -175,18 +177,22 @@ export default function Task({
         <TableCell className="p-2 min-w-[120px]">{formatDate(task.date_end)}</TableCell>
 
         <TableCell className="p-2 min-w-[100px]">
-          <span
-            className="text-xs px-2 min-w-[120px] py-1 border border-muted-foreground/20 rounded-sm"
-            style={{
-              backgroundColor: task.priority_id.color,
-              color: getContrastColor(task.priority_id.color),
-            }}
-          >
-            {task.priority_id.name}
-          </span>
+          {task.priority_id ? (
+            <span
+              className="text-xs px-2 min-w-[120px] py-1 border border-muted-foreground/20 rounded-sm"
+              style={{
+                backgroundColor: task.priority_id.color,
+                color: getContrastColor(task.priority_id.color),
+              }}
+            >
+              {task.priority_id.name}
+            </span>
+          ) : null}
         </TableCell>
 
+        
         <TableCell className="p-2 min-w-[130px]">
+        {task.status_id && (
           <span
             className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
             style={{
@@ -196,6 +202,7 @@ export default function Task({
           >
             {task.status_id.name}
           </span>
+        )}
         </TableCell>
 
         <TableCell className="p-2 min-w-[160px] flex gap-1 flex-wrap">
@@ -214,15 +221,17 @@ export default function Task({
         </TableCell>
 
         <TableCell className="p-2 min-w-[120px]">
-          <span
-            className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
-            style={{
-              backgroundColor: task.product_id.color,
-              color: getContrastColor(task.product_id.color),
-            }}
-          >
-            {task.product_id.name}
-          </span>
+          {task.product_id ? (
+            <span
+              className="text-xs px-2 py-1 border border-muted-foreground/20 rounded-sm"
+              style={{
+                backgroundColor: task.product_id.color,
+                color: getContrastColor(task.product_id.color),
+              }}
+            >
+              {task.product_id.name}
+            </span>
+          ) : null}
         </TableCell>
 
         <TableCell className="p-2 min-w-[190px]">

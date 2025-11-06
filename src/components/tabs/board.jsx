@@ -56,6 +56,8 @@ export function Board() {
   const [team, setTeam] = useState(null)
   const [folder, setFolder] = useState(null)
   const [lists, setLists] = useState([])
+  const [isHeaderModalOpen, setIsHeaderModalOpen] = useState(false)
+  const [isColumnModalOpen, setIsColumnModalOpen] = useState(false)
 
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
@@ -342,8 +344,6 @@ export function Board() {
     }
   }
 
-  console.log(filteredTasks)
-
   return (
     <div className="w-full h-full flex-1 flex flex-col gap-3 shrink">
       <div className="flex gap-2">
@@ -430,7 +430,7 @@ export function Board() {
                     </div>
                     <span className="text-sm font-medium">{status.name}</span>
                     <Badge variant="secondary" className="bg-white/20 text-xs">
-                      {tasks.filter((task) => task.status_id.id === status.id_record).length}
+                      {tasks.filter((task) => task.status_id?.id === status.id_record).length}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-1">
@@ -464,8 +464,9 @@ export function Board() {
                         indexFolder,
                         indexList,
                       }}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
+                      isOpen={isHeaderModalOpen}
+                      setIsOpen={setIsHeaderModalOpen}
+                      editorJsId={`editorjs-board-header-${status.id_record}`}
                     />
                   </div>
                 </div>
@@ -473,7 +474,7 @@ export function Board() {
                 {/* Column Content */}
                 <div className="flex flex-1 flex-col gap-3 p-2">
                   {filteredTasks
-                    .filter((task) => task.status_id.id === status.id_record)
+                    .filter((task) => task.status_id?.id === status.id_record)
                     .map((task, idx) => (
                       <DetailModalTrigger
                         key={task.id_task}
@@ -678,8 +679,9 @@ export function Board() {
                         indexFolder,
                         indexList,
                       }}
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
+                      isOpen={isColumnModalOpen}
+                      setIsOpen={setIsColumnModalOpen}
+                      editorJsId={`editorjs-board-column-${status.id_record}`}
                     />
                   </div>
                 </div>
