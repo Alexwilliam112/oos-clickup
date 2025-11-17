@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
@@ -20,7 +20,18 @@ export default function PublicFormPage() {
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   const router = useRouter()
 
-  const getBorderColor = (fieldName) => (errors[fieldName] ? 'border-red-500' : 'border-gray-300')
+  // Mapping originalName -> sanitizedName to avoid special character issues with RHF/Zod
+  const nameMapRef = useRef({})
+
+  const sanitizeFieldName = (name) => {
+    const base = name.replace(/[^a-zA-Z0-9]/g, '_')
+    return base.replace(/_+/g, '_').replace(/^_/, '').replace(/_$/, '').toLowerCase()
+  }
+
+  const getBorderColor = (originalName) => {
+    const key = nameMapRef.current[originalName] || originalName
+    return errors[key] ? 'border-red-500' : 'border-gray-300'
+  }
 
   const fetchData = () => {
     setLoading(true)
@@ -60,14 +71,22 @@ export default function PublicFormPage() {
   if (!form.form_field) return z.object({});
 
   const schemaFields = {};
+  const localMap = {}
+  const hasSpecialChars = (fieldName) => /[\[\]\/&\-()\s]/.test(fieldName)
 
-  form.form_field.forEach((field) => {
-    const name = field.originalName;
+  form.form_field.forEach((field, idx) => {
+    const originalName = field.originalName
+    let sanitized = sanitizeFieldName(originalName)
+    // ensure uniqueness if collision
+    if (Object.values(localMap).includes(sanitized)) {
+      sanitized = `${sanitized}_${idx}`
+    }
+    localMap[originalName] = sanitized
 
     let fieldValidation;
 
     if (!field.is_custom_field) {
-      switch (name) {
+      switch (originalName) {
         case 'name':
           fieldValidation = z.string().min(1, 'Task name is required and cannot be empty');
           break;
@@ -112,10 +131,29 @@ export default function PublicFormPage() {
           break;
 
         case 'select':
-          fieldValidation = z.object({
-            id_record: z.string().min(1, 'Single-Select id_record is required'),
-            name: z.string().min(1, 'Single-Select name is required'),
-          });
+          if (hasSpecialChars(originalName)) {
+            fieldValidation = z.preprocess(
+              (val) => {
+                if (!val) return field.required ? undefined : null
+                if (typeof val === 'object' && val !== null) {
+                  if (val.id_record && val.name) return val
+                  if (val.id && val.name) return { id_record: val.id, name: val.name }
+                }
+                return field.required ? undefined : null
+              },
+              field.required
+                ? z.object({
+                    id_record: z.string().min(1, `${field.label || originalName} is required`),
+                    name: z.string().min(1, `${field.label || originalName} is required`),
+                  })
+                : z.any()
+            )
+          } else {
+            fieldValidation = z.object({
+              id_record: z.string().min(1, 'Single-Select id_record is required'),
+              name: z.string().min(1, 'Single-Select name is required'),
+            })
+          }
           break;
 
         case 'number':
@@ -146,11 +184,12 @@ export default function PublicFormPage() {
       }
     }
 
-    schemaFields[name] = field.required
+    schemaFields[localMap[originalName]] = field.required
       ? fieldValidation
       : fieldValidation.nullable().optional();
   });
 
+  nameMapRef.current = localMap
   return z.object(schemaFields);
 }, [form.form_field]);
 
@@ -195,7 +234,7 @@ export default function PublicFormPage() {
       const customFieldsPayload = form.form_field
         .filter((field) => field.is_custom_field)
         .map((field) => {
-          const rawValue = values[field.originalName];
+          const rawValue = values[nameMapRef.current[field.originalName] || field.originalName];
 
           let value = rawValue;
           switch (field.type) {
@@ -287,7 +326,9 @@ export default function PublicFormPage() {
 
               {/* Form Fields */}
               <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
-                {form.form_field && form.form_field.map((field_data) => (
+                {form.form_field && form.form_field.map((field_data) => {
+                  const fieldKey = nameMapRef.current[field_data.originalName] || field_data.originalName
+                  return (
                   <div key={field_data.id}>
                     <label className="block text-sm font-medium mb-1">
                       {field_data.label}
@@ -296,7 +337,7 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'text' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
@@ -306,8 +347,8 @@ export default function PublicFormPage() {
                               placeholder={field_data.placeholder}
                               value={field.value ?? ''}
                             />
-                            {errors[field_data.originalName] && (
-                              <p className="text-red-500 text-xs mt-1">{errors[field_data.originalName].message}</p>
+                            {errors[fieldKey] && (
+                              <p className="text-red-500 text-xs mt-1">{errors[fieldKey].message}</p>
                             )}
                           </div>
                         )}
@@ -316,13 +357,13 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'textarea' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
                             <textarea
                               className={`w-full border rounded-md px-3 py-2 ${
-                                errors[field_data.originalName]
+                                errors[fieldKey]
                                   ? "border-red-500"
                                   : "border-gray-300"
                               }`}
@@ -330,9 +371,9 @@ export default function PublicFormPage() {
                               value={field.value ?? ''}
                               {...field}
                             />
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -342,27 +383,27 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'select' && field_data.is_custom_field && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
                             <SingleSelectTag
                               value={field.value || null} // Ensure the value is always null or a valid option
-                              onChange={(value) => field.onChange(value)}
+                              onChange={(value) => {console.log(field.value); field.onChange(value);}}
                               options={field_data.options.map((opt) => ({
                                 id_record: opt.value,
                                 name: opt.value,
                               }))}
                               placeholder={`Select ${field_data.originalName}`}
                               className={
-                                errors[field_data.originalName]
+                                errors[fieldKey]
                                   ? "border-red-500"
                                   : "border-gray-300"
                               }
                             />
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -399,7 +440,7 @@ export default function PublicFormPage() {
                           />
                         ) : (
                           <Controller
-                            name={field_data.originalName}
+                            name={fieldKey}
                             control={control}
                             render={({ field }) => (
                               <div>
@@ -416,7 +457,7 @@ export default function PublicFormPage() {
                                   placeholder={`Select ${field_data.originalName}`}
                                   className={getBorderColor(field_data.originalName)}
                                 />
-                                {errors[field_data.originalName] && (
+                                {errors[fieldKey] && (
                                   <p className="text-red-500 text-xs mt-1">{field_data.originalName} is required</p>
                                 )}
                               </div>
@@ -428,7 +469,7 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'date-range' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
@@ -438,7 +479,7 @@ export default function PublicFormPage() {
                               placeholder="Select a deadline (Double click in the same date)"
                               className={getBorderColor('selectedRange')}
                             />
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">Deadline is required</p>
                             )}
                           </div>
@@ -452,14 +493,14 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'number' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
                             <input
                               type="number"
                               className={`w-full border rounded-md px-3 py-2 ${
-                                errors[field_data.originalName]
+                                errors[fieldKey]
                                   ? "border-red-500"
                                   : "border-gray-300"
                               }`}
@@ -471,9 +512,9 @@ export default function PublicFormPage() {
                                 )
                               }
                             />
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -483,7 +524,7 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'radio' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div className="space-y-2">
@@ -496,7 +537,7 @@ export default function PublicFormPage() {
                                   checked={field.value === opt.value}
                                   onChange={(e) => field.onChange(e.target.value)}
                                   className={`h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                                    errors[field_data.originalName]
+                                    errors[fieldKey]
                                       ? "border-red-500"
                                       : ""
                                   }`}
@@ -509,9 +550,9 @@ export default function PublicFormPage() {
                                 </label>
                               </div>
                             ))}
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -521,7 +562,7 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'checkbox' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div className="space-y-2">
@@ -540,7 +581,7 @@ export default function PublicFormPage() {
                                     field.onChange(updatedValues);
                                   }}
                                   className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                                    errors[field_data.originalName]
+                                    errors[fieldKey]
                                       ? "border-red-500"
                                       : ""
                                   }`}
@@ -553,9 +594,9 @@ export default function PublicFormPage() {
                                 </label>
                               </div>
                             ))}
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -565,7 +606,7 @@ export default function PublicFormPage() {
 
                     {field_data.type === 'multiple-select' && (
                       <Controller
-                        name={field_data.originalName}
+                        name={fieldKey}
                         control={control}
                         render={({ field }) => (
                           <div>
@@ -579,14 +620,14 @@ export default function PublicFormPage() {
                               }))}
                               placeholder={`Add ${field_data.label}`}
                               className={
-                                errors[field_data.originalName]
+                                errors[fieldKey]
                                   ? "border-red-500"
                                   : "border-gray-300"
                               }
                             />
-                            {errors[field_data.originalName] && (
+                            {errors[fieldKey] && (
                               <p className="text-red-500 text-xs mt-1">
-                                {errors[field_data.originalName].message}
+                                {errors[fieldKey].message}
                               </p>
                             )}
                           </div>
@@ -594,7 +635,7 @@ export default function PublicFormPage() {
                       />
                     )}
                   </div>
-                ))}
+                )})}
 
                 <button
                   type="submit"
