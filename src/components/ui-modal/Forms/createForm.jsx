@@ -817,11 +817,11 @@ export function FormCreateModal({
                                 {field.type === 'select' && !field.is_custom_field ? (
                                   <select
                                     className="mt-1 w-full p-2 border rounded bg-white text-sm"
-                                    value={field.defaultValue?.name || field.options[0].name || ''}
+                                    value={field.defaultValue?.name || ''}
                                     onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
                                   >
-                                    <option value={field.options[0].name}>{field.options[0].name}</option>
-                                    {field.options.slice(1).map((opt) => (
+                                    <option value="">-- No default value --</option>
+                                    {field.options.map((opt) => (
                                       <option key={opt.id} value={opt.name}>
                                         {opt.name}
                                       </option>
@@ -831,11 +831,11 @@ export function FormCreateModal({
                                 {field.type === 'select' && field.is_custom_field ? (
                                   <select
                                     className="mt-1 w-full p-2 border rounded bg-white text-sm"
-                                    value={field.defaultValue?.name || field.options[0].value || ''}
+                                    value={field.defaultValue?.name || ''}
                                     onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
                                   >
-                                    <option value={field.options[0].value}>{field.options[0].value}</option>
-                                    {field.options.slice(1).map((opt) => (
+                                    <option value="">-- No default value --</option>
+                                    {field.options.map((opt) => (
                                       <option key={opt.id} value={opt.value}>
                                         {opt.name}
                                       </option>
@@ -845,11 +845,11 @@ export function FormCreateModal({
                                 {field.type === 'radio' ? (
                                   <select
                                     className="mt-1 w-full p-2 border rounded bg-white text-sm"
-                                    value={field.defaultValue || field.options[0].value || ''}
+                                    value={field.defaultValue || ''}
                                     onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
                                   >
-                                    <option value={field.options[0].value}>{field.options[0].value}</option>
-                                    {field.options.slice(1).map((opt) => (
+                                    <option value="">-- No default value --</option>
+                                    {field.options.map((opt) => (
                                       <option key={opt.id} value={opt.value}>
                                         {opt.name}
                                       </option>
@@ -858,10 +858,10 @@ export function FormCreateModal({
                                 ) : null}
                                 {field.type === 'checkbox' ? (
                                   <MultipleSelectTags
-                                    value={field.defaultValue || null}
+                                    value={field.defaultValue || []}
                                     onChange={(val) => handleDefaultValueChange(field.id, val)}
                                     options={field.options}
-                                    placeholder="Choose default options"
+                                    placeholder="No default selections"
                                     className="mt-1"
                                   />
                                 ) : null}
