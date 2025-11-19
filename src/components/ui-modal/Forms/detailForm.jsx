@@ -931,7 +931,7 @@ export function FormDetailModal({
                                         {field.type === 'select' && !field.is_custom_field ? (
                                           <select
                                             className="mt-1 w-full p-2 border rounded bg-white text-sm"
-                                            value={field.defaultValue?.name || field.options[0].name || ''}
+                                            value={field.defaultValue?.name || ''}
                                             onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
                                           >
                                             <option value={field.options[0].name}>{field.options[0].name}</option>
@@ -945,7 +945,7 @@ export function FormDetailModal({
                                         {field.type === 'select' && field.is_custom_field ? (
                                           <select
                                             className="mt-1 w-full p-2 border rounded bg-white text-sm"
-                                            value={field.defaultValue?.name || field.options[0].value || ''}
+                                            value={field.defaultValue?.name || ''}
                                             onChange={(e) => handleDefaultValueChange(field.id, e.target.value)}
                                           >
                                             <option value={field.options[0].value}>{field.options[0].value}</option>

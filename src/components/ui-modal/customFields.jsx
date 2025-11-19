@@ -10,19 +10,31 @@ export default function CustomFields({
   errors,
   setValue,
   currentValues = {},
+  nameMapRef = { current: {} },
 }) {
+  
+  const sanitizeFieldName = (name) => {
+    const base = name.replace(/[^a-zA-Z0-9]/g, '_')
+    return base.replace(/_+/g, '_').replace(/^_/, '').replace(/_$/, '').toLowerCase()
+  }
+
+  const getFieldKey = (field_name) => {
+    return nameMapRef.current[field_name] || field_name
+  }
   useEffect(() => {
     if (!currentValues) return;
 
     Object.entries(currentValues).forEach(([key, value]) => {
-      setValue(`customFields.${key}`, value);
+      const fieldKey = getFieldKey(key)
+      setValue(`customFields.${fieldKey}`, value);
     });
   }, [currentValues, setValue]);
 
   // Renderer for each field type
   const renderField = (field) => {
     const { field_type, field_name, id_field, options, is_mandatory } = field;
-    const fieldName = `customFields.${field_name}`;
+    const fieldKey = getFieldKey(field_name)
+    const fieldName = `customFields.${fieldKey}`;
 
     switch (field_type) {
       case "text":
@@ -39,7 +51,7 @@ export default function CustomFields({
                   <input
                     type="text"
                     className={`w-full border rounded-md px-3 py-2 ${
-                      field_name && errors.customFields?.[field_name]
+                      fieldKey && errors.customFields?.[fieldKey]
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
@@ -47,9 +59,9 @@ export default function CustomFields({
                     value={field.value || ""} // Ensure the value is always a string
                     {...field}
                   />
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -71,7 +83,7 @@ export default function CustomFields({
                 <div>
                   <textarea
                     className={`w-full border rounded-md px-3 py-2 ${
-                      errors.customFields?.[field_name]
+                      errors.customFields?.[fieldKey]
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
@@ -79,9 +91,9 @@ export default function CustomFields({
                     value={field.value || ""} // Ensure the value is always a string
                     {...field}
                   />
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -104,7 +116,7 @@ export default function CustomFields({
                   <input
                     type="number"
                     className={`w-full border rounded-md px-3 py-2 ${
-                      errors.customFields?.[field_name]
+                      errors.customFields?.[fieldKey]
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
@@ -116,9 +128,9 @@ export default function CustomFields({
                       )
                     }
                   />
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -140,21 +152,27 @@ export default function CustomFields({
                 <div>
                   <SingleSelectTag
                     value={field.value || null} // Ensure the value is always null or a valid option
-                    onChange={(value) => field.onChange(value)}
+                    onChange={(value) => {
+                      // SingleSelectTag returns an object with id_record and name
+                      field.onChange(value ? {
+                        id_record: value.id_record,
+                        name: value.name
+                      } : null)
+                    }}
                     options={options.map((opt) => ({
                       id_record: opt.value,
                       name: opt.value,
                     }))}
                     placeholder={`Select ${field_name.toLowerCase()}`}
                     className={
-                      errors.customFields?.[field_name]
+                      errors.customFields?.[fieldKey]
                         ? "border-red-500"
                         : "border-gray-300"
                     }
                   />
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -176,7 +194,10 @@ export default function CustomFields({
                 <div>
                   <MultipleSelectTags
                     value={field.value || []} // Ensure the value is always an array
-                    onChange={(value) => field.onChange(value)}
+                    onChange={(value) => {
+                      // MultipleSelectTags returns an array of objects
+                      field.onChange(value || [])
+                    }}
                     options={options.map((opt) => ({
                       key: opt.value,
                       id: opt.value,
@@ -184,14 +205,14 @@ export default function CustomFields({
                     }))}
                     placeholder={`Add ${field_name.toLowerCase()}`}
                     className={
-                      errors.customFields?.[field_name]
+                      errors.customFields?.[fieldKey]
                         ? "border-red-500"
                         : "border-gray-300"
                     }
                   />
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -226,7 +247,7 @@ export default function CustomFields({
                           field.onChange(updatedValues);
                         }}
                         className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                          errors.customFields?.[field_name]
+                          errors.customFields?.[fieldKey]
                             ? "border-red-500"
                             : ""
                         }`}
@@ -239,9 +260,9 @@ export default function CustomFields({
                       </label>
                     </div>
                   ))}
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>
@@ -270,7 +291,7 @@ export default function CustomFields({
                         checked={field.value === opt.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         className={`h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 ${
-                          errors.customFields?.[field_name]
+                          errors.customFields?.[fieldKey]
                             ? "border-red-500"
                             : ""
                         }`}
@@ -283,9 +304,9 @@ export default function CustomFields({
                       </label>
                     </div>
                   ))}
-                  {errors.customFields?.[field_name] && (
+                  {errors.customFields?.[fieldKey] && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.customFields[field_name].message}
+                      {errors.customFields[fieldKey].message}
                     </p>
                   )}
                 </div>

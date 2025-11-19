@@ -310,6 +310,7 @@ export function FormCreateModal({
   };
 
   const onSubmit = async (values) => {
+    console.log()
     const descriptionData = {data: 'textarea', value: values.description}
 
     // Collect form data

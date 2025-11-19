@@ -40,6 +40,12 @@ export function TaskDetailModalV2({
   const userId = useUserStore((state) => state.user_id)
   const [isVisible, setIsVisible] = useState(false);
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL;
+  // Mapping original custom field names to sanitized keys
+  const nameMapRef = useRef({})
+  const sanitizeFieldName = (name) => {
+    const base = name.replace(/[^a-zA-Z0-9]/g, '_')
+    return base.replace(/_+/g, '_').replace(/^_/, '').replace(/_$/, '').toLowerCase()
+  }
   
   // State declarations must come before effectiveSelectData
   const [isRefetchingOptions, setIsRefetchingOptions] = useState(false);
@@ -194,7 +200,8 @@ export function TaskDetailModalV2({
     }
   };
 
-  const EDITOR_JS_ID = `editorjs-${task.id_task}`;
+  // Dynamic EditorJS holder ID based on task id (may be undefined initially)
+  const EDITOR_JS_ID = task?.id_task ? `editorjs-${task.id_task}` : 'editorjs-pending';
 
   const [customFields, setCustomFields] = useState([]);
   const [customFieldValues, setCustomFieldValues] = useState([]);
@@ -339,60 +346,63 @@ export function TaskDetailModalV2({
       .min(1, 'Please select at least one list for this task'),
     description: z.string().optional(),
 
-    // Fix: Only add customFields validation if there are actual custom fields
-    customFields: customFields.length > 0 
+    // Dynamic custom fields (sanitized keys)
+    customFields: customFields.length > 0
       ? z.object(
-          customFields.reduce((schema, field) => {
-            let fieldValidation
+          customFields.reduce((schema, field, idx) => {
+            const { field_type, field_name, is_mandatory } = field
+            const originalName = field_name
+            let sanitized = sanitizeFieldName(originalName)
+            if (Object.values(nameMapRef.current).includes(sanitized)) {
+              sanitized = `${sanitized}_${idx}`
+            }
+            nameMapRef.current[originalName] = sanitized
 
-            // Determine validation based on field type
-            switch (field.field_type) {
+            let fieldValidation
+            switch (field_type) {
               case 'text':
               case 'text-area':
-                fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                fieldValidation = z.string()
+                if (is_mandatory) fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                break
+              case 'number':
+                fieldValidation = z.number({ required_error: `${field_name} is required` })
                 break
               case 'single-select':
-                fieldValidation = z.object(
-                  {
-                    id_record: z.string().min(1, "Single-Select id_record is required"),
-                    name: z.string().min(1, "Single-Select name is required")
-                  }
-                )
+                fieldValidation = is_mandatory
+                  ? z.object({
+                      id_record: z.string().min(1, `${field_name} is required`),
+                      name: z.string().min(1, `${field_name} is required`),
+                    })
+                  : z.object({ id_record: z.string().optional(), name: z.string().optional() }).nullable().optional()
                 break
-              case 'radio':
-                fieldValidation = z.string().min(1, `${field.field_name} is required`)
-                break
-
-              case 'number':
-                fieldValidation = z.number().min(0, `${field.field_name} is required`)
-                break
-
               case 'multiple-select':
-                fieldValidation = z.array(z.object(
-                  {
-                    id: z.string().min(1, "Multiple-Select id is required"),
-                    key: z.string().min(1, "Multiple-Select key is required"),
-                    name: z.string().min(1, "Multiple-Select name is required")
-                  }
-                ))
+                fieldValidation = z.array(
+                  z.object({
+                    id: z.string().min(1, 'Multiple-Select id is required'),
+                    key: z.string().min(1, 'Multiple-Select key is required'),
+                    name: z.string().min(1, 'Multiple-Select name is required'),
+                  })
+                )
+                if (is_mandatory) fieldValidation = fieldValidation.min(1, `${field_name} is required`)
                 break
               case 'checkbox':
-                fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
+                fieldValidation = z.array(z.string())
+                if (is_mandatory) fieldValidation = fieldValidation.min(1, `${field_name} is required`)
                 break
-
+              case 'radio':
+                fieldValidation = z.string()
+                if (is_mandatory) fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                break
               default:
-                fieldValidation = z.any() // Default to any type if field type is unknown
+                fieldValidation = z.any().optional()
             }
-
-            // Apply conditional validation based on is_mandatory
-            schema[field.field_name] = field.is_mandatory
-              ? fieldValidation // Required validation
-              : fieldValidation.optional() // Optional validation
-
+            if (!is_mandatory) fieldValidation = fieldValidation.optional()
+            schema[sanitized] = fieldValidation
             return schema
           }, {})
         )
-      : z.object({}).optional(), // If no custom fields, make it optional empty object
+      : z.object({}).optional(),
   })
 
   // DELETE TASK ACTION
@@ -522,10 +532,46 @@ export function TaskDetailModalV2({
     }
   };
 
+  const onError = (errors) => {
+    console.log('Form validation errors:', errors)
+  }
+
   const onSubmit = async (values) => {
     const descriptionData = editorRef.current
       ? await editorRef.current.save()
       : {};
+    // Transform custom fields into API array {id, value}
+    const transformedCustomFields = []
+    if (values.customFields && customFields.length > 0) {
+      Object.entries(values.customFields).forEach(([sanitized, rawValue]) => {
+        const originalName = Object.keys(nameMapRef.current).find(k => nameMapRef.current[k] === sanitized) || sanitized
+        const fieldDef = customFields.find(f => f.field_name === originalName)
+        if (!fieldDef) return
+        let value = rawValue
+        switch (fieldDef.field_type) {
+          case 'text':
+          case 'text-area':
+          case 'radio':
+            value = rawValue ?? ''
+            break
+          case 'number':
+            value = rawValue === '' || rawValue === undefined ? null : Number(rawValue)
+            break
+          case 'single-select':
+            value = rawValue?.id_record ?? rawValue?.name ?? rawValue ?? ''
+            break
+          case 'multiple-select':
+            value = Array.isArray(rawValue) ? rawValue.map(v => (typeof v === 'string' ? v : v.name || v.id || '')) : []
+            break
+          case 'checkbox':
+            value = Array.isArray(rawValue) ? rawValue : []
+            break
+          default:
+            value = rawValue ?? ''
+        }
+        transformedCustomFields.push({ id: fieldDef.id_field, value })
+      })
+    }
 
     const taskData = {
       name: values.taskName,
@@ -542,7 +588,7 @@ export function TaskDetailModalV2({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
-      custom_fields: values.customFields,
+      custom_fields: transformedCustomFields,
     };
 
     const params = new URLSearchParams(window.location.search);
@@ -785,118 +831,153 @@ export function TaskDetailModalV2({
     }
   }, [task, isOpen]);
 
-  const editorRef = useRef(null);
+  // Normalize incoming task custom_fields (object keyed by name OR array of {id,value}) and hydrate form
   useEffect(() => {
-    async function initEditor() {
-      const editorElement = document.getElementById(EDITOR_JS_ID);
-      if (!editorElement) {
-        console.error("EditorJS element is missing");
-        return;
+    if (!task || customFields.length === 0) return
+    const cfData = task.custom_fields
+    if (!cfData) return
+    // Build id -> fieldDef map
+    const idMap = customFields.reduce((acc, f) => { acc[f.id_field] = f; return acc }, {})
+
+    // Helper to convert raw value to component value structure
+    const convertValue = (fieldDef, value) => {
+      switch (fieldDef.field_type) {
+        case 'single-select':
+          if (value && typeof value === 'object' && 'id_record' in value) return value
+          if (typeof value === 'string') return { id_record: value, name: value }
+          return null
+        case 'multiple-select':
+          if (Array.isArray(value)) {
+            return value.map(v => (
+              typeof v === 'string'
+                ? { id: v, key: v, name: v }
+                : { id: v.id || v.key || v.name, key: v.key || v.id || v.name, name: v.name || v.id || v.key }
+            ))
+          }
+          return []
+        case 'checkbox':
+          return Array.isArray(value) ? value : []
+        case 'number':
+          return typeof value === 'number' ? value : (value === '' || value == null ? '' : Number(value))
+        case 'radio':
+        case 'text':
+        case 'text-area':
+          return value ?? ''
+        default:
+          return value
       }
-
-      const EditorJSModule = (await import("@editorjs/editorjs")).default;
-      const [
-        Header,
-        List,
-        Table,
-        Quote,
-        Embed,
-        SimpleImage,
-        Marker,
-        InlineCode,
-        TextColorPlugin,
-        TextVariantTune,
-        Checklist,
-      ] = await Promise.all([
-        import("@editorjs/header").then((m) => m.default),
-        import("@editorjs/list").then((m) => m.default),
-        import("@editorjs/table").then((m) => m.default),
-        import("@editorjs/quote").then((m) => m.default),
-        import("@editorjs/embed").then((m) => m.default),
-        import("@editorjs/simple-image").then((m) => m.default),
-        import("@editorjs/marker").then((m) => m.default),
-        import("@editorjs/inline-code").then((m) => m.default),
-        import("editorjs-text-color-plugin").then((m) => m.default),
-        import("@editorjs/text-variant-tune").then((m) => m.default),
-        import("@editorjs/checklist").then((m) => m.default),
-      ]);
-
-      const editor = new EditorJSModule({
-        holder: EDITOR_JS_ID,
-        placeholder: "Write something...",
-        tools: {
-          header: {
-            class: Header,
-            inlineToolbar: true,
-            config: {
-              placeholder: "Enter a header",
-              levels: [1, 2, 3, 4],
-              defaultLevel: 1,
-            },
-            tunes: ["textVariantTune"],
-          },
-          list: { class: List, inlineToolbar: true },
-          table: { class: Table, inlineToolbar: true },
-          checklist: { class: Checklist, inlineToolbar: true },
-          quote: { class: Quote, inlineToolbar: true },
-          embed: {
-            class: Embed,
-            inlineToolbar: false,
-            config: {
-              services: { youtube: true, twitter: true, instagram: true },
-            },
-          },
-          image: { class: SimpleImage, inlineToolbar: true },
-          marker: { class: Marker, shortcut: "CMD+SHIFT+M" },
-          inlineCode: { class: InlineCode, shortcut: "CMD+SHIFT+C" },
-          textVariantTune: {
-            class: TextVariantTune,
-            config: {
-              types: [
-                "primary",
-                "secondary",
-                "info",
-                "success",
-                "warning",
-                "danger",
-              ],
-            },
-          },
-        },
-        data: task.description || { blocks: [] },
-      });
-
-      editorRef.current = editor;
     }
 
+    if (Array.isArray(cfData)) {
+      cfData.forEach(item => {
+        const fieldDef = idMap[item.id]
+        if (!fieldDef) return
+        const sanitized = nameMapRef.current[fieldDef.field_name]
+        if (!sanitized) return
+        setValue(`customFields.${sanitized}`, convertValue(fieldDef, item.value))
+      })
+    } else if (typeof cfData === 'object') {
+      Object.entries(cfData).forEach(([fieldName, value]) => {
+        const fieldDef = customFields.find(f => f.field_name === fieldName)
+        if (!fieldDef) return
+        const sanitized = nameMapRef.current[fieldName]
+        if (!sanitized) return
+        setValue(`customFields.${sanitized}`, convertValue(fieldDef, value))
+      })
+    }
+  }, [task?.custom_fields, customFields, setValue])
+
+  const editorRef = useRef(null);
+
+  // Control visibility only
+  useEffect(() => {
     if (isOpen) {
-      setIsVisible(true);
-      document.body.style.overflow = "hidden";
-
-      setTimeout(() => {
-        if (!editorRef.current) {
-          initEditor();
-        }
-      }, 0); // Ensure DOM is rendered before initializing
+      setIsVisible(true)
+      document.body.style.overflow = 'hidden'
     } else {
-      setTimeout(() => {
-        setIsVisible(false)
-        if (editorRef.current && typeof editorRef.current.destroy === 'function') { // makesure destroy type is func
+      setIsVisible(false)
+      document.body.style.overflow = ''
+      // Cleanup editor when closing
+      if (editorRef.current && typeof editorRef.current.destroy === 'function') {
+        try {
           editorRef.current.destroy()
-          editorRef.current = null
+        } catch (e) {
+          console.error('Error destroying editor on close:', e)
         }
-        document.body.style.overflow = "";
-      }, 300); // Match modal close animation duration
-    }
-
-    return () => {
-      if (editorRef.current && typeof editorRef.current.destroy === 'function') { // makesure destroy type is func
-        editorRef.current.destroy()
         editorRef.current = null
       }
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  // Initialize (or reinitialize) EditorJS once task id & holder div exist
+  useEffect(() => {
+    const initEditor = async () => {
+      if (!isVisible || !task?.id_task) return
+      // If already initialized for this task id, skip
+      if (editorRef.current && editorRef.current._holder?.id === EDITOR_JS_ID) return
+
+      const holderEl = document.getElementById(EDITOR_JS_ID)
+      if (!holderEl) {
+        // Retry shortly if element not yet in DOM
+        setTimeout(initEditor, 50)
+        return
+      }
+      try {
+        const EditorJSModule = (await import('@editorjs/editorjs')).default
+        const [Header, List, Table, Quote, Embed, SimpleImage, Marker, InlineCode, TextColorPlugin, TextVariantTune, Checklist] = await Promise.all([
+          import('@editorjs/header').then(m => m.default),
+          import('@editorjs/list').then(m => m.default),
+          import('@editorjs/table').then(m => m.default),
+          import('@editorjs/quote').then(m => m.default),
+          import('@editorjs/embed').then(m => m.default),
+          import('@editorjs/simple-image').then(m => m.default),
+          import('@editorjs/marker').then(m => m.default),
+          import('@editorjs/inline-code').then(m => m.default),
+          import('editorjs-text-color-plugin').then(m => m.default),
+          import('@editorjs/text-variant-tune').then(m => m.default),
+          import('@editorjs/checklist').then(m => m.default),
+        ])
+
+        // Destroy previous editor if exists (different task id)
+        if (editorRef.current && typeof editorRef.current.destroy === 'function') {
+          try { await editorRef.current.destroy() } catch (e) { console.warn('Error destroying previous editor:', e) }
+          editorRef.current = null
+        }
+
+        const editor = new EditorJSModule({
+          holder: EDITOR_JS_ID,
+          placeholder: 'Write something...',
+          tools: {
+            header: { class: Header, inlineToolbar: true, config: { placeholder: 'Enter a header', levels: [1,2,3,4], defaultLevel: 1 }, tunes: ['textVariantTune'] },
+            list: { class: List, inlineToolbar: true },
+            table: { class: Table, inlineToolbar: true },
+            checklist: { class: Checklist, inlineToolbar: true },
+            quote: { class: Quote, inlineToolbar: true },
+            embed: { class: Embed, inlineToolbar: false, config: { services: { youtube: true, twitter: true, instagram: true } } },
+            image: { class: SimpleImage, inlineToolbar: true },
+            marker: { class: Marker, shortcut: 'CMD+SHIFT+M' },
+            inlineCode: { class: InlineCode, shortcut: 'CMD+SHIFT+C' },
+            textVariantTune: { class: TextVariantTune, config: { types: ['primary','secondary','info','success','warning','danger'] } },
+          },
+          data: task.description || { blocks: [] },
+        })
+        editorRef.current = editor
+      } catch (error) {
+        console.error('Failed to initialize EditorJS:', error)
+      }
+    }
+    initEditor()
+    // Cleanup if task id changes
+    return () => {
+      if (editorRef.current && typeof editorRef.current.destroy === 'function') {
+        try { editorRef.current.destroy() } catch (e) { console.error('Error destroying editor:', e) }
+        editorRef.current = null
+      }
+    }
+  }, [isVisible, task?.id_task, EDITOR_JS_ID, task?.description])
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -986,7 +1067,7 @@ export function TaskDetailModalV2({
         {/* Modal Content */}
         <PanelGroup direction={isMobile ? "vertical" : "horizontal"}>
           <form
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(onSubmit, onError)}
             className="flex flex-col lg:flex-row flex-1 overflow-hidden relative"
           >
             {/* Sidebar */}
@@ -1484,7 +1565,8 @@ export function TaskDetailModalV2({
                     errors={errors}
                     watch={watch}
                     setValue={setValue}
-                    currentValues={task.custom_fields || {}}
+                    currentValues={{}} /* hydrated via effect using sanitized keys */
+                    nameMapRef={nameMapRef}
                   />
 
                   {/* Description */}
