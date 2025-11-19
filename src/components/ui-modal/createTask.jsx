@@ -34,6 +34,14 @@ export function TaskCreateModal({
   const [editorReady, setEditorReady] = useState(false)
   const baseUrl = process.env.PUBLIC_NEXT_BASE_URL
   
+  // Mapping originalName -> sanitizedName to avoid special character issues with RHF/Zod
+  const nameMapRef = useRef({})
+
+  const sanitizeFieldName = (name) => {
+    const base = name.replace(/[^a-zA-Z0-9]/g, '_')
+    return base.replace(/_+/g, '_').replace(/^_/, '').replace(/_$/, '').toLowerCase()
+  }
+  
   // State declarations for auto-refetching functionality
   const [isRefetchingOptions, setIsRefetchingOptions] = useState(false);
   const [refetchedOptions, setRefetchedOptions] = useState({});
@@ -158,28 +166,45 @@ export function TaskCreateModal({
     customFields:
       customFields.length > 0
         ? z.object(
-            customFields.reduce((schema, field) => {
+            customFields.reduce((schema, field, idx) => {
+              const { field_type, field_name, is_mandatory } = field
+              const originalName = field_name
+              let sanitized = sanitizeFieldName(originalName)
+              
+              // Ensure uniqueness if collision
+              if (Object.values(nameMapRef.current).includes(sanitized)) {
+                sanitized = `${sanitized}_${idx}`
+              }
+              nameMapRef.current[originalName] = sanitized
+              
               let fieldValidation
 
-              switch (field.field_type) {
+              switch (field_type) {
                 case 'text':
                 case 'text-area':
-                  fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                  fieldValidation = z.string()
+                  if (is_mandatory) {
+                    fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                  }
                   break
-                case 'single-select':
-                  fieldValidation = z.object({
-                    id_record: z.string().min(1, 'Single-Select id_record is required'),
-                    name: z.string().min(1, 'Single-Select name is required'),
+                case 'number':
+                  fieldValidation = z.number({
+                    required_error: `${field_name} is required`,
                   })
                   break
-                case 'radio':
-                  fieldValidation = z.string().min(1, `${field.field_name} is required`)
+                case 'single-select':
+                  if (is_mandatory) {
+                    fieldValidation = z.object({
+                      id_record: z.string().min(1, `${field_name} is required`),
+                      name: z.string().min(1, `${field_name} is required`),
+                    })
+                  } else {
+                    fieldValidation = z.object({
+                      id_record: z.string(),
+                      name: z.string(),
+                    }).nullable().optional()
+                  }
                   break
-
-                case 'number':
-                  fieldValidation = z.number().min(0, `${field.field_name} is required`)
-                  break
-
                 case 'multiple-select':
                   fieldValidation = z.array(
                     z.object({
@@ -188,19 +213,32 @@ export function TaskCreateModal({
                       name: z.string().min(1, 'Multiple-Select name is required'),
                     })
                   )
+                  if (is_mandatory) {
+                    fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                  }
                   break
                 case 'checkbox':
-                  fieldValidation = z.array(z.string()).min(1, `${field.field_name} is required`)
+                  fieldValidation = z.array(z.string())
+                  if (is_mandatory) {
+                    fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                  }
                   break
-
+                case 'radio':
+                  fieldValidation = z.string()
+                  if (is_mandatory) {
+                    fieldValidation = fieldValidation.min(1, `${field_name} is required`)
+                  }
+                  break
                 default:
-                  fieldValidation = z.any()
+                  fieldValidation = z.string().optional()
               }
 
-              schema[field.field_name] = field.is_mandatory
-                ? fieldValidation
-                : fieldValidation.optional()
+              // Apply mandatory validation or make optional
+              if (!is_mandatory) {
+                fieldValidation = fieldValidation.optional()
+              }
 
+              schema[sanitized] = fieldValidation
               return schema
             }, {})
           )
@@ -526,7 +564,10 @@ export function TaskCreateModal({
     return () => window.removeEventListener('keydown', handleEscape)
   }, [isOpen, onClose])
 
-  const getBorderColor = (fieldName) => (errors[fieldName] ? 'border-red-500' : 'border-gray-300')
+  const getBorderColor = (originalName) => {
+    const key = nameMapRef.current[originalName] || originalName
+    return errors[key] ? 'border-red-500' : 'border-gray-300'
+  }
 
   if (!isVisible) return null
 
@@ -537,6 +578,51 @@ export function TaskCreateModal({
   const onSubmit = async (values) => {
     console.log('Task successfully created: ', values)
     const descriptionData = editorRef.current ? await editorRef.current.save() : {}
+
+    // Transform custom fields for API - convert to array of {id, value} objects
+    const transformedCustomFields = []
+    if (values.customFields && customFields.length > 0) {
+      Object.entries(values.customFields).forEach(([sanitizedName, rawValue]) => {
+        // Find original name from nameMapRef
+        const originalName = Object.keys(nameMapRef.current).find(
+          key => nameMapRef.current[key] === sanitizedName
+        ) || sanitizedName
+        
+        // Find the field definition to get the ID and type
+        const fieldDef = customFields.find(f => f.field_name === originalName)
+        if (!fieldDef) return
+        
+        let value = rawValue
+        
+        // Transform value based on field type
+        switch (fieldDef.field_type) {
+          case 'text':
+          case 'text-area':
+          case 'radio':
+            value = rawValue ?? ''
+            break
+          case 'single-select':
+            value = rawValue?.id_record ?? rawValue?.name ?? rawValue ?? ''
+            break
+          case 'multiple-select':
+            value = Array.isArray(rawValue) ? rawValue : []
+            break
+          case 'checkbox':
+            value = Array.isArray(rawValue) ? rawValue : []
+            break
+          case 'number':
+            value = rawValue === '' || rawValue === undefined ? null : Number(rawValue)
+            break
+          default:
+            value = rawValue ?? ''
+        }
+        
+        transformedCustomFields.push({
+          id: fieldDef.id_field,
+          value
+        })
+      })
+    }
 
     const taskData = {
       name: values.taskName,
@@ -553,7 +639,7 @@ export function TaskCreateModal({
       description: descriptionData,
       attachments: attachments,
       parent_task_id: parentTaskId,
-      custom_fields: values.customFields,
+      custom_fields: transformedCustomFields,
     }
 
     const params = new URLSearchParams(window.location.search)
@@ -987,6 +1073,8 @@ export function TaskCreateModal({
               control={control}
               errors={errors}
               watch={watch}
+              setValue={setValue}
+              nameMapRef={nameMapRef}
             />
 
             {/* Description */}

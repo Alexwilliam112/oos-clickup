@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 
-export function DateRangePicker({ value, onChange, placeholder = "Select date range" }) {
+export function DateRangePicker({ value, onChange, placeholder = "Select deadline" }) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [dateRange, setDateRange] = useState(value || { from: null, to: null });
   const pickerRef = useRef(null);
